@@ -1,81 +1,92 @@
 @import "tailwindcss";
 
+/* global variables for the theme */
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  --background-light: #fefefed7;
+  --background-dark: #131212;
+  --color-light: black;
+  --color-dark: white;
+  --accent-color-light: #10B981;
+  --accent-color-dark: #34D399;
+  --button-background-light: #ffffff00;
+  --button-background-dark: #131212;
+  --button-border-light: #15b680d4;
+  --button-border-dark: #15b680d4;
+  /*shadows*/
+  --shadow-light: 0px 4px 6px rgba(0, 0, 0, 0.352);
+  --shadow-dark: 0px 4px 6px rgba(255, 255, 255, 0.375);
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+
+/* Applicazione del tema light */
+.light {
+  --background: var(--background-light);
+  --color: var(--color-light);
+  --accent-color: var(--accent-color-light);
+  --button-background: var(--button-background-light);
+  --button-border: var(--button-border-light);
+  --shadow: var(--shadow-light);
 }
 
+/* Applicazione del tema dark */
+.dark {
+  --background: var(--background-dark);
+  --color: var(--color-dark);
+  --accent-color: var(--accent-color-dark);
+  --button-background: var(--button-background-dark);
+  --button-border: var(--button-border-dark);
+  --shadow: var(--shadow-dark);
+}
+
+/* Usa le variabili nelle regole CSS */
 body {
-  margin: 0;
+  background-color: var(--background);
+  color: var(--color);
+}
+
+::selection {
+  background-color: var(--accent-color);
+  color: var(--color);
+}
+
+.blurred {
+  filter: blur(5px);    
+}
+
+.row-disposition {
   display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  align-items: center;
+  flex-direction: row;
+  gap: 20px;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+.baseButton {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--color);
+  background: var(--button-background);
+  border: 2px solid var(--button-border);
+  height: 36px;
+  padding: 0 15px;
+  border-radius: 4px;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-.card {
-  padding: 2em;
+.baseButton:hover {
+  background-color: rgba(16, 185, 129, 0.305); 
 }
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+
+/*rilievo dinamico */
+.elevated {
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.3s ease-in-out;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+.elevated:hover {
+  box-shadow: 0px 4px 6px rgba(16, 185, 129, 0.369)
 }
