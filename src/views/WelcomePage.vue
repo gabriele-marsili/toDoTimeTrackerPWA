@@ -9,8 +9,13 @@
                 <h3 class="text-1xl text-center mb-4">Please, choose an option below:</h3>
 
                 <div class="flex justify-center space-x-4 mb-6">
-                    <button class="baseButton">Sign In</button>
-                    <button class="baseButton">Sign Up</button>
+                    <router-link to="/login">
+                        <button class="baseButton">Sign In</button>
+                    </router-link>
+                    <router-link to="/register">
+                        <button class="baseButton">Sign Up</button>
+                    </router-link>
+                    
                 </div>
 
                 <div class="mt-6 flex justify-center">

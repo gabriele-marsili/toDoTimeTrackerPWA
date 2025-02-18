@@ -1,10 +1,21 @@
 <template>
-  
-  
+    <div>
+        <router-view />
+    </div>
 </template>
 
-<script setup>
+<script>
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router'; // 🔹 CORRETTO IMPORT
 
+export default {
+    setup() {
+        const router = useRouter();
+        onMounted(() => {
+            router.push("/welcome");
+        })
+    }
+}
 </script>
 
 <style>

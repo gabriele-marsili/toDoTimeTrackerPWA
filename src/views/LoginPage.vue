@@ -1,16 +1,53 @@
 <template>
-    <div class="flex items-center justify-center min-h-screen">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-96">
-            <h2 class="text-2xl font-bold text-center mb-4">Login</h2>
-            <LoginForm />
-            <p class="text-center text-sm mt-4">
-                Non hai un account?
-                <router-link to="/register" class="text-blue-500 hover:underline">Registrati</router-link>
-            </p>
+    <BackgroundEffect>
+        <div :class="themeClass" class="flex flex-col items-center justify-center min-h-screen p-6">
+            <div class="max-w-lg w-full p-15 rounded-2xl elevated">
+
+                <div class="flex justify-center space-x-4 mb-6">
+                    <LoginForm />
+                </div>
+
+                <div class="flex flex-col items-center justify-center space-y-2">
+                    <p>You don't have an account yet?</p>
+                    <router-link to="/register">
+                        <button class="baseButton">Sign Up</button>
+                    </router-link>
+                </div>
+
+                <div class="mt-6 flex justify-center">
+                    <DarkModeSwitcher />
+                </div>
+            </div>
         </div>
-    </div>
+
+        
+    </BackgroundEffect>
 </template>
 
-<script setup>
+<script>
+import BackgroundEffect from '../components/BackgroundEffect.vue';
+import DarkModeSwitcher from '../components/DarkModeSwitcher.vue';
+import { ref, onMounted } from 'vue';
 import LoginForm from '../components/LoginForm.vue';
+export default {
+    components: { DarkModeSwitcher, BackgroundEffect, LoginForm },
+    setup() {
+        const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
+        
+        onMounted(() => {
+            if (isDarkMode.value) {
+                document.body.classList.add('dark');
+                document.body.classList.remove('light');
+            } else {
+                document.body.classList.add('light');
+                document.body.classList.remove('dark');
+            }
+        });
+
+        return {
+            isDarkMode
+        }
+    }
+
+}
 </script>

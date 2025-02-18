@@ -12,6 +12,8 @@
   --button-background-dark: #131212;
   --button-border-light: #15b680d4;
   --button-border-dark: #15b680d4;
+  --input-field-border-dark: rgba(255, 255, 255, 0.329);
+  --input-field-border-light: rgba(11, 11, 11, 0.457);
   /*shadows*/
   --shadow-light: 0px 4px 6px rgba(0, 0, 0, 0.352);
   --shadow-dark: 0px 4px 6px rgba(255, 255, 255, 0.375);
@@ -27,6 +29,7 @@
   --button-background: var(--button-background-light);
   --button-border: var(--button-border-light);
   --shadow: var(--shadow-light);
+  --input-field-border: var(--input-field-border-light)
 }
 
 /* Applicazione del tema dark */
@@ -37,6 +40,7 @@
   --button-background: var(--button-background-dark);
   --button-border: var(--button-border-dark);
   --shadow: var(--shadow-dark);
+  --input-field-border: var(--input-field-border-dark)
 }
 
 /* Usa le variabili nelle regole CSS */
@@ -51,7 +55,7 @@ body {
 }
 
 .blurred {
-  filter: blur(5px);    
+  filter: blur(5px);
 }
 
 .row-disposition {
@@ -64,6 +68,7 @@ body {
 .baseButton {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.3rem;
   color: var(--color);
   background: var(--button-background);
@@ -74,10 +79,11 @@ body {
   font-size: 0.9rem;
   cursor: pointer;
   transition: background-color 0.3s ease, border-color 0.3s ease;
+
 }
 
 .baseButton:hover {
-  background-color: rgba(16, 185, 129, 0.305); 
+  background-color: rgba(16, 185, 129, 0.305);
 }
 
 
@@ -89,4 +95,27 @@ body {
 
 .elevated:hover {
   box-shadow: 0px 4px 6px rgba(16, 185, 129, 0.369)
+}
+
+
+/*input fields*/
+.baseInputField {
+  width: 85%;
+  border: 0.7px solid var(--input-field-border);
+  /* Bordi fini e semi trasparenti */
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: transparent;
+  outline: none;
+  transition: border-color 0.3s ease, border-width 0.3s ease;
+  display: block;
+  margin: 0 auto;
+  /* Allineamento al centro */
+}
+
+.baseInputField:focus {
+  border-color: var(--button-border);
+  /* Cambia colore bordo */
+  border-width: 2px;
+  /* Aumenta spessore */
 }
