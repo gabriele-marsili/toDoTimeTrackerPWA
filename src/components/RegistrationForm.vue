@@ -130,6 +130,7 @@
 <script setup>
 import { ref, reactive, computed } from 'vue';
 import NotificationManager from '../gestors/NotificationManager.vue';
+import { API_gestor } from '../backend-comunication/api_comunication';
 
 const totalPoints = 100;
 
@@ -163,6 +164,7 @@ const form = reactive({
 
 const newCategoryName = ref('');
 const notificationManager = ref(null);
+const apiGestor = API_gestor.getInstance()
 
 const totalAllocated = computed(() => {
     return form.categories.reduce((sum, cat) => sum + (cat.points || 0), 0);
@@ -185,75 +187,113 @@ const removeCategory = (index) => {
     }
 };
 
-const submitForm = () => {
-    let errors = [];
+const submitForm = async () => {
+    try {
 
-    // Controllo campi obbligatori
-    if (!form.username.trim()) errors.push("Username is required.");
-    if (!form.firstName.trim()) errors.push("First Name is required.");
-    if (!form.lastName.trim()) errors.push("Last Name is required.");
-    if (!form.email.trim()) errors.push("Email is required.");
-    if (!form.age) errors.push("Age is required.");
-    if (!form.phone.trim()) errors.push("Phone Number is required.");
 
-    // Validazione email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email)) {
-        errors.push("Please enter a valid email address.");
-    }
+        let errors = [];
 
-    // Controllo età (deve essere un numero valido e positivo)
-    if (isNaN(form.age) || form.age <= 0) {
-        errors.push("Please enter a valid age.");
-    }
+        // Controllo campi obbligatori
+        if (!form.username.trim()) errors.push("Username is required.");
+        if (!form.firstName.trim()) errors.push("First Name is required.");
+        if (!form.lastName.trim()) errors.push("Last Name is required.");
+        if (!form.email.trim()) errors.push("Email is required.");
+        if (!form.age) errors.push("Age is required.");
+        if (!form.phone.trim()) errors.push("Phone Number is required.");
 
-    // Controllo numero di telefono (almeno 8 cifre)
-    const phoneRegex = /^\d{8,}$/;
-    if (!phoneRegex.test(form.phone)) {
-        errors.push("Phone Number must be at least 8 digits long.");
-    }
-
-    // Controllo allocazione dei punti
-    if (remainingPoints.value !== 0) {
-        errors.push(`You must allocate exactly ${totalPoints} points. Remaining points: ${remainingPoints.value}`);
-    }
-
-    //controllo punti negativi:
-    for (let c of form.categories) {
-        if (c.points < 1) {
-            errors.push(`A category can't have less than 1 point (${c.name})`)
-            break;
+        // Validazione email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(form.email)) {
+            errors.push("Please enter a valid email address.");
         }
 
-        if (c.points > (totalPoints - form.categories.length + 1)) {
-            errors.push(`Having ${form.categories.length} you can't add more than ${(totalPoints - form.categories.length + 1)} points to a single category (${c.name})`)
-            break;
+        // Controllo età (deve essere un numero valido e positivo)
+        if (isNaN(form.age) || form.age <= 0) {
+            errors.push("Please enter a valid age.");
         }
-    }
 
-    // Controllo accettazione termini e condizioni
-    if (!form.acceptTerms) {
-        errors.push("You must accept the terms and conditions.");
-    }
+        // Controllo numero di telefono (almeno 8 cifre)
+        const phoneRegex = /^\d{8,}$/;
+        if (!phoneRegex.test(form.phone)) {
+            errors.push("Phone Number must be at least 8 digits long.");
+        }
 
-    // Se ci sono errori, mostra il primo nella notifica
-    if (errors.length > 0) {
+        // Controllo allocazione dei punti
+        if (remainingPoints.value !== 0) {
+            errors.push(`You must allocate exactly ${totalPoints} points. Remaining points: ${remainingPoints.value}`);
+        }
+
+        //controllo punti negativi:
+        for (let c of form.categories) {
+            if (c.points < 1) {
+                errors.push(`A category can't have less than 1 point (${c.name})`)
+                break;
+            }
+
+            if (c.points > (totalPoints - form.categories.length + 1)) {
+                errors.push(`Having ${form.categories.length} you can't add more than ${(totalPoints - form.categories.length + 1)} points to a single category (${c.name})`)
+                break;
+            }
+        }
+
+        // Controllo accettazione termini e condizioni
+        if (!form.acceptTerms) {
+            errors.push("You must accept the terms and conditions.");
+        }
+
+        // Se ci sono errori, mostra il primo nella notifica
+        if (errors.length > 0) {
+            notificationManager.value?.showNotification({
+                type: "error",
+                message: errors[0], // Mostra il primo errore
+            });
+            return;
+        }
+
+        //check username && email
+        const checkResponse = await apiGestor.checkUniqueEmailAndUsername(form.email, form.username);
+        console.log("checkResponse:\n",checkResponse)
+        if(!checkResponse.success){
+            notificationManager.value?.showNotification({
+                type: "error",
+                message: checkResponse.errorMessage,
+            });
+            return;
+        }
+
+        // Se tutto è valido, invia il form
+        console.log("Registration Form Submitted:", form);
+        
+
+        //registration :
+        const registrationEsit = await apiGestor.registerUser(form)
+        if (registrationEsit.success) {            
+            notificationManager.value?.showNotification({
+                type: "success",
+                message: "Successfully registered as "+form.username,
+            });
+
+        } else {
+            console.log("error in registation:\n", registrationEsit.errorMessage)
+            notificationManager.value?.showNotification({
+                type: "error",
+                message: registrationEsit.errorMessage,
+            });
+
+        }
+
+
+    } catch (error) {
+        console.log("error in submit form:\n", error)
         notificationManager.value?.showNotification({
             type: "error",
-            message: errors[0], // Mostra il primo errore
+            message: "An error occured while submitting form, please try again",
         });
-        return;
     }
 
-    // Se tutto è valido, invia il form
-    console.log("Registration Form Submitted:", form);
-    notificationManager.value?.showNotification({
-        type: "success",
-        message: "Registration successful!",
-    });
-
-    // Qui puoi eseguire la chiamata API per registrare l'utente
 };
+
+
 
 </script>
 
