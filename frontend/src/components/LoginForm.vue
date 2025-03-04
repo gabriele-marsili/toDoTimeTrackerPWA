@@ -2,11 +2,14 @@
     <NotificationManager ref="notificationManager" />
     <form @submit.prevent="login">
         <div class="flex flex-col items-center justify-center ">
+
+            <!--
             <div class="mb-4 w-80">
-                <!--<label class="block text-sm font-medium mb-1">Email</label>-->
+                
                 <input v-model="email" class="baseInputField" autocomplete="off"
                     placeholder="Email">
             </div>
+            -->
 
             <div class="mb-4 w-80">
                 <!--<label class="block text-sm font-medium mb-1">License Key</label>-->
@@ -23,38 +26,39 @@
 <script>
 import { ref } from "vue";
 import NotificationManager from '../gestors/NotificationManager.vue';
+import { API_gestor } from "../backend-comunication/api_comunication";
 
 export default {
     components: { NotificationManager },
     setup() {
-        const email = ref("");
+        //const email = ref("");
         const licensekey = ref("");
         const notificationManager = ref(null); // Riferimento per NotificationManager
-
-        const login = () => {            
+        const apiGestor = API_gestor.getInstance()
+        const login = async () => {
 
             // Rimuove eventuali spazi vuoti iniziali e finali
-            const emailValue = email.value.trim();
+            //const emailValue = email.value.trim();
             const licenseKeyValue = licensekey.value.trim();
 
             // Controllo se i campi sono vuoti
-            if (!emailValue || !licenseKeyValue) {
+            if (!licenseKeyValue) {
                 notificationManager.value.showNotification({
                     type: "error",
-                    message: "Empty field : please insert both email and license key",
+                    message: "Empty field : please insert the license key",
                 });
                 return;
             }
 
             // Controllo validità email con regex
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            /*const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(emailValue)) {
                 notificationManager.value.showNotification({
                     type: "error",
                     message: "Invalid email format",
                 });
                 return;
-            }
+            }*/
 
             // Controllo validità license key (adatta la regex al formato desiderato)
             const licenseKeyRegex = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
@@ -66,8 +70,21 @@ export default {
                 return;
             }
 
-            // Se tutto è valido, procedi con il login
-            console.log("Login con:", emailValue, licenseKeyValue);
+            const loginResponse = await apiGestor.loginWithLicenseKey(licenseKeyValue)
+            if (!loginResponse.success) {
+                notificationManager.value.showNotification({
+                    type: "error",
+                    message: loginResponse.errorMessage,
+                });
+                return;
+            }
+
+
+            notificationManager.value.showNotification({
+                type: "success",
+                message: "Logged successfully",
+            });
+
         };
 
 
@@ -75,7 +92,7 @@ export default {
         return {
             login,
             notificationManager,
-            email,
+            //email,
             licensekey
         }
     }

@@ -25,3 +25,6 @@ dist-ssr
 
 node_modules
 dev-dist
+
+.env
+/src/backend-comunication/keyFile.json
