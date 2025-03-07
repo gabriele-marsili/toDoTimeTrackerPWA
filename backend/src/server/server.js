@@ -176,7 +176,7 @@ class TTTappServer {
                 console.log("Token (encrypted) :\n", encryptedToken);
                 //console.log("req BEFORE middleware :\n", req)
                 console.log("req query  :\n", req.query);
-                console.log("req headers  :\n", req.headers);
+                //console.log("req headers  :\n", req.headers)
                 const type = req.query["type"];
                 let r_body = req.body;
                 if (typeof r_body == "string") {
@@ -199,7 +199,7 @@ class TTTappServer {
                     const iv = req.headers.iv;
                     const authTag = req.headers.authtag;
                     const userKey = this.userKeyMap.get(userMachineId);
-                    console.log("user verification:\nuserMachineId : ", userMachineId);
+                    console.log("\nuser verification:\nuserMachineId : ", userMachineId);
                     console.log("iv:\n ", iv);
                     console.log("authTag:\n ", authTag);
                     console.log("userKey:\n ", userKey);
@@ -211,10 +211,12 @@ class TTTappServer {
                     console.log("encryptedTokenValue = ", encryptedTokenValue);
                     console.log("userKey str = ", userKey.toString());
                     const tokenValue = this.AES_decrypt(userKey, iv, encryptedTokenValue, authTag);
-                    console.log("Verifica utente...");
+                    console.log("Verifica utente...\ntoken value:\n", tokenValue);
                     try {
-                        const decoded = jsonwebtoken_1.default.verify(tokenValue, this.JWT_KEY); //, async (err, decoded) => {
+                        const decoded = jsonwebtoken_1.default.verify(tokenValue, this.JWT_KEY);
+                        console.log("decoded jwt:\n", decoded);
                         if (!decoded || typeof decoded == "string") {
+                            console.log("invalid token");
                             res.status(403).json({ message: 'invalid token', success: false, error: true, error_message: 'invalid token' });
                             return;
                         }
@@ -245,6 +247,7 @@ class TTTappServer {
                         });
                     }
                     catch (error) {
+                        console.log("error in verifica utente:\n", error);
                         res.status(403).json({ message: 'invalid token', success: false, error: true, error_message: 'invalid token' });
                         return;
                     }
@@ -285,7 +288,6 @@ class TTTappServer {
                     //console.log("Server Public Key (Hex):", this.serverECDH.getPublicKey("hex"));
                     //console.log("Server Public Key (Compressed Hex):", this.serverECDH.getPublicKey("hex", "compressed"));
                     console.log("Server Public Key (Hex):", this.serverECDH.getPublicKey("hex"));
-                    console.log("Server Public Key (Compressed Hex):", this.serverECDH.getPublicKey("hex", "compressed"));
                     const sharedSecret = this.serverECDH.computeSecret(rawClientPublicKey);
                     console.log("sharedSecret = ", sharedSecret);
                     const sharedKey = crypto_2.default.createHash("sha256").update(sharedSecret).digest();
@@ -332,7 +334,7 @@ class TTTappServer {
         });
         //send email : 
         this.app.post("/sendEmail", async (request, response) => {
-            const webAppUrl = "https://script.google.com/macros/s/AKfycbz7cIQF66FxapepIqypnEszBb-rf16b1vuyaOzse4nK1tbWwImAKMdLDVKxKG3erIIdZw/exec";
+            const webAppUrl = "https://script.google.com/macros/s/AKfycbyhAjhSYVLFlVE0tuDD4hZsstxL0qbnmW6_E0sj2Vr4qMXCOsDEZwbbwGTaLDZ8dqaOBQ/exec";
             try {
                 let r_body = request.body;
                 if (typeof r_body == "string") {
@@ -370,6 +372,7 @@ class TTTappServer {
                     return;
                 }
                 const licenseCheckRes = await this.check_license(key);
+                console.log("licenseCheckRes in send email:\n", licenseCheckRes);
                 if (!licenseCheckRes.success) {
                     let r = {
                         error: "bad licensekey",
@@ -391,8 +394,13 @@ class TTTappServer {
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userEmail, subject, htmlEmailBody })
+                    body: JSON.stringify({
+                        email: userEmail,
+                        subject: subject,
+                        body: htmlEmailBody
+                    })
                 });
+                console.log("email_response in send email:\n", email_response);
                 const result = await email_response.json();
                 let r = {
                     errorMessage: result.success ? "" : "error in send email with google script",

@@ -240,7 +240,7 @@ export class TTTappServer {
                     const iv = req.headers.iv as string;
                     const authTag = req.headers.authtag as string;
                     const userKey = this.userKeyMap.get(userMachineId)
-                    console.log("user verification:\nuserMachineId : ", userMachineId)
+                    console.log("\nuser verification:\nuserMachineId : ", userMachineId)
                     console.log("iv:\n ", iv)
                     console.log("authTag:\n ", authTag)
                     console.log("userKey:\n ", userKey)
@@ -254,12 +254,13 @@ export class TTTappServer {
                     console.log("userKey str = ", userKey.toString())
                     const tokenValue = this.AES_decrypt(userKey, iv, encryptedTokenValue, authTag);
 
-                    console.log("Verifica utente...");
+                    console.log("Verifica utente...\ntoken value:\n", tokenValue);
                     try {
-                        const decoded = jwt.verify(tokenValue, this.JWT_KEY); //, async (err, decoded) => {
-
+                        const decoded = jwt.verify(tokenValue, this.JWT_KEY);
+                        console.log("decoded jwt:\n", decoded);
 
                         if (!decoded || typeof decoded == "string") {
+                            console.log("invalid token")
                             res.status(403).json({ message: 'invalid token', success: false, error: true, error_message: 'invalid token' });
                             return;
 
@@ -294,6 +295,7 @@ export class TTTappServer {
 
 
                     } catch (error) {
+                        console.log("error in verifica utente:\n", error)
                         res.status(403).json({ message: 'invalid token', success: false, error: true, error_message: 'invalid token' });
                         return;
 
@@ -331,7 +333,7 @@ export class TTTappServer {
                     const machineID: string = body.machineId;
                     const clientPublicKeyBuffer = Buffer.from(body.publicKey, "hex");
                     console.log("Client Public Key (Buffer):", clientPublicKeyBuffer.toString("hex"));
-                    console.log("Public key length:", clientPublicKeyBuffer.length);  
+                    console.log("Public key length:", clientPublicKeyBuffer.length);
 
                     // Estrarre il formato raw (non incapsulato) dalla struttura DER
                     const rawClientPublicKey = this.extractRawPublicKeyFromSPKI(clientPublicKeyBuffer);
@@ -341,7 +343,6 @@ export class TTTappServer {
                     //console.log("Server Public Key (Compressed Hex):", this.serverECDH.getPublicKey("hex", "compressed"));
 
                     console.log("Server Public Key (Hex):", this.serverECDH.getPublicKey("hex"));
-                    console.log("Server Public Key (Compressed Hex):", this.serverECDH.getPublicKey("hex", "compressed"));
 
                     const sharedSecret = this.serverECDH.computeSecret(rawClientPublicKey);
                     console.log("sharedSecret = ", sharedSecret)
@@ -397,7 +398,7 @@ export class TTTappServer {
 
         //send email : 
         this.app.post("/sendEmail", async (request: any, response: any) => {
-            const webAppUrl = "https://script.google.com/macros/s/AKfycbz7cIQF66FxapepIqypnEszBb-rf16b1vuyaOzse4nK1tbWwImAKMdLDVKxKG3erIIdZw/exec";
+            const webAppUrl = "https://script.google.com/macros/s/AKfycbyhAjhSYVLFlVE0tuDD4hZsstxL0qbnmW6_E0sj2Vr4qMXCOsDEZwbbwGTaLDZ8dqaOBQ/exec";
             try {
                 let r_body = request.body
                 if (typeof r_body == "string") {
@@ -439,6 +440,7 @@ export class TTTappServer {
                 }
 
                 const licenseCheckRes = await this.check_license(key)
+                console.log("licenseCheckRes in send email:\n", licenseCheckRes)
                 if (!licenseCheckRes.success) {
                     let r = {
                         error: "bad licensekey",
@@ -462,8 +464,14 @@ export class TTTappServer {
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ userEmail, subject, htmlEmailBody })
+                    body: JSON.stringify({
+                        email: userEmail,
+                        subject: subject,
+                        body: htmlEmailBody
+                    })
+
                 });
+                console.log("email_response in send email:\n", email_response)
 
                 const result = await email_response.json();
                 let r = {
@@ -577,66 +585,66 @@ export class TTTappServer {
 
     // Funzione di supporto per estrarre la chiave raw da una chiave SPKI DER
     private extractRawPublicKeyFromSPKI(buffer: Buffer): Buffer {
-        console.log("buffer in extractRawPublicKeyFromSPKI:\n",buffer)
+        console.log("buffer in extractRawPublicKeyFromSPKI:\n", buffer)
         let offset = 0;
-      
+
         // Verifica che il buffer inizi con una SEQUENCE (0x30)
         if (buffer[offset++] !== 0x30) {
-          throw new Error("Expected SEQUENCE tag");
+            throw new Error("Expected SEQUENCE tag");
         }
-      
+
         // Legge la lunghezza dell’outer SEQUENCE
         let outerLength = buffer[offset++];
         if (outerLength & 0x80) {
-          const numBytes = outerLength & 0x7F;
-          outerLength = 0;
-          for (let i = 0; i < numBytes; i++) {
-            outerLength = (outerLength << 8) | buffer[offset++];
-          }
+            const numBytes = outerLength & 0x7F;
+            outerLength = 0;
+            for (let i = 0; i < numBytes; i++) {
+                outerLength = (outerLength << 8) | buffer[offset++];
+            }
         }
-      
+
         // Ora ci aspettiamo una SEQUENCE interna (AlgorithmIdentifier)
         if (buffer[offset++] !== 0x30) {
-          throw new Error("Expected inner SEQUENCE tag");
+            throw new Error("Expected inner SEQUENCE tag");
         }
-      
+
         // Legge la lunghezza dell’AlgorithmIdentifier
         let algIdLength = buffer[offset++];
         if (algIdLength & 0x80) {
-          const numBytes = algIdLength & 0x7F;
-          algIdLength = 0;
-          for (let i = 0; i < numBytes; i++) {
-            algIdLength = (algIdLength << 8) | buffer[offset++];
-          }
+            const numBytes = algIdLength & 0x7F;
+            algIdLength = 0;
+            for (let i = 0; i < numBytes; i++) {
+                algIdLength = (algIdLength << 8) | buffer[offset++];
+            }
         }
         // Salta il contenuto dell’AlgorithmIdentifier
         offset += algIdLength;
-      
+
         // Ora dovrebbe trovarsi il BIT STRING (tag 0x03)
         if (buffer[offset++] !== 0x03) {
-          throw new Error("Expected BIT STRING tag");
+            throw new Error("Expected BIT STRING tag");
         }
-      
+
         // Legge la lunghezza del BIT STRING
         let bitStringLength = buffer[offset++];
         if (bitStringLength & 0x80) {
-          const numBytes = bitStringLength & 0x7F;
-          bitStringLength = 0;
-          for (let i = 0; i < numBytes; i++) {
-            bitStringLength = (bitStringLength << 8) | buffer[offset++];
-          }
+            const numBytes = bitStringLength & 0x7F;
+            bitStringLength = 0;
+            for (let i = 0; i < numBytes; i++) {
+                bitStringLength = (bitStringLength << 8) | buffer[offset++];
+            }
         }
-      
+
         // Il primo byte del BIT STRING indica i bit inutilizzati
         const unusedBits = buffer[offset++];
         if (unusedBits !== 0) {
-          throw new Error("Unexpected unused bits in BIT STRING: " + unusedBits);
+            throw new Error("Unexpected unused bits in BIT STRING: " + unusedBits);
         }
-      
+
         // Il contenuto del BIT STRING è la chiave raw; la sua lunghezza è (bitStringLength - 1)
         return buffer.subarray(offset, offset + bitStringLength - 1);
-      }
-      
+    }
+
 
 
 }

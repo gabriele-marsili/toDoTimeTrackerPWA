@@ -1,6 +1,9 @@
 export function generateLicenseKey() {
     return Array.from({ length: 4 }, () => Math.random().toString(36).substring(2, 6).toUpperCase()).join("-");
 }
+export function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 export async function getDeviceId() {
     try {
         let id = localStorage.getItem("deviceId");

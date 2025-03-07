@@ -42,6 +42,7 @@ export declare class API_gestor {
     private decryptKey;
     private AES_encrypt;
     private arrayBufferToHex;
+    private hexToArrayBuffer_2;
     private cryptoKeyToHex;
     private getMachineID;
     private decryptMessage;

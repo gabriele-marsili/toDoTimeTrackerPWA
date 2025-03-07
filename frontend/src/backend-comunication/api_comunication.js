@@ -48,8 +48,8 @@ export class API_gestor {
     async init() {
         this.machineID = "";
         this.API_BASE_URL = "http://localhost:3042"; // to do : spostare da qui
-        this.JWT_KEY_USERS = "jU(TTT-app)%\/*+-.-+*![00]";
-        this.JWT_KEY = "jwtTTT-%42\=ç-%42°?!372-1092-947019-[[[]-T-È€-à>";
+        this.JWT_KEY_USERS = "jU(TTT-app)%8/*+-.-+*![00]";
+        this.JWT_KEY = "jwtTTT-%42-=ç-%42°?!372-1092-947019-[[[]-T-È€-à>";
         console.log("API_BASE_URL = ", this.API_BASE_URL);
         console.log("JWT_KEY_USERS = ", this.JWT_KEY_USERS);
         console.log("JWT_KEY = ", this.JWT_KEY);
@@ -133,6 +133,7 @@ export class API_gestor {
                         publicKey: encryptedPublicKey,
                         privateKey: encryptedPrivateKey,
                     };
+                    console.log("key pair (encrypted):\n", d);
                     // Apri una nuova transazione per salvare i dati
                     const newTransaction = db.transaction(["keys"], "readwrite");
                     const newStore = newTransaction.objectStore("keys");
@@ -170,16 +171,14 @@ export class API_gestor {
                     name: "ECDH",
                     namedCurve: "P-256"
                 }, false, []);
-                // Derivare la chiave condivisa
-                const sharedSecret = await window.crypto.subtle.deriveKey({
-                    name: "ECDH",
-                    public: serverPublicKey
-                }, this.clientECDH.privateKey, {
-                    name: "AES-GCM",
-                    length: 256
-                }, false, ["encrypt", "decrypt"]);
-                this.sharedKey = sharedSecret;
-                console.log("setted shared key : ", this.sharedKey);
+                // Deriva i 256 bit della shared secret
+                const sharedSecretBits = await window.crypto.subtle.deriveBits({ name: "ECDH", public: serverPublicKey }, this.clientECDH.privateKey, 256);
+                // Calcola l'hash SHA-256 per ottenere la shared key, come fatto sul server
+                const sharedKeyBuffer = await window.crypto.subtle.digest("SHA-256", sharedSecretBits);
+                // Converti in hex per verificare
+                const sharedKeyHex = this.arrayBufferToHex(sharedKeyBuffer);
+                console.log("Shared key (client, hex):", sharedKeyHex);
+                this.sharedKey = sharedKeyHex;
             }
             else {
                 throw new Error(responseData.errorMessage);
@@ -212,6 +211,9 @@ export class API_gestor {
         return sodium.crypto_secretbox_open_easy(encryptedUint8, nonceUint8, key);
     }
     async AES_encrypt(key, plaintext) {
+        const KeyBuffer = this.hexToArrayBuffer_2(key);
+        const CryptoKey = await window.crypto.subtle.importKey("raw", KeyBuffer, { name: "AES-GCM" }, false, // non esportabile
+        ["encrypt", "decrypt"]);
         // Genera un IV casuale per AES-GCM (12 bytes)
         const iv = window.crypto.getRandomValues(new Uint8Array(12)); // iv è un Uint8Array, va bene per AES-GCM
         // Converti il plaintext in un ArrayBuffer
@@ -221,7 +223,7 @@ export class API_gestor {
         const encrypted = await window.crypto.subtle.encrypt({
             name: "AES-GCM",
             iv: iv, // iv è un Uint8Array
-        }, key, encodedText);
+        }, CryptoKey, encodedText);
         // Converti il risultato cifrato (ArrayBuffer) in un Uint8Array
         const encryptedArray = new Uint8Array(encrypted); // encryptedArray è un Uint8Array, non un Uint8Array<ArrayBuffer>
         // Converti i dati cifrati in formato esadecimale
@@ -238,6 +240,16 @@ export class API_gestor {
     arrayBufferToHex(buffer) {
         const view = new Uint8Array(buffer); // La vista Uint8Array dell'ArrayBuffer
         return Array.from(view).map(byte => byte.toString(16).padStart(2, '0')).join('');
+    }
+    hexToArrayBuffer_2(hex) {
+        if (hex.length % 2 !== 0) {
+            throw new Error("Hex string must have an even number of characters");
+        }
+        const buffer = new Uint8Array(hex.length / 2);
+        for (let i = 0; i < hex.length; i += 2) {
+            buffer[i / 2] = parseInt(hex.substr(i, 2), 16);
+        }
+        return buffer.buffer;
     }
     async cryptoKeyToHex(key) {
         const sharedSecretBuffer = await window.crypto.subtle.exportKey("raw", key);
@@ -390,7 +402,7 @@ export class API_gestor {
             const plainText = JSON.stringify(params);
             console.log("plain text: ", plainText);
             const encryptedParams = this.encryptMessage(plainText);
-            console.log("encryptedParams get user info by key = ", encryptedParams);
+            console.log("encryptedParams send email = ", encryptedParams);
             const mId = await this.getMachineID();
             const b = { data: encryptedParams, machineId: mId };
             const reqUrl = `${this.API_BASE_URL}/sendEmail?type=user`;
@@ -567,7 +579,6 @@ export class API_gestor {
         console.log("plain tk = ", plainToken);
         const AES_res = await this.AES_encrypt(this.sharedKey, plainToken);
         console.log("aes res = ", AES_res);
-        console.log("this.sharedKey str = ", this.sharedKey.toString());
         return {
             "Authorization": 'Bearer ' + AES_res.encryptedData,
             "iv": AES_res.iv,

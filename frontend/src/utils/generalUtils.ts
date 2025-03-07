@@ -1,7 +1,11 @@
 export function generateLicenseKey(): string {
-    return Array.from({ length: 4 }, () => 
+    return Array.from({ length: 4 }, () =>
         Math.random().toString(36).substring(2, 6).toUpperCase()
     ).join("-");
+}
+
+export function delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export async function getDeviceId(): Promise<string> {

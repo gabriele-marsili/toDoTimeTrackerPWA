@@ -131,6 +131,7 @@
 import { ref, reactive, computed } from 'vue';
 import NotificationManager from '../gestors/NotificationManager.vue';
 import { API_gestor } from '../backend-comunication/api_comunication';
+import { delay } from '../utils/generalUtils';
 
 const totalPoints = 100;
 
@@ -252,8 +253,8 @@ const submitForm = async () => {
 
         //check username && email
         const checkResponse = await apiGestor.checkUniqueEmailAndUsername(form.email, form.username);
-        console.log("checkResponse:\n",checkResponse)
-        if(!checkResponse.success){
+        console.log("checkResponse:\n", checkResponse)
+        if (!checkResponse.success) {
             notificationManager.value?.showNotification({
                 type: "error",
                 message: checkResponse.errorMessage,
@@ -263,14 +264,22 @@ const submitForm = async () => {
 
         // Se tutto è valido, invia il form
         console.log("Registration Form Submitted:", form);
-        
+        notificationManager.value?.showNotification({
+            type: "info",
+            message: "Submitting registration...",
+        });
 
         //registration :
         const registrationEsit = await apiGestor.registerUser(form)
-        if (registrationEsit.success) {            
+        if (registrationEsit.success) {
             notificationManager.value?.showNotification({
                 type: "success",
-                message: "Successfully registered as "+form.username,
+                message: "Successfully registered as " + form.username,
+            });
+            await delay(1500)
+            notificationManager.value?.showNotification({
+                type: "info",
+                message: "We've sent you the license key via email, please check also the spam",
             });
 
         } else {
