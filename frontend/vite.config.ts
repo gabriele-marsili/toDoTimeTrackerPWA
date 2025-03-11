@@ -39,7 +39,9 @@ export default defineConfig({
           },
         ],
       },
-      devOptions:{enabled:true}
+      devOptions:{enabled:true},
+      srcDir : "src",
+      filename : "service_worker.js"
     }),
   ],
 })

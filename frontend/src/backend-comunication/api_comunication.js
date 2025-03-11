@@ -1,5 +1,5 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { collection, doc, getDoc, getDocs, query, setDoc, where } from "firebase/firestore";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updatePassword } from "firebase/auth";
+import { collection, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { analytics, auth, db } from "./firebase";
 import { generateLicenseKey, getDeviceId, hashPassword } from "../utils/generalUtils";
 import sodium from 'libsodium-wrappers';
@@ -251,13 +251,6 @@ export class API_gestor {
         }
         return buffer.buffer;
     }
-    async cryptoKeyToHex(key) {
-        const sharedSecretBuffer = await window.crypto.subtle.exportKey("raw", key);
-        // Converti il buffer in stringa esadecimale
-        return Array.from(new Uint8Array(sharedSecretBuffer))
-            .map(byte => byte.toString(16).padStart(2, "0"))
-            .join("");
-    }
     async getMachineID() {
         if (!this.machineID || this.machineID == "") {
             this.machineID = await getDeviceId();
@@ -343,6 +336,9 @@ export class API_gestor {
     async sendEmail(type, licenseKey, username, userEmail) {
         try {
             await this.checkInit();
+            if (this.licenseKey == "") {
+                this.licenseKey = licenseKey;
+            }
             let subject = "";
             let htmlEmailBody = "";
             switch (type) {
@@ -532,6 +528,7 @@ export class API_gestor {
                     try {
                         this.userCredentials = await signInWithEmailAndPassword(this.auth, userData.email, userData.licenseKey);
                         this.user = this.userCredentials.user;
+                        this.licenseKey = userData.licenseKey;
                     }
                     catch (error) {
                         console.log("error during login:\n", error);
@@ -572,6 +569,122 @@ export class API_gestor {
         const docRef = doc(collection(this.db, "users"), licenseKey);
         const docSnap = await getDoc(docRef);
         return docSnap.exists();
+    }
+    async getUserByEmail(email) {
+        try {
+            // Verifica se l'email è già presente
+            const emailQuery = query(collection(this.db, "users"), where("email", "==", email));
+            const emailSnapshot = await getDocs(emailQuery);
+            if (emailSnapshot.empty) {
+                throw new Error("No users found with email " + email);
+            }
+            console.log("emailSnapshot:\n", emailSnapshot);
+            const users = emailSnapshot.docs.map(doc => ({
+                id: doc.id, // Include anche l'ID del documento
+                ...doc.data() // I dati reali dell'utente
+            }));
+            if (users.length > 1) {
+                throw new Error("Multiple users with same email : " + email);
+            }
+            if (users.length == 0) {
+                throw new Error("No users found with email " + email);
+            }
+            return { success: true, errorMessage: "", data: users[0] };
+        }
+        catch (error) {
+            return { success: false, errorMessage: error.message, data: null };
+        }
+    }
+    async resetLKbyServer(email, lk, new_lk) {
+        try {
+            await this.checkInit();
+            if (this.licenseKey == "") {
+                this.licenseKey = lk;
+            }
+            const base64PubKey = this.unitArrToBase64(this.keyPair.publicKey);
+            const params = { key: this.licenseKey, clientPubkey: base64PubKey, userEmail: email, new_licenseKey: new_lk };
+            const plainText = JSON.stringify(params);
+            const encryptedParams = this.encryptMessage(plainText);
+            const mId = await this.getMachineID();
+            const b = { data: encryptedParams, machineId: mId };
+            const reqUrl = `${this.API_BASE_URL}/resetLK?type=user`;
+            const options = {
+                method: 'POST',
+                headers: await this.getHeader(this.licenseKey),
+                body: JSON.stringify(b)
+            };
+            const response = await fetch(reqUrl, options);
+            const responseJ = await response.json();
+            if (!response.ok) {
+                console.log("bad server response for reset lk :\n", response);
+                if (responseJ.data) {
+                    let responseData = JSON.parse(this.decryptMessageToString(JSON.stringify(responseJ.data)));
+                    console.log("bad server response for get x credentials - respnoseData (parsed) :\n", responseData);
+                    if (responseData.errorMessage) {
+                        throw new Error(`bad response by server : ${responseData.errorMessage}`);
+                    }
+                }
+                throw new Error(`bad response by server with status : ${response.status}`);
+            }
+            console.log("response j (reset lk):\n", responseJ);
+            const responseData = responseJ.data ? JSON.parse(this.decryptMessageToString(responseJ.data)) : responseJ;
+            console.log("responseData (parsed) j (reset lk):\n", responseData);
+            if (responseData.success) {
+                return {
+                    success: true,
+                    errorMessage: ""
+                };
+            }
+            else {
+                return {
+                    success: false,
+                    errorMessage: responseData.errorMessage
+                };
+            }
+        }
+        catch (error) {
+            return {
+                success: false,
+                errorMessage: error.message
+            };
+        }
+    }
+    async resetLicenseKey(email, lk) {
+        try {
+            let new_licenseKey = generateLicenseKey();
+            if (this.auth.currentUser) {
+                await updatePassword(this.auth.currentUser, new_licenseKey);
+                //update in firestone DB:
+                const q = query(collection(this.db, "users"), where("email", "==", email));
+                const snapshot = await getDocs(q);
+                if (snapshot.empty) {
+                    throw new Error("No user found with email " + email);
+                }
+                const userDoc = snapshot.docs[0].ref;
+                await updateDoc(userDoc, { licenseKey: new_licenseKey });
+            }
+            else {
+                const serverResponse = await this.resetLKbyServer(email, lk, new_licenseKey);
+                console.log("server response:\n", serverResponse);
+                if (!serverResponse.success) {
+                    throw new Error(serverResponse.errorMessage);
+                }
+            }
+            // => password (= license key) resetted successfully
+            this.licenseKey = new_licenseKey; //update in api gestor
+            return {
+                success: true,
+                errorMessage: "",
+                newLicenseKey: new_licenseKey
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                errorMessage: error.message,
+                newLicenseKey: ""
+            };
+        }
     }
     // ----- utils :
     async getHeader(licenseKey) {

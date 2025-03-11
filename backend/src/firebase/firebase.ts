@@ -1,6 +1,9 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import path from "path";
+import admin from "firebase-admin";
+
 
 const firebaseConfig = {
     apiKey: "AIzaSyD0iZyzMT-SZC1KPmJxIQjBXg5kjWOKhME",
@@ -17,4 +20,12 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-export { auth, db };
+
+const serviceAccountPath = path.resolve(__dirname, "adminCredentials.json");
+
+const initializedFirestonAdmin = admin.initializeApp({
+    credential: admin.credential.cert(serviceAccountPath),    
+});
+
+
+export { auth, db, initializedFirestonAdmin };

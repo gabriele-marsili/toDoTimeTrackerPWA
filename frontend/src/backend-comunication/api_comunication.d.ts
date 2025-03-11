@@ -43,7 +43,6 @@ export declare class API_gestor {
     private AES_encrypt;
     private arrayBufferToHex;
     private hexToArrayBuffer_2;
-    private cryptoKeyToHex;
     private getMachineID;
     private decryptMessage;
     private decryptMessageToString;
@@ -58,6 +57,17 @@ export declare class API_gestor {
     loginWithLicenseKey(licenseKey: string): Promise<baseResponse>;
     logOut(): Promise<baseResponse>;
     private checkIfUserExist;
+    getUserByEmail(email: string): Promise<{
+        success: boolean;
+        errorMessage: string;
+        data: any;
+    }>;
+    private resetLKbyServer;
+    resetLicenseKey(email: string, lk: string): Promise<{
+        success: boolean;
+        errorMessage: string;
+        newLicenseKey: string;
+    }>;
     private getHeader;
     private base64urlEncode;
     private generateJwtToken;

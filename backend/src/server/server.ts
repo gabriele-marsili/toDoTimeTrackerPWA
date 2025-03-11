@@ -9,8 +9,9 @@ import { createHash } from 'crypto';
 import crypto from "crypto";
 import { collection, Firestore, getDocs, query, where } from 'firebase/firestore';
 import { Auth } from 'firebase/auth';
-import { auth, db } from '../firebase/firebase';
+import { auth, db, initializedFirestonAdmin } from '../firebase/firebase';
 import cors from 'cors';
+import { app } from 'firebase-admin';
 
 
 /**
@@ -29,12 +30,14 @@ export class TTTappServer {
 
     private auth: Auth
     private db: Firestore
+    private firestoneAdmin: app.App
 
     private constructor() {
         dotenv.config({ path: path.join(__dirname, "server.env") });
 
         this.auth = auth;
         this.db = db;
+        this.firestoneAdmin = initializedFirestonAdmin;
 
         this.JWT_KEY = process.env.JWT_KEY || "JWT_KEY not loaded"
         this.JWT_KEY_USERS = process.env.JWT_KEY_USERS || "JWT_KEY_USERS not loaded"
@@ -484,6 +487,128 @@ export class TTTappServer {
 
 
             } catch (e: any) {
+                response.status(501).json({
+                    success: false,
+                    error: "server issue",
+                    errorMessage: e.message
+                })
+                return;
+            }
+        })
+
+        //reset licensekey: 
+        this.app.post("/resetLK", async (request: any, response: any) => {
+            console.log("resetting lk...")
+            try {
+                let r_body = request.body
+                if (typeof r_body == "string") {
+                    r_body = JSON.parse(r_body)
+                }
+
+                if (!("data" in r_body)) {
+                    let missing_argument = {
+                        error: "missing argument",
+                        success: false,
+                        indication: "you need to request data"
+                    }
+                    response.status(409).json(missing_argument)
+                    return;
+                }
+
+                const encryptedData = r_body.data                
+                const decriptedBody = this.decryptMessage(encryptedData)
+                console.log("decriptedBody reset lk:\n", decriptedBody)
+                const { key, clientPubkey, new_licenseKey, userEmail } = JSON.parse(decriptedBody)
+                const clientPubkeyParsed = this.convertToUint8ArrayByBase64(clientPubkey);
+                console.log("clientPubkeyParsed:\n", clientPubkeyParsed)
+                if (!key || !clientPubkeyParsed) {
+                    let missing_argument = {
+                        error: "missing argument",
+                        success: false,
+                        indication: "missing k"
+                    }
+
+                    if (clientPubkeyParsed) {
+                        const encryptedRes = this.encryptMessageToString(JSON.stringify(missing_argument), clientPubkeyParsed)
+                        response.status(404).json({ data: encryptedRes })
+                    } else {
+                        response.status(409).json(missing_argument)
+                    }
+
+                    return;
+                }
+
+                const licenseCheckRes = await this.check_license(key)
+                console.log("licenseCheckRes in reset lk:\n", licenseCheckRes)
+                if (!licenseCheckRes.success) {
+                    let r = {
+                        error: "bad licensekey",
+                        errorMessage: licenseCheckRes.errorMessage,
+                        success: false,
+                        indication: "missing k"
+                    }
+
+                    if (clientPubkeyParsed) {
+                        const encryptedRes = this.encryptMessageToString(JSON.stringify(r), clientPubkeyParsed)
+                        response.status(409).json({ data: encryptedRes })
+                    } else {
+                        response.status(409).json(r)
+                    }
+
+                    return;
+                }
+
+                const userRecord = await this.firestoneAdmin.auth().getUserByEmail(userEmail)
+                await this.firestoneAdmin.auth().updateUser(userRecord.uid, {
+                    password: new_licenseKey
+                })
+
+                //update firestone db : 
+                const db = this.firestoneAdmin.firestore()
+                const userQuery = db.collection("users").where("email", "==", userEmail);
+                const snapshot = await userQuery.get();
+        
+                if (snapshot.empty) {
+                    console.log("Nessun utente trovato con questa email.");
+                    
+                    let r = {
+                        error: "No user found with email : "+userEmail,
+                        errorMessage: "No user found with email : "+userEmail,
+                        success: false,
+                        indication: "bad email"
+                    }
+
+                    if (clientPubkeyParsed) {
+                        const encryptedRes = this.encryptMessageToString(JSON.stringify(r), clientPubkeyParsed)
+                        response.status(409).json({ data: encryptedRes })
+                    } else {
+                        response.status(409).json(r)
+                    }
+
+                    return;
+                }
+        
+                // Aggiorna il primo documento trovato
+                const userDoc = snapshot.docs[0].ref;
+                await userDoc.update({ licenseKey: new_licenseKey });
+        
+
+                let r = {
+                    errorMessage: "",
+                    success: true,
+                }
+                console.log("r:\n",r)
+                if (clientPubkeyParsed) {
+                    const encryptedRes = this.encryptMessageToString(JSON.stringify(r), clientPubkeyParsed)
+                    response.status(200).json({ data: encryptedRes })
+                } else {
+                    response.status(200).json(r)
+                }
+                
+
+
+            } catch (e: any) {
+                console.log("server issue reset lk:\n",e)
                 response.status(501).json({
                     success: false,
                     error: "server issue",

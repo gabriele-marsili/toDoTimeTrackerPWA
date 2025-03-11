@@ -31,14 +31,13 @@ import { API_gestor } from "../backend-comunication/api_comunication";
 export default {
     components: { NotificationManager },
     setup() {
-        //const email = ref("");
+        
         const licensekey = ref("");
         const notificationManager = ref(null); // Riferimento per NotificationManager
         const apiGestor = API_gestor.getInstance()
         const login = async () => {
 
             // Rimuove eventuali spazi vuoti iniziali e finali
-            //const emailValue = email.value.trim();
             const licenseKeyValue = licensekey.value.trim();
 
             // Controllo se i campi sono vuoti
@@ -49,17 +48,7 @@ export default {
                 });
                 return;
             }
-
-            // Controllo validità email con regex
-            /*const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(emailValue)) {
-                notificationManager.value.showNotification({
-                    type: "error",
-                    message: "Invalid email format",
-                });
-                return;
-            }*/
-
+            
             // Controllo validità license key (adatta la regex al formato desiderato)
             const licenseKeyRegex = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
             if (!licenseKeyRegex.test(licenseKeyValue)) {
@@ -91,8 +80,7 @@ export default {
 
         return {
             login,
-            notificationManager,
-            //email,
+            notificationManager,            
             licensekey
         }
     }
