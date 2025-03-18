@@ -21,6 +21,12 @@
                 <div class="mt-6 flex justify-center">
                     <DarkModeSwitcher />
                 </div>
+
+                <div class="mt-6 flex justify-center">
+                    <ConnectionStatus />
+                </div>
+
+                
             </div>
         </div>
     </BackgroundEffect>
@@ -30,10 +36,11 @@
 import { ref, onMounted } from 'vue';
 import DarkModeSwitcher from '../components/DarkModeSwitcher.vue';
 import BackgroundEffect from '../components/BackgroundEffect.vue';
+import ConnectionStatus from '../components/ConnectionStatus.vue';
 
 
 export default {
-    components: { DarkModeSwitcher, BackgroundEffect },
+    components: { DarkModeSwitcher, BackgroundEffect, ConnectionStatus },
     setup() {
         const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
 

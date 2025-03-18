@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { enableIndexedDbPersistence, getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
@@ -13,10 +13,19 @@ const firebaseConfig = {
     measurementId: "G-F7V5FT5TC8"
 };
 
+// Per testare la modalità offline manualmente (da usare solo per test)
+// disableNetwork(db)
+
+// Per riabilitare la rete dopo il test
+// enableNetwork(db)
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+const db = initializeFirestore(app, {
+    localCache : persistentLocalCache(
+        {tabManager : persistentMultipleTabManager()}
+    )
+});
 const analytics = getAnalytics(app);
 
 export { auth, db, analytics };

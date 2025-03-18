@@ -12,7 +12,7 @@ export default {
     setup() {
         const router = useRouter();
         onMounted(() => {
-            router.push("/welcome");
+            router.push("/offline_page");
         })
     }
 }

@@ -1,3 +1,4 @@
+/// <reference types="../../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import { ref, reactive, computed } from 'vue';
 import NotificationManager from '../gestors/NotificationManager.vue';
 import { API_gestor } from '../backend-comunication/api_comunication';
@@ -119,6 +120,10 @@ const submitForm = async () => {
         }
         // Se tutto è valido, invia il form
         console.log("Registration Form Submitted:", form);
+        notificationManager.value?.showNotification({
+            type: "info",
+            message: "Submitting registration...",
+        });
         //registration :
         const registrationEsit = await apiGestor.registerUser(form);
         if (registrationEsit.success) {

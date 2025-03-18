@@ -1,3 +1,4 @@
+/// <reference types="../../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import Notification from '../components/Notification.vue';
 export default (await import('vue')).defineComponent({
     components: { Notification },

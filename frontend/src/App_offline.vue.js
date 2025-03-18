@@ -5,7 +5,7 @@ export default (await import('vue')).defineComponent({
     setup() {
         const router = useRouter();
         onMounted(() => {
-            router.push("/welcome");
+            router.push("/offline_page");
         });
     }
 }); /* PartiallyEnd: #3632/script.vue */

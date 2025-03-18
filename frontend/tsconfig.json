@@ -1,4 +1,4 @@
-{  
+{
   "compilerOptions": {
     "composite": true,
     "strict": true,
@@ -7,11 +7,21 @@
     "target": "ESNext",
     "jsx": "preserve",
     "skipLibCheck": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "types": [
+      "vite-plugin-pwa/client",
+      "vite-plugin-pwa/info",
+      "vite/client"
+    ],
+    "lib": [
+      "ESNext",
+      "DOM",
+      "WebWorker",
+      "DOM.Iterable"
+    ]
   },
   "include": [
     "src/**/*.ts",
-    "src/**/*.d.ts",
-    "src/**/*.vue"
+    "src/**/*.d.ts"
   ]
 }

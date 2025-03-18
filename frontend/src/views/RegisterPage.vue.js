@@ -1,3 +1,4 @@
+/// <reference types="../../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import { onMounted, ref } from 'vue';
 import BackgroundEffect from '../components/BackgroundEffect.vue';
 import DarkModeSwitcher from '../components/DarkModeSwitcher.vue';

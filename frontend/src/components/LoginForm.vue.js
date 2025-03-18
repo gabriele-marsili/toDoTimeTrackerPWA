@@ -1,16 +1,15 @@
+/// <reference types="../../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import { ref } from "vue";
 import NotificationManager from '../gestors/NotificationManager.vue';
 import { API_gestor } from "../backend-comunication/api_comunication";
 export default (await import('vue')).defineComponent({
     components: { NotificationManager },
     setup() {
-        //const email = ref("");
         const licensekey = ref("");
         const notificationManager = ref(null); // Riferimento per NotificationManager
         const apiGestor = API_gestor.getInstance();
         const login = async () => {
             // Rimuove eventuali spazi vuoti iniziali e finali
-            //const emailValue = email.value.trim();
             const licenseKeyValue = licensekey.value.trim();
             // Controllo se i campi sono vuoti
             if (!licenseKeyValue) {
@@ -20,15 +19,6 @@ export default (await import('vue')).defineComponent({
                 });
                 return;
             }
-            // Controllo validità email con regex
-            /*const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(emailValue)) {
-                notificationManager.value.showNotification({
-                    type: "error",
-                    message: "Invalid email format",
-                });
-                return;
-            }*/
             // Controllo validità license key (adatta la regex al formato desiderato)
             const licenseKeyRegex = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
             if (!licenseKeyRegex.test(licenseKeyValue)) {
@@ -54,7 +44,6 @@ export default (await import('vue')).defineComponent({
         return {
             login,
             notificationManager,
-            //email,
             licensekey
         };
     }
