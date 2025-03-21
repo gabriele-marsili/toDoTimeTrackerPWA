@@ -1,5 +1,6 @@
 <template>
     <BackgroundEffect>
+        <ConnectionStatus />
         <div :class="themeClass" class="flex flex-col items-center justify-center min-h-screen p-6">
             <div class="max-w-lg w-full p-15 rounded-2xl elevated">
                 <div class="flex items-center mb-4 gap-4">
@@ -21,12 +22,7 @@
                 <div class="mt-6 flex justify-center">
                     <DarkModeSwitcher />
                 </div>
-
-                <div class="mt-6 flex justify-center">
-                    <ConnectionStatus />
-                </div>
-
-                
+                                
             </div>
         </div>
     </BackgroundEffect>

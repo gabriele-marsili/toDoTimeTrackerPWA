@@ -1,8 +1,8 @@
 /// <reference lib="webworker" />
 /// <reference types="vite/client" />
-import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
-import { NavigationRoute, registerRoute } from 'workbox-routing';
-import { NetworkFirst, CacheFirst, StaleWhileRevalidate } from 'workbox-strategies'
+import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching';
+import { registerRoute } from 'workbox-routing';
+import { NetworkFirst, CacheFirst } from 'workbox-strategies'
 import { ExpirationPlugin } from 'workbox-expiration'
 
 declare const self: ServiceWorkerGlobalScope;
@@ -48,6 +48,49 @@ registerRoute(
         ]
     })
 )
+
+// Caching per le icone di Google Fonts (stili CSS)
+registerRoute(
+    /^https:\/\/fonts\.googleapis\.com/,
+    new CacheFirst({
+        cacheName: 'google-fonts-stylesheets',
+        plugins: [
+            new ExpirationPlugin({
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 giorni
+            })
+        ]
+    })
+);
+
+// Caching per i file dei font (le icone) di Google Fonts
+registerRoute(
+    /^https:\/\/fonts\.gstatic\.com/,
+    new CacheFirst({
+        cacheName: 'google-fonts-webfonts',
+        plugins: [
+            new ExpirationPlugin({
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 giorni
+            })
+        ]
+    })
+);
+
+
+// Caching for JS/CSS assets (adjust the regex based on your file structure)
+registerRoute(
+    /.*\.(js|css|vue|webmanifest)/,
+    new CacheFirst({
+      cacheName: 'static-assets',
+      plugins: [
+        new ExpirationPlugin({
+          maxEntries: 100,
+          maxAgeSeconds: 60 * 60 * 24 * 7, // 1 week
+        }),
+      ],
+    })
+  );
 
 // Gestione di altre API esterne
 /*registerRoute(
@@ -100,7 +143,13 @@ self.addEventListener('notificationclick', (event) => {
 self.addEventListener("fetch", (event) => {
     event.respondWith(
         caches.match(event.request).then(cacheRes => {
-            return cacheRes || fetch(event.request); //return cache res or fetch req if the resource is not in the cache
+            if (cacheRes) {
+                return cacheRes
+            } else {
+                console.log("resource NOT found in cache, relative request:\n", event.request)
+                return fetch(event.request); //return cache res or fetch req if the resource is not in the cache
+            }
+
         })
     )
 
