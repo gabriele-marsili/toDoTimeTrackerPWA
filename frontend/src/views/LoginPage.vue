@@ -5,6 +5,7 @@
     <NotificationManager ref="notificationManager" />
 
     <BackgroundEffect>
+        <ConnectionStatus />
         <div v-if="!isR_lk_box_opened" :class="themeClass"
             class="flex flex-col items-center justify-center min-h-screen p-6">
             <div class="max-w-lg w-full p-15 rounded-2xl elevated">
@@ -68,14 +69,16 @@
 
 <script>
 import BackgroundEffect from '../components/BackgroundEffect.vue';
+import ConnectionStatus from '../components/ConnectionStatus.vue';
 import DarkModeSwitcher from '../components/DarkModeSwitcher.vue';
 import { ref, onMounted } from 'vue';
 import LoginForm from '../components/LoginForm.vue';
 import NotificationManager from '../gestors/NotificationManager.vue';
 import { API_gestor } from '../backend-comunication/api_comunication';
 export default {
-    components: { NotificationManager, DarkModeSwitcher, BackgroundEffect, LoginForm },
+    components: { ConnectionStatus, NotificationManager, DarkModeSwitcher, BackgroundEffect, LoginForm },
     setup() {
+        const isOnline = ref(navigator.onLine)
         const user_email = ref("")
         const license_key = ref("")
         const isR_lk_box_opened = ref(false);
@@ -111,7 +114,7 @@ export default {
                 errors.push("Invalid license key format");
             }
 
-            if (errors.length > 0 && notificationManager.value) {                
+            if (errors.length > 0 && notificationManager.value) {
                 notificationManager.value.showNotification({
                     type: "error",
                     message: errors[0],
@@ -127,9 +130,13 @@ export default {
             const userResponse = await api_gestor.getUserByEmail(user_email.value)
             console.log("userResponse:\n", userResponse)
             if (!userResponse.success) {
+                let e_msg = userResponse.errorMessage
+                if(!isOnline.value){
+                    e_msg = "Bad connection, please try again when you're online"
+                }
                 notificationManager.value?.showNotification({
                     type: "error",
-                    message: userResponse.errorMessage,
+                    message: e_msg,
                 });
                 return;
             }
@@ -164,14 +171,19 @@ export default {
             const userResponse = await api_gestor.getUserByEmail(user_email.value)
             console.log("userResponse:\n", userResponse)
             if (!userResponse.success) {
+                let e_msg = userResponse.errorMessage
+                if(!isOnline.value){
+                    e_msg = "Bad connection, please try again when you're online"
+                }
+
                 notificationManager.value?.showNotification({
                     type: "error",
-                    message: userResponse.errorMessage,
+                    message: e_msg,
                 });
                 return;
             }
 
-            if(userResponse.data.licenseKey != license_key.value){ //lk provvided by user must be == to lk in user data
+            if (userResponse.data.licenseKey != license_key.value) { //lk provvided by user must be == to lk in user data
                 notificationManager.value?.showNotification({
                     type: "error",
                     message: "Invalid License Key",
@@ -182,9 +194,14 @@ export default {
             const response = await api_gestor.resetLicenseKey(user_email.value, userResponse.data.licenseKey)
             console.log("response by api gestor (reset lk):\n", response);
             if (!response.success) {
+                let e_msg = response.errorMessage
+                if(!isOnline.value){
+                    e_msg = "Bad connection, please try again when you're online"
+                }
+
                 notificationManager.value?.showNotification({
                     type: "error",
-                    message: response.errorMessage,
+                    message: e_msg,
                 });
                 return;
             }
@@ -199,9 +216,14 @@ export default {
                 });
                 isR_lk_box_opened.value = false;
             } else {
+                let e_msg = sendEmailResponse.errorMessage
+                if(!isOnline.value){
+                    e_msg = "Bad connection, please try again when you're online"
+                }
+
                 notificationManager.value?.showNotification({
                     type: "error",
-                    message: sendEmailResponse.errorMessage,
+                    message: e_msg,
                 });
             }
 
@@ -225,7 +247,8 @@ export default {
             isDarkMode,
             user_email,
             license_key,
-            notificationManager
+            notificationManager,
+            isOnline
         }
     }
 

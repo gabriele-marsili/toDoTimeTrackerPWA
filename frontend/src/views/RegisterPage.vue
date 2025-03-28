@@ -1,5 +1,6 @@
 <template>
     <BackgroundEffect>
+        <ConnectionStatus />
         <div :class="themeClass" class="flex flex-col items-center justify-center max-h-screen p-6">
             <!-- Contenitore con altezza massima e scroll interno -->
             <div class="w-full max-w-5xl p-8 rounded-2xl elevated max-h-screen overflow-y-auto">
@@ -28,9 +29,9 @@ import { onMounted, ref } from 'vue';
 import BackgroundEffect from '../components/BackgroundEffect.vue';
 import DarkModeSwitcher from '../components/DarkModeSwitcher.vue';
 import RegistrationForm from '../components/RegistrationForm.vue';
-
+import ConnectionStatus from '../components/ConnectionStatus.vue';
 export default {
-    components: { RegistrationForm, BackgroundEffect, DarkModeSwitcher },
+    components: { RegistrationForm, BackgroundEffect, DarkModeSwitcher,ConnectionStatus },
     setup() {
         const isDarkMode = ref(localStorage.getItem("theme") === "dark");
 

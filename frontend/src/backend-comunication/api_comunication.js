@@ -529,6 +529,8 @@ export class API_gestor {
                         this.userCredentials = await signInWithEmailAndPassword(this.auth, userData.email, userData.licenseKey);
                         this.user = this.userCredentials.user;
                         this.licenseKey = userData.licenseKey;
+                        e_message = "";
+                        success = true;
                     }
                     catch (error) {
                         console.log("error during login:\n", error);

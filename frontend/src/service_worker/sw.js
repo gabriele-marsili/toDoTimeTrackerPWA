@@ -1,12 +1,21 @@
 /// <reference lib="webworker" />
 /// <reference types="vite/client" />
-import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching';
-import { registerRoute } from 'workbox-routing';
+import { cleanupOutdatedCaches, getCacheKeyForURL, precacheAndRoute } from 'workbox-precaching';
+import { registerRoute, setCatchHandler } from 'workbox-routing';
 import { NetworkFirst, CacheFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
+import { SW_BROADCAST_CHANNEL } from '../utils/generalUtils';
+//messages via broadcast channel:
+const broadcast = new BroadcastChannel(SW_BROADCAST_CHANNEL);
 const manifest = self.__WB_MANIFEST;
+console.log("manifest :\n", manifest);
 // Pre-cache file statici
-precacheAndRoute(manifest || [{ url: '/offline.html', revision: null }]);
+precacheAndRoute(manifest);
+/*precacheAndRoute([
+    { url: '/offline.html', revision: null },
+    { url: '/main_offline.js', revision: null },
+    { url: '/style_offline.css', revision: null },
+]);*/
 let allowlist;
 if (import.meta.env.DEV) {
     allowlist = [/^\/$/];
@@ -77,7 +86,7 @@ registerRoute(/.*\.(js|css|vue|webmanifest)/, new CacheFirst({
         ]
     })
 )*/
-// Fallback per le navigazioni: servi sempre l'app shell
+//router navigazioni + fallback
 registerRoute(({ request }) => request.mode === 'navigate', new NetworkFirst({
     cacheName: 'pages-cache',
     plugins: [
@@ -87,6 +96,59 @@ registerRoute(({ request }) => request.mode === 'navigate', new NetworkFirst({
         })
     ]
 }));
+//(global) handler workbox errors:
+setCatchHandler(async ({ request }) => {
+    console.log("req in set cactch handler:\n", request);
+    const acceptHeader = request.headers.get("accept") || "";
+    console.log("acceptHeader = ", acceptHeader);
+    //HTML :
+    if (acceptHeader.includes("text/html") && !request.url.includes(".js") && !request.url.includes(".css")) {
+        let k = getCacheKeyForURL("offline.html") || "k not found";
+        console.log("cache k = ", k);
+        if (k == "k not found") {
+            k = "offline";
+        }
+        const fallbackResponse = await caches.match(k);
+        console.log("fallback (html) response (k)", fallbackResponse);
+        if (fallbackResponse) {
+            return fallbackResponse;
+        }
+        return new Response("<h1>You're currently offline</h1>", {
+            headers: { "Content-Type": "text/html" }
+        });
+    }
+    //js :
+    if (request.url.includes(".js")) {
+        const fallbackResponse = await caches.match('/main_offline.js');
+        console.log("fallback (js) response:\n", fallbackResponse);
+        if (fallbackResponse) {
+            return fallbackResponse;
+        }
+    }
+    //css :    
+    if (request.url.includes(".css")) {
+        const fallbackResponse = await caches.match('/style.css');
+        console.log("fallback (css) response:\n", fallbackResponse);
+        if (fallbackResponse) {
+            return fallbackResponse;
+        }
+    }
+    // Per altri tipi di risorsa, restituisci una response "benigna" in base al destination
+    console.log("request.destination = ", request.destination);
+    /*switch (request.destination) {
+      case "script":
+        return new Response("", { headers: { "Content-Type": "application/javascript" } });
+      case "style":
+        return new Response("", { headers: { "Content-Type": "text/css" } });
+      case "image":
+        // Potresti restituire anche un placeholder in formato base64 se ne hai uno
+        return new Response("", { headers: { "Content-Type": "image/png" } });
+      default:
+        // Per le richieste che non rientrano nei casi sopra, restituisci una response vuota
+        return new Response("", { headers: { "Content-Type": "text/plain" } });
+    }*/
+    return Response.error();
+});
 self.addEventListener("install", (event) => {
     console.log("SW installazione completata!");
     self.skipWaiting();
@@ -103,17 +165,47 @@ self.addEventListener('notificationclick', (event) => {
     event.waitUntil(self.clients.openWindow(event.notification.tag));
     event.notification.close();
 });
+/*
 self.addEventListener("fetch", (event) => {
-    event.respondWith(caches.match(event.request).then(cacheRes => {
-        if (cacheRes) {
-            return cacheRes;
-        }
-        else {
-            console.log("resource NOT found in cache, relative request:\n", event.request);
-            return fetch(event.request); //return cache res or fetch req if the resource is not in the cache
-        }
-    }));
-});
+    event.respondWith(
+        caches.match(event.request).then(async (cacheRes) => {
+            if (cacheRes) {
+                return cacheRes
+            } else {
+
+                return fetch(event.request).catch(async () => {
+
+                    console.log("resource NOT found in cache, relative request:\n", event.request)
+                    //return fetch(event.request); //return cache res or fetch req if the resource is not in the cache
+                    let pages = [
+                        "/welcome",
+                        "/login",
+                        "/register"
+                    ]
+
+                    let included = pages.some(p => event.request.url.toLowerCase().includes(p))
+                    console.log("url : ", event.request.url)
+                    console.log("included : ", included)
+                    if (included || event.request.mode === "navigate") {
+                        const fallbackResponse = await caches.match('/offline.html');
+                        console.log("fallbackResponse: ", fallbackResponse)
+                        if (fallbackResponse) {
+                            return fallbackResponse;
+                        } else {
+                            console.log("posting broadcast msg...")
+                            broadcast.postMessage({ type: "offline", content: "load offline-redirect page" });
+                        }
+                    }
+
+                    return fetch(event.request)
+                })
+            }
+
+        })
+    )
+
+})
+*/
 async function showNotification(notificationTitle, notificationBody, notificationIcon, notificationTag) {
     self.registration.showNotification(notificationTitle, {
         body: notificationBody,

@@ -28,3 +28,5 @@ export async function hashPassword(password: string): Promise<Uint8Array> {
     const hashBuffer = await crypto.subtle.digest("SHA-256", data);
     return new Uint8Array(hashBuffer);
 }
+
+export const SW_BROADCAST_CHANNEL = "service_worker_channel"

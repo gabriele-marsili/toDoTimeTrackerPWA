@@ -11,9 +11,19 @@ import { useRouter } from 'vue-router';
 export default {
     setup() {
         const router = useRouter();
-        onMounted(() => {
-            router.push("/welcome");
-        })
+        /*onMounted(() => {
+            //get the last route by local storage 
+            const lastRoutePath = localStorage.getItem("lastRoutePath");            
+            console.log("lastRoutePath in app vue: ",lastRoutePath)
+            if (lastRoutePath && router.currentRoute.value.path !== lastRoutePath) {
+                router.push(lastRoutePath);
+            } else if (!lastRoutePath) {                
+                router.push("/welcome");
+            }            
+        })*/
+       return {
+        router
+       }
     }
 }
 </script>

@@ -31,7 +31,7 @@ import { API_gestor } from "../backend-comunication/api_comunication";
 export default {
     components: { NotificationManager },
     setup() {
-        
+        const isOnline = ref(navigator.onLine)
         const licensekey = ref("");
         const notificationManager = ref(null); // Riferimento per NotificationManager
         const apiGestor = API_gestor.getInstance()
@@ -61,9 +61,14 @@ export default {
 
             const loginResponse = await apiGestor.loginWithLicenseKey(licenseKeyValue)
             if (!loginResponse.success) {
+                let e_msg = loginResponse.errorMessage
+                if(!isOnline.value){
+                    e_msg = "Bad connection, please try again when you're online"
+                }
+
                 notificationManager.value.showNotification({
                     type: "error",
-                    message: loginResponse.errorMessage,
+                    message: e_msg,
                 });
                 return;
             }
@@ -81,7 +86,8 @@ export default {
         return {
             login,
             notificationManager,            
-            licensekey
+            licensekey,
+            isOnline
         }
     }
 }

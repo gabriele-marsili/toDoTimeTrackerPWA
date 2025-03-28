@@ -1,0 +1,185 @@
+@import "tailwindcss";
+
+/* global variables for the theme */
+:root {
+    --background-light: #fefefed7;
+    --background-dark: #131212;
+    --color-light: black;
+    --color-dark: white;
+    --accent-color-light: #10B981;
+    --accent-color-dark: #34D399;
+    --button-background-light: #ffffff00;
+    --button-background-dark: #131212;
+    --button-border-light: #15b680d4;
+    --button-border-dark: #15b680d4;
+    --input-field-border-dark: rgba(255, 255, 255, 0.329);
+    --input-field-border-light: rgba(11, 11, 11, 0.457);
+    /*shadows*/
+    --shadow-light: 0px 4px 6px rgba(0, 0, 0, 0.352);
+    --shadow-dark: 0px 4px 6px rgba(255, 255, 255, 0.375);
+    /*checkbox*/
+    --checkbox-border-dark: rgba(255, 255, 255, 0.5);
+    --checkbox-border-light: rgba(52, 48, 48, 0.5);
+}
+
+
+/* Applicazione del tema light */
+.light {
+    --background: var(--background-light);
+    --color: var(--color-light);
+    --accent-color: var(--accent-color-light);
+    --button-background: var(--button-background-light);
+    --button-border: var(--button-border-light);
+    --shadow: var(--shadow-light);
+    --input-field-border: var(--input-field-border-light);
+    --checkbox-border: var(--checkbox-border-light)
+}
+
+/* Applicazione del tema dark */
+.dark {
+    --background: var(--background-dark);
+    --color: var(--color-dark);
+    --accent-color: var(--accent-color-dark);
+    --button-background: var(--button-background-dark);
+    --button-border: var(--button-border-dark);
+    --shadow: var(--shadow-dark);
+    --input-field-border: var(--input-field-border-dark);
+    --checkbox-border: var(--checkbox-border-dark)
+}
+
+/* Usa le variabili nelle regole CSS */
+body {
+    background-color: var(--background);
+    color: var(--color);
+    overflow-y: hidden;
+}
+
+::selection {
+    background-color: var(--accent-color);
+    color: var(--color);
+}
+
+.blurred {
+    filter: blur(5px);
+}
+
+.row-disposition {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    gap: 20px;
+}
+
+.baseButton,
+.baseButtonHigher {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    color: var(--color);
+    background: var(--button-background);
+    border: 2px solid var(--button-border);
+    height: 36px;
+    padding: 0 15px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    text-align: center;
+}
+
+.baseButtonHigher {
+    height: 40px;
+}
+
+.baseButton:hover,
+.baseButtonHigher:hover {
+    background-color: rgba(16, 185, 129, 0.305);
+}
+
+
+/*rilievo dinamico */
+.elevated {
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+.elevated:hover {
+    box-shadow: 0px 4px 6px rgba(16, 185, 129, 0.369)
+}
+
+
+/*input fields*/
+.baseInputField {
+    width: 85%;
+    border: 0.7px solid var(--input-field-border);
+
+    padding: 8px 12px;
+    border-radius: 6px;
+    background-color: transparent;
+    outline: none;
+    transition: border-color 0.3s ease, border-width 0.3s ease;
+    display: block;
+    margin: 0 auto;
+}
+
+.baseInputField:focus {
+    border-color: var(--button-border);
+}
+
+
+/*border*/
+.border {
+    border: 0.7px solid var(--input-field-border);
+}
+
+.g-icon {
+    font-size: 18px;
+    display: inline-flex;
+}
+
+/* Rimuove le frecce nei browser basati su WebKit (Chrome, Safari, Edge) */
+.no-spin::-webkit-outer-spin-button,
+.no-spin::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Rimuove le frecce nei browser basati su Firefox */
+.no-spin {
+    -moz-appearance: textfield;
+}
+
+/**checkbox/
+/* Nasconde il checkbox originale */
+.baseCheckbox {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--checkbox-border);
+    /* Bordi fini e semitrasparenti */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+/* Stile quando è attivo */
+.baseCheckbox:checked {
+    border-color: rgba(16, 185, 129, 1);
+    /* Bordi verdi più visibili */
+}
+
+/* Pallina verde interna quando selezionato */
+.baseCheckbox:checked::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    background-color: rgba(16, 185, 129, 0.369);
+    /* Verde semitrasparente */
+    border-radius: 50%;
+    transition: background-color 0.2s ease-in-out;
+}

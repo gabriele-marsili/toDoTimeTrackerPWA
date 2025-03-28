@@ -3,6 +3,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 
     <NotificationManager ref="notificationManager" />
+    <BroadcastListener ref="broadcastListener" />
+
     <transition name="fade">
         <div v-if="showBox" class="connection-box">
 
@@ -19,13 +21,15 @@
 <script lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import NotificationManager from '../gestors/NotificationManager.vue'
+import BroadcastListener from './BroadcastListener.vue'
 
 export default {
-    components: { NotificationManager },
+    components: { NotificationManager, BroadcastListener },
     setup() {
         const isOnline = ref(navigator.onLine)
         const showBox = ref(!navigator.onLine)
         const notificationManager = ref(null)
+        const broadcastListener = ref(null);
 
         function sendNotify(type: "info" | "warning" | "error" | "success", text: string) {
             if (notificationManager.value) {
@@ -37,12 +41,7 @@ export default {
         }
 
         function updateOnlineStatus() {
-            isOnline.value = navigator.onLine
-            /*if (navigator.onLine) {
-                sendNotify("info", "You're online now")
-            } else {
-                sendNotify("warning", "Connection lost : you're offline")
-            }*/
+            isOnline.value = navigator.onLine            
         }
 
         // Watch for changes to the online status to control the visibility of the box.
@@ -70,6 +69,7 @@ export default {
         })
 
         return {
+            broadcastListener,
             isOnline,
             showBox,
             notificationManager,

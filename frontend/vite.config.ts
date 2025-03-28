@@ -2,16 +2,18 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from "vite-plugin-pwa";
-import path from 'path'
+import { resolve } from 'path'
+
 
 export default defineConfig({
+  base:"./",
   plugins: [
     vue(),
     tailwindcss(),
     VitePWA({
-      strategies: 'injectManifest',     
-      srcDir: 'src/service_worker', 
-      filename : "sw.ts",
+      strategies: 'injectManifest',
+      srcDir: 'src/service_worker',
+      filename: "sw.ts",
       injectManifest: {
         injectionPoint: 'self.__WB_MANIFEST'
       },
@@ -27,8 +29,8 @@ export default defineConfig({
           { src: "mainLogo.png", sizes: "192x192", type: "image/png" },
           { src: "mainLogo.png", sizes: "512x512", type: "image/png" },
         ],
-        start_url :"/",
-        display:"standalone"
+        start_url: "/",
+        display: "standalone"
       },
       /*workbox: {
         globPatterns: ['**SLASH*.{js,css,html,png,svg}'],
@@ -46,11 +48,19 @@ export default defineConfig({
           },
         ],
       },*/
-      //srcDir : 'src/service_worker',
-      devOptions: { 
-        enabled: true, 
-        type:"module"
-      }      
+      //srcDir : 'src/service_worker',            
+      devOptions: {
+        enabled: true,
+        type: "module"
+      }
     }),
   ],
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        offline: resolve(__dirname, 'offline.html')
+      }
+    }
+  }
 })

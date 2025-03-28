@@ -1,1 +1,1 @@
-import './style.css';
+import './style_offline.css';

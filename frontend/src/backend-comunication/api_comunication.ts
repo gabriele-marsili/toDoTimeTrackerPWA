@@ -672,6 +672,8 @@ export class API_gestor {
                         this.userCredentials = await signInWithEmailAndPassword(this.auth, userData.email, userData.licenseKey)
                         this.user = this.userCredentials.user;
                         this.licenseKey = userData.licenseKey
+                        e_message = "";
+                        success = true;
                     } catch (error) {
                         console.log("error during login:\n", error)
                         e_message = "Invalid license key"
@@ -726,7 +728,7 @@ export class API_gestor {
                 collection(this.db, "users"),
                 where("email", "==", email)
             );
-            const emailSnapshot = await getDocs(emailQuery);
+            const emailSnapshot = await getDocs(emailQuery);            
             if (emailSnapshot.empty) {
                 throw new Error("No users found with email " + email);
             }
