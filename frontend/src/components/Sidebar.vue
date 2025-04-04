@@ -6,7 +6,7 @@
         @mouseleave="isHovered = false">
         <!-- Logo -->
         <div class="logo-container">
-            <img src="../assets/logos/mainLogo.png" alt="TTT Logo" class="logo" />
+            <img src="../assets/logos/mainLogo.png" alt="TTT Logo" class="logo w-12 h-12 rounded-full" />
             <span v-if="isHovered" class="logo-text">TTT App</span>
         </div>
         <!-- Sections -->
@@ -42,11 +42,11 @@ export default {
 
         const sections = [
             { name: 'home', label: 'Home', icon: 'home' },
-            { name: 'calendar', label: 'Calendar', icon: '' },
-            { name: 'time_tracker', label: 'Time Tracker', icon: '' },
-            { name: 'stats', label: 'Stats', icon: '' },
-            { name: 'shop', label: 'Shop', icon: '' },
-            { name: 'profile', label: 'Profile', icon: '' },
+            { name: 'calendar', label: 'Calendar', icon: 'calendar_month' },
+            { name: 'time_tracker', label: 'Time Tracker', icon: 'schedule' },
+            { name: 'stats', label: 'Stats', icon: 'analytics' },
+            { name: 'shop', label: 'Shop', icon: 'store' },
+            { name: 'profile', label: 'Profile', icon: 'account_circle' },
             { name: 'settings', label: 'Settings', icon: 'settings' },
         ];
 
@@ -89,23 +89,20 @@ export default {
     overflow-y: hidden;
 }
 
-.logo {
-    height: 30px;
-    width: 50px;
-}
-
 .logo-text {
     margin-right: 5px;
+    margin-left: 5px;
     font-size: 1.2em;
     font-weight: bold;
 }
 
 
 .sidebar {
-    width: 60px;
-    height: 97vh;
+    width: 6%;
+    height: 100vh;
     background-color: #131212;
-    border: 2px solid #1e1e1e;
+    border-right: 2px solid #1e1e1e;
+    
     color: #ffffff;
     display: flex;
     flex-direction: column;
@@ -186,6 +183,11 @@ export default {
 .logout {
     margin-bottom: 20px;
     padding-top: 10px;
-    margin-left: 50%;
+    
+    display: flex;
+    
+    align-items: center;
+    align-self: center;
+    align-content: center;
 }
 </style>

@@ -1,12 +1,21 @@
-/// <reference types="../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 export default (await import('vue')).defineComponent({
     setup() {
         const router = useRouter();
-        onMounted(() => {
-            router.push("/welcome");
-        });
+        /*onMounted(() => {
+            //get the last route by local storage
+            const lastRoutePath = localStorage.getItem("lastRoutePath");
+            console.log("lastRoutePath in app vue: ",lastRoutePath)
+            if (lastRoutePath && router.currentRoute.value.path !== lastRoutePath) {
+                router.push(lastRoutePath);
+            } else if (!lastRoutePath) {
+                router.push("/welcome");
+            }
+        })*/
+        return {
+            router
+        };
     }
 }); /* PartiallyEnd: #3632/script.vue */
 function __VLS_template() {

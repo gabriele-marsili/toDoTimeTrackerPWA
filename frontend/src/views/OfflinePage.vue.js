@@ -1,11 +1,42 @@
-/// <reference types="../../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import { ref, computed, onMounted } from 'vue';
 import DarkModeSwitcher from '../components/DarkModeSwitcher.vue';
 import BackgroundEffect from '../components/BackgroundEffect.vue';
+import NotificationManager from '../gestors/NotificationManager.vue';
+import { useRouter } from 'vue-router';
+import { delay } from '../utils/generalUtils';
 export default (await import('vue')).defineComponent({
-    components: { DarkModeSwitcher, BackgroundEffect },
+    components: { DarkModeSwitcher, BackgroundEffect, NotificationManager },
     setup() {
         const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
+        const notificationManager = ref(null);
+        const router = useRouter();
+        function sendNotify(type, text) {
+            if (notificationManager.value) {
+                notificationManager.value.showNotification({
+                    type: type,
+                    message: text,
+                });
+            }
+            else {
+                console.log("notification manager not found");
+            }
+        }
+        function handleChangeDarkMode(args) {
+            isDarkMode.value = args.isDarkMode;
+        }
+        async function tryToReconnect() {
+            if (navigator.onLine) {
+                await backOnline();
+            }
+            else {
+                sendNotify("error", "Sadly you're still offline");
+            }
+        }
+        async function backOnline() {
+            sendNotify("success", "You're back online, loading welcome page...");
+            await delay(1400);
+            router.push("/welcome");
+        }
         onMounted(() => {
             if (isDarkMode.value) {
                 document.body.classList.add('dark');
@@ -15,35 +46,63 @@ export default (await import('vue')).defineComponent({
                 document.body.classList.add('light');
                 document.body.classList.remove('dark');
             }
+            //add listener to catch when the user will came back online:
+            window.addEventListener('online', backOnline);
         });
         // Computed per gestire la classe del tema se necessario
         const themeClass = computed(() => (isDarkMode.value ? 'dark' : 'light'));
         return {
+            router,
             isDarkMode,
+            sendNotify,
             themeClass,
+            handleChangeDarkMode,
+            backOnline,
+            tryToReconnect,
+            notificationManager
         };
     },
 });
 ; /* PartiallyEnd: #3632/script.vue */
 function __VLS_template() {
     const __VLS_ctx = {};
-    const __VLS_componentsOption = { DarkModeSwitcher, BackgroundEffect };
+    const __VLS_componentsOption = { DarkModeSwitcher, BackgroundEffect, NotificationManager };
     let __VLS_components;
     let __VLS_directives;
     // CSS variable injection 
     // CSS variable injection end 
-    const __VLS_0 = {}.BackgroundEffect;
+    __VLS_elementAsFunction(__VLS_intrinsicElements.link, __VLS_intrinsicElements.link)({
+        href: ("https://fonts.googleapis.com/icon?family=Material+Icons+Sharp"),
+        rel: ("stylesheet"),
+    });
+    __VLS_elementAsFunction(__VLS_intrinsicElements.link, __VLS_intrinsicElements.link)({
+        href: ("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"),
+        rel: ("stylesheet"),
+    });
+    const __VLS_0 = {}.NotificationManager;
+    /** @type { [typeof __VLS_components.NotificationManager, ] } */ ;
+    // @ts-ignore
+    const __VLS_1 = __VLS_asFunctionalComponent(__VLS_0, new __VLS_0({
+        ref: ("notificationManager"),
+    }));
+    const __VLS_2 = __VLS_1({
+        ref: ("notificationManager"),
+    }, ...__VLS_functionalComponentArgsRest(__VLS_1));
+    // @ts-ignore navigation for `const notificationManager = ref()`
+    /** @type { typeof __VLS_ctx.notificationManager } */ ;
+    var __VLS_6 = {};
+    var __VLS_5;
+    const __VLS_7 = {}.BackgroundEffect;
     /** @type { [typeof __VLS_components.BackgroundEffect, typeof __VLS_components.BackgroundEffect, ] } */ ;
     // @ts-ignore
-    const __VLS_1 = __VLS_asFunctionalComponent(__VLS_0, new __VLS_0({}));
-    const __VLS_2 = __VLS_1({}, ...__VLS_functionalComponentArgsRest(__VLS_1));
-    var __VLS_6 = {};
+    const __VLS_8 = __VLS_asFunctionalComponent(__VLS_7, new __VLS_7({}));
+    const __VLS_9 = __VLS_8({}, ...__VLS_functionalComponentArgsRest(__VLS_8));
     __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: ((__VLS_ctx.themeClass)) },
         ...{ class: ("flex flex-col items-center justify-center min-h-screen p-6") },
     });
     __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: ("max-w-xl w-full p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg text-center") },
+        ...{ class: ("max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center") },
     });
     __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: ("flex flex-col items-center gap-4 mb-6") },
@@ -53,47 +112,77 @@ function __VLS_template() {
         alt: ("Logo"),
         ...{ class: ("w-24 h-24 rounded-full") },
     });
-    __VLS_elementAsFunction(__VLS_intrinsicElements.h1, __VLS_intrinsicElements.h1)({
-        ...{ class: ("text-3xl font-bold text-gray-800 dark:text-gray-200") },
-    });
-    __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({
-        ...{ class: ("text-gray-600 dark:text-gray-400 mb-4") },
-    });
-    __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({
-        ...{ class: ("text-gray-600 dark:text-gray-400 mb-6") },
-    });
     __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: ("flex flex-row items-center gap-4") },
+    });
+    __VLS_elementAsFunction(__VLS_intrinsicElements.h1, __VLS_intrinsicElements.h1)({
+        ...{ class: ("text-3xl font-bold") },
+        ...{ class: ((__VLS_ctx.isDarkMode ? 'text-white' : 'text-black')) },
+    });
+    __VLS_elementAsFunction(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: ("material-symbols-outlined g-icon ") },
+    });
+    __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({
+        ...{ class: ("mb-4") },
+        ...{ class: ((__VLS_ctx.isDarkMode ? 'text-white' : 'text-black')) },
+    });
+    __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({
+        ...{ class: ("mb-4") },
+        ...{ class: ((__VLS_ctx.isDarkMode ? 'text-white' : 'text-black')) },
+    });
+    __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({
+        ...{ class: ((__VLS_ctx.isDarkMode ? 'text-white' : 'text-black')) },
         ...{ class: ("mb-6") },
     });
-    __VLS_elementAsFunction(__VLS_intrinsicElements.svg, __VLS_intrinsicElements.svg)({
-        xmlns: ("http://www.w3.org/2000/svg"),
-        ...{ class: ("w-32 h-32 text-gray-500") },
-        fill: ("none"),
-        viewBox: ("0 0 24 24"),
-        stroke: ("currentColor"),
+    __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
+        ...{ class: ("mt-6 flex justify-center") },
     });
-    __VLS_elementAsFunction(__VLS_intrinsicElements.path)({
-        'stroke-linecap': ("round"),
-        'stroke-linejoin': ("round"),
-        'stroke-width': ("2"),
-        d: ("M1.05 1.05l21.9 21.9M8.8 8.8a5 5 0 016.4 0m-3.2 3.2a2.5 2.5 0 013.5 0m-9.9-2.1a9.97 9.97 0 0114.1 0"),
+    __VLS_elementAsFunction(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+        ...{ onClick: (__VLS_ctx.tryToReconnect) },
+        ...{ class: ("baseButton") },
+    });
+    if (__VLS_ctx.isDarkMode) {
+        __VLS_elementAsFunction(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: ("text-white") },
+        });
+    }
+    else {
+        __VLS_elementAsFunction(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+            ...{ class: ("text-black") },
+        });
+    }
+    __VLS_elementAsFunction(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: ("material-symbols-outlined g-icon ") },
     });
     __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: ("mt-6") },
+        ...{ class: ("mt-6 flex justify-center") },
     });
-    const __VLS_7 = {}.DarkModeSwitcher;
+    const __VLS_13 = {}.DarkModeSwitcher;
     /** @type { [typeof __VLS_components.DarkModeSwitcher, ] } */ ;
     // @ts-ignore
-    const __VLS_8 = __VLS_asFunctionalComponent(__VLS_7, new __VLS_7({}));
-    const __VLS_9 = __VLS_8({}, ...__VLS_functionalComponentArgsRest(__VLS_8));
-    __VLS_5.slots.default;
-    var __VLS_5;
-    ['flex', 'flex-col', 'items-center', 'justify-center', 'min-h-screen', 'p-6', 'max-w-xl', 'w-full', 'p-8', 'bg-white', 'dark:bg-gray-800', 'rounded-2xl', 'shadow-lg', 'text-center', 'flex', 'flex-col', 'items-center', 'gap-4', 'mb-6', 'w-24', 'h-24', 'rounded-full', 'text-3xl', 'font-bold', 'text-gray-800', 'dark:text-gray-200', 'text-gray-600', 'dark:text-gray-400', 'mb-4', 'text-gray-600', 'dark:text-gray-400', 'mb-6', 'mb-6', 'w-32', 'h-32', 'text-gray-500', 'mt-6',];
+    const __VLS_14 = __VLS_asFunctionalComponent(__VLS_13, new __VLS_13({
+        ...{ 'onChangeDarkMode': {} },
+    }));
+    const __VLS_15 = __VLS_14({
+        ...{ 'onChangeDarkMode': {} },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_14));
+    let __VLS_19;
+    const __VLS_20 = {
+        onChangeDarkMode: (__VLS_ctx.handleChangeDarkMode)
+    };
+    let __VLS_16;
+    let __VLS_17;
+    var __VLS_18;
+    __VLS_12.slots.default;
+    var __VLS_12;
+    ['flex', 'flex-col', 'items-center', 'justify-center', 'min-h-screen', 'p-6', 'max-w-lg', 'w-full', 'p-15', 'rounded-2xl', 'elevated', 'shadow-lg', 'text-center', 'flex', 'flex-col', 'items-center', 'gap-4', 'mb-6', 'w-24', 'h-24', 'rounded-full', 'flex', 'flex-row', 'items-center', 'gap-4', 'text-3xl', 'font-bold', 'material-symbols-outlined', 'g-icon', 'mb-4', 'mb-4', 'mb-6', 'mt-6', 'flex', 'justify-center', 'baseButton', 'text-white', 'text-black', 'material-symbols-outlined', 'g-icon', 'mt-6', 'flex', 'justify-center',];
     var __VLS_slots;
     var $slots;
     let __VLS_inheritedAttrs;
     var $attrs;
-    const __VLS_refs = {};
+    const __VLS_refs = {
+        'notificationManager': __VLS_6,
+    };
     var $refs;
     var $el;
     return {

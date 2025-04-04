@@ -12,6 +12,7 @@
 import { ref, onMounted } from "vue";
 
 const isDark = ref(localStorage.getItem("theme") === "dark");
+const emit = defineEmits(["changeDarkMode"])
 
 const toggleDarkMode = () => {
     isDark.value = !isDark.value;
@@ -24,6 +25,7 @@ const toggleDarkMode = () => {
         document.body.classList.remove('dark');
     }
 
+    emit('changeDarkMode',{isDarkMode : isDark.value})
 };
 
 onMounted(() => {

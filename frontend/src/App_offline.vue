@@ -14,9 +14,11 @@ export default {
         onMounted(() => {
             router.push("/offline_page");
         })
+        return {
+            router
+        }
     }
 }
 </script>
 
-<style>
-</style>
+<style></style>

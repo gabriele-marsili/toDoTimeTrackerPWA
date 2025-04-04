@@ -1,9 +1,9 @@
-/// <reference types="../../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import { ref, onMounted } from 'vue';
 import DarkModeSwitcher from '../components/DarkModeSwitcher.vue';
 import BackgroundEffect from '../components/BackgroundEffect.vue';
+import ConnectionStatus from '../components/ConnectionStatus.vue';
 export default (await import('vue')).defineComponent({
-    components: { DarkModeSwitcher, BackgroundEffect },
+    components: { DarkModeSwitcher, BackgroundEffect, ConnectionStatus },
     setup() {
         const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
         onMounted(() => {
@@ -23,7 +23,7 @@ export default (await import('vue')).defineComponent({
 }); /* PartiallyEnd: #3632/script.vue */
 function __VLS_template() {
     const __VLS_ctx = {};
-    const __VLS_componentsOption = { DarkModeSwitcher, BackgroundEffect };
+    const __VLS_componentsOption = { DarkModeSwitcher, BackgroundEffect, ConnectionStatus };
     let __VLS_components;
     let __VLS_directives;
     // CSS variable injection 
@@ -34,6 +34,11 @@ function __VLS_template() {
     const __VLS_1 = __VLS_asFunctionalComponent(__VLS_0, new __VLS_0({}));
     const __VLS_2 = __VLS_1({}, ...__VLS_functionalComponentArgsRest(__VLS_1));
     var __VLS_6 = {};
+    const __VLS_7 = {}.ConnectionStatus;
+    /** @type { [typeof __VLS_components.ConnectionStatus, ] } */ ;
+    // @ts-ignore
+    const __VLS_8 = __VLS_asFunctionalComponent(__VLS_7, new __VLS_7({}));
+    const __VLS_9 = __VLS_8({}, ...__VLS_functionalComponentArgsRest(__VLS_8));
     __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: ((__VLS_ctx.themeClass)) },
         ...{ class: ("flex flex-col items-center justify-center min-h-screen p-6") },
@@ -58,42 +63,42 @@ function __VLS_template() {
     __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: ("flex justify-center space-x-4 mb-6") },
     });
-    const __VLS_7 = {}.RouterLink;
-    /** @type { [typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, ] } */ ;
-    // @ts-ignore
-    const __VLS_8 = __VLS_asFunctionalComponent(__VLS_7, new __VLS_7({
-        to: ("/login"),
-    }));
-    const __VLS_9 = __VLS_8({
-        to: ("/login"),
-    }, ...__VLS_functionalComponentArgsRest(__VLS_8));
-    __VLS_elementAsFunction(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
-        ...{ class: ("baseButton") },
-    });
-    __VLS_12.slots.default;
-    var __VLS_12;
     const __VLS_13 = {}.RouterLink;
     /** @type { [typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, ] } */ ;
     // @ts-ignore
     const __VLS_14 = __VLS_asFunctionalComponent(__VLS_13, new __VLS_13({
-        to: ("/register"),
+        to: ("/login"),
     }));
     const __VLS_15 = __VLS_14({
-        to: ("/register"),
+        to: ("/login"),
     }, ...__VLS_functionalComponentArgsRest(__VLS_14));
     __VLS_elementAsFunction(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
         ...{ class: ("baseButton") },
     });
     __VLS_18.slots.default;
     var __VLS_18;
+    const __VLS_19 = {}.RouterLink;
+    /** @type { [typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, ] } */ ;
+    // @ts-ignore
+    const __VLS_20 = __VLS_asFunctionalComponent(__VLS_19, new __VLS_19({
+        to: ("/register"),
+    }));
+    const __VLS_21 = __VLS_20({
+        to: ("/register"),
+    }, ...__VLS_functionalComponentArgsRest(__VLS_20));
+    __VLS_elementAsFunction(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+        ...{ class: ("baseButton") },
+    });
+    __VLS_24.slots.default;
+    var __VLS_24;
     __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: ("mt-6 flex justify-center") },
     });
-    const __VLS_19 = {}.DarkModeSwitcher;
+    const __VLS_25 = {}.DarkModeSwitcher;
     /** @type { [typeof __VLS_components.DarkModeSwitcher, ] } */ ;
     // @ts-ignore
-    const __VLS_20 = __VLS_asFunctionalComponent(__VLS_19, new __VLS_19({}));
-    const __VLS_21 = __VLS_20({}, ...__VLS_functionalComponentArgsRest(__VLS_20));
+    const __VLS_26 = __VLS_asFunctionalComponent(__VLS_25, new __VLS_25({}));
+    const __VLS_27 = __VLS_26({}, ...__VLS_functionalComponentArgsRest(__VLS_26));
     __VLS_5.slots.default;
     var __VLS_5;
     ['flex', 'flex-col', 'items-center', 'justify-center', 'min-h-screen', 'p-6', 'max-w-lg', 'w-full', 'p-15', 'rounded-2xl', 'elevated', 'flex', 'items-center', 'mb-4', 'gap-4', 'text-2xl', 'font-bold', 'mb-0', 'ml-11', 'w-20', 'h-20', 'rounded-full', 'mr-4', 'text-1xl', 'text-center', 'mb-4', 'flex', 'justify-center', 'space-x-4', 'mb-6', 'baseButton', 'baseButton', 'mt-6', 'flex', 'justify-center',];

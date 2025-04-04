@@ -1,10 +1,10 @@
-/// <reference types="../../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import { ref } from "vue";
 import NotificationManager from '../gestors/NotificationManager.vue';
 import { API_gestor } from "../backend-comunication/api_comunication";
 export default (await import('vue')).defineComponent({
     components: { NotificationManager },
     setup() {
+        const isOnline = ref(navigator.onLine);
         const licensekey = ref("");
         const notificationManager = ref(null); // Riferimento per NotificationManager
         const apiGestor = API_gestor.getInstance();
@@ -30,9 +30,13 @@ export default (await import('vue')).defineComponent({
             }
             const loginResponse = await apiGestor.loginWithLicenseKey(licenseKeyValue);
             if (!loginResponse.success) {
+                let e_msg = loginResponse.errorMessage;
+                if (!isOnline.value) {
+                    e_msg = "Bad connection, please try again when you're online";
+                }
                 notificationManager.value.showNotification({
                     type: "error",
-                    message: loginResponse.errorMessage,
+                    message: e_msg,
                 });
                 return;
             }
@@ -44,7 +48,8 @@ export default (await import('vue')).defineComponent({
         return {
             login,
             notificationManager,
-            licensekey
+            licensekey,
+            isOnline
         };
     }
 }); /* PartiallyEnd: #3632/script.vue */

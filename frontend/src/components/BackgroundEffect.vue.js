@@ -1,4 +1,3 @@
-/// <reference types="../../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 export default (await import('vue')).defineComponent({
     name: 'BackgroundEffect',
     data() {

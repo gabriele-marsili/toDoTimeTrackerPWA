@@ -1,13 +1,14 @@
-/// <reference types="../../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import BackgroundEffect from '../components/BackgroundEffect.vue';
+import ConnectionStatus from '../components/ConnectionStatus.vue';
 import DarkModeSwitcher from '../components/DarkModeSwitcher.vue';
 import { ref, onMounted } from 'vue';
 import LoginForm from '../components/LoginForm.vue';
 import NotificationManager from '../gestors/NotificationManager.vue';
 import { API_gestor } from '../backend-comunication/api_comunication';
 export default (await import('vue')).defineComponent({
-    components: { NotificationManager, DarkModeSwitcher, BackgroundEffect, LoginForm },
+    components: { ConnectionStatus, NotificationManager, DarkModeSwitcher, BackgroundEffect, LoginForm },
     setup() {
+        const isOnline = ref(navigator.onLine);
         const user_email = ref("");
         const license_key = ref("");
         const isR_lk_box_opened = ref(false);
@@ -54,9 +55,13 @@ export default (await import('vue')).defineComponent({
             const userResponse = await api_gestor.getUserByEmail(user_email.value);
             console.log("userResponse:\n", userResponse);
             if (!userResponse.success) {
+                let e_msg = userResponse.errorMessage;
+                if (!isOnline.value) {
+                    e_msg = "Bad connection, please try again when you're online";
+                }
                 notificationManager.value?.showNotification({
                     type: "error",
-                    message: userResponse.errorMessage,
+                    message: e_msg,
                 });
                 return;
             }
@@ -86,9 +91,13 @@ export default (await import('vue')).defineComponent({
             const userResponse = await api_gestor.getUserByEmail(user_email.value);
             console.log("userResponse:\n", userResponse);
             if (!userResponse.success) {
+                let e_msg = userResponse.errorMessage;
+                if (!isOnline.value) {
+                    e_msg = "Bad connection, please try again when you're online";
+                }
                 notificationManager.value?.showNotification({
                     type: "error",
-                    message: userResponse.errorMessage,
+                    message: e_msg,
                 });
                 return;
             }
@@ -102,9 +111,13 @@ export default (await import('vue')).defineComponent({
             const response = await api_gestor.resetLicenseKey(user_email.value, userResponse.data.licenseKey);
             console.log("response by api gestor (reset lk):\n", response);
             if (!response.success) {
+                let e_msg = response.errorMessage;
+                if (!isOnline.value) {
+                    e_msg = "Bad connection, please try again when you're online";
+                }
                 notificationManager.value?.showNotification({
                     type: "error",
-                    message: response.errorMessage,
+                    message: e_msg,
                 });
                 return;
             }
@@ -118,9 +131,13 @@ export default (await import('vue')).defineComponent({
                 isR_lk_box_opened.value = false;
             }
             else {
+                let e_msg = sendEmailResponse.errorMessage;
+                if (!isOnline.value) {
+                    e_msg = "Bad connection, please try again when you're online";
+                }
                 notificationManager.value?.showNotification({
                     type: "error",
-                    message: sendEmailResponse.errorMessage,
+                    message: e_msg,
                 });
             }
         }
@@ -142,13 +159,14 @@ export default (await import('vue')).defineComponent({
             isDarkMode,
             user_email,
             license_key,
-            notificationManager
+            notificationManager,
+            isOnline
         };
     }
 }); /* PartiallyEnd: #3632/script.vue */
 function __VLS_template() {
     const __VLS_ctx = {};
-    const __VLS_componentsOption = { NotificationManager, DarkModeSwitcher, BackgroundEffect, LoginForm };
+    const __VLS_componentsOption = { ConnectionStatus, NotificationManager, DarkModeSwitcher, BackgroundEffect, LoginForm };
     let __VLS_components;
     let __VLS_directives;
     ['cancel-button-x',];
@@ -180,6 +198,11 @@ function __VLS_template() {
     // @ts-ignore
     const __VLS_8 = __VLS_asFunctionalComponent(__VLS_7, new __VLS_7({}));
     const __VLS_9 = __VLS_8({}, ...__VLS_functionalComponentArgsRest(__VLS_8));
+    const __VLS_13 = {}.ConnectionStatus;
+    /** @type { [typeof __VLS_components.ConnectionStatus, ] } */ ;
+    // @ts-ignore
+    const __VLS_14 = __VLS_asFunctionalComponent(__VLS_13, new __VLS_13({}));
+    const __VLS_15 = __VLS_14({}, ...__VLS_functionalComponentArgsRest(__VLS_14));
     if (!__VLS_ctx.isR_lk_box_opened) {
         __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: ((__VLS_ctx.themeClass)) },
@@ -191,11 +214,11 @@ function __VLS_template() {
         __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: ("flex justify-center space-x-4 mb-6") },
         });
-        const __VLS_13 = {}.LoginForm;
+        const __VLS_19 = {}.LoginForm;
         /** @type { [typeof __VLS_components.LoginForm, ] } */ ;
         // @ts-ignore
-        const __VLS_14 = __VLS_asFunctionalComponent(__VLS_13, new __VLS_13({}));
-        const __VLS_15 = __VLS_14({}, ...__VLS_functionalComponentArgsRest(__VLS_14));
+        const __VLS_20 = __VLS_asFunctionalComponent(__VLS_19, new __VLS_19({}));
+        const __VLS_21 = __VLS_20({}, ...__VLS_functionalComponentArgsRest(__VLS_20));
         __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: ("flex flex-col items-center justify-center space-y-2") },
         });
@@ -212,28 +235,28 @@ function __VLS_template() {
             ...{ class: ("flex flex-col items-center justify-center space-y-2 mt-5") },
         });
         __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({});
-        const __VLS_19 = {}.RouterLink;
+        const __VLS_25 = {}.RouterLink;
         /** @type { [typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, ] } */ ;
         // @ts-ignore
-        const __VLS_20 = __VLS_asFunctionalComponent(__VLS_19, new __VLS_19({
+        const __VLS_26 = __VLS_asFunctionalComponent(__VLS_25, new __VLS_25({
             to: ("/register"),
         }));
-        const __VLS_21 = __VLS_20({
+        const __VLS_27 = __VLS_26({
             to: ("/register"),
-        }, ...__VLS_functionalComponentArgsRest(__VLS_20));
+        }, ...__VLS_functionalComponentArgsRest(__VLS_26));
         __VLS_elementAsFunction(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
             ...{ class: ("baseButton") },
         });
-        __VLS_24.slots.default;
-        var __VLS_24;
+        __VLS_30.slots.default;
+        var __VLS_30;
         __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
             ...{ class: ("mt-6 flex justify-center") },
         });
-        const __VLS_25 = {}.DarkModeSwitcher;
+        const __VLS_31 = {}.DarkModeSwitcher;
         /** @type { [typeof __VLS_components.DarkModeSwitcher, ] } */ ;
         // @ts-ignore
-        const __VLS_26 = __VLS_asFunctionalComponent(__VLS_25, new __VLS_25({}));
-        const __VLS_27 = __VLS_26({}, ...__VLS_functionalComponentArgsRest(__VLS_26));
+        const __VLS_32 = __VLS_asFunctionalComponent(__VLS_31, new __VLS_31({}));
+        const __VLS_33 = __VLS_32({}, ...__VLS_functionalComponentArgsRest(__VLS_32));
     }
     if (__VLS_ctx.isR_lk_box_opened) {
         __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({

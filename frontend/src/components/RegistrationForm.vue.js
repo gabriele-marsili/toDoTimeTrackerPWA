@@ -1,9 +1,9 @@
-/// <reference types="../../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import { ref, reactive, computed } from 'vue';
 import NotificationManager from '../gestors/NotificationManager.vue';
 import { API_gestor } from '../backend-comunication/api_comunication';
 import { delay } from '../utils/generalUtils';
 const totalPoints = 100;
+const isOnline = ref(navigator.onLine);
 const form = reactive({
     // Personal Information
     username: '',
@@ -112,9 +112,13 @@ const submitForm = async () => {
         const checkResponse = await apiGestor.checkUniqueEmailAndUsername(form.email, form.username);
         console.log("checkResponse:\n", checkResponse);
         if (!checkResponse.success) {
+            let e_msg = checkResponse.errorMessage;
+            if (!isOnline.value) {
+                e_msg = "Bad connection, please try again when you're online";
+            }
             notificationManager.value?.showNotification({
                 type: "error",
-                message: checkResponse.errorMessage,
+                message: e_msg,
             });
             return;
         }
@@ -138,10 +142,14 @@ const submitForm = async () => {
             });
         }
         else {
-            console.log("error in registation:\n", registrationEsit.errorMessage);
+            let e_msg = registrationEsit.errorMessage;
+            if (!isOnline.value) {
+                e_msg = "Bad connection, please try again when you're online";
+            }
+            console.log("error in registation:\n", e_msg);
             notificationManager.value?.showNotification({
                 type: "error",
-                message: registrationEsit.errorMessage,
+                message: e_msg,
             });
         }
     }

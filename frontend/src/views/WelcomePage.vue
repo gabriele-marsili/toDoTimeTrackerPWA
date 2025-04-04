@@ -2,6 +2,7 @@
     <BackgroundEffect>
         <ConnectionStatus />
         <div :class="themeClass" class="flex flex-col items-center justify-center min-h-screen p-6">
+            
             <div class="max-w-lg w-full p-15 rounded-2xl elevated">
                 <div class="flex items-center mb-4 gap-4">
                     <h1 class="text-2xl font-bold mb-0 ml-11">Welcome to TTT app</h1>
@@ -24,6 +25,7 @@
                 </div>
                                 
             </div>
+            
         </div>
     </BackgroundEffect>
 </template>

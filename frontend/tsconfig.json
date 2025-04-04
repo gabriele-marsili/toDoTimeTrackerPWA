@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
     "composite": true,
+    "declaration": true,
+    "declarationDir": "./types",
     "strict": true,
     "module": "ESNext",
     "moduleResolution": "Node",
@@ -22,6 +24,7 @@
   },
   "include": [
     "src/**/*.ts",
+    "src/**/*.vue",
     "src/**/*.d.ts",
     "src/main_offline.ts"
   ]

@@ -1,6 +1,6 @@
-/// <reference types="../../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import { ref, onMounted } from "vue";
 const isDark = ref(localStorage.getItem("theme") === "dark");
+const emit = defineEmits(["changeDarkMode"]);
 const toggleDarkMode = () => {
     isDark.value = !isDark.value;
     localStorage.setItem("theme", isDark.value ? "dark" : "light");
@@ -12,6 +12,7 @@ const toggleDarkMode = () => {
         document.body.classList.add('light');
         document.body.classList.remove('dark');
     }
+    emit('changeDarkMode', { isDarkMode: isDark.value });
 };
 onMounted(() => {
     document.documentElement.classList.toggle("dark", isDark.value);
@@ -58,6 +59,7 @@ function __VLS_template() {
 const __VLS_self = (await import('vue')).defineComponent({
     setup() {
         return {
+            $emit: emit,
             isDark: isDark,
             toggleDarkMode: toggleDarkMode,
         };
@@ -65,7 +67,9 @@ const __VLS_self = (await import('vue')).defineComponent({
 });
 export default (await import('vue')).defineComponent({
     setup() {
-        return {};
+        return {
+            $emit: emit,
+        };
     },
     __typeEl: {},
 });
