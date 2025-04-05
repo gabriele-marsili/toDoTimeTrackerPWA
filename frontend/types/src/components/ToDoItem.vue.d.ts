@@ -1,6 +1,7 @@
-import { ToDoAction } from '../types/utilityTypes';
+import { ToDoAction } from '../engine/toDoAction';
 interface Props {
     todo: ToDoAction;
+    viewMode: 'list' | 'grid';
 }
 declare const _default: import("vue").DefineComponent<Props, {}, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {
     update: (...args: any[]) => void;

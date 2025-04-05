@@ -1,14 +1,29 @@
-import { ToDoAction, ToDoPriority } from '../types/utilityTypes';
+import { ToDoAction, ToDoPriority } from '../engine/toDoAction';
 declare const _default: import("vue").DefineComponent<{}, {
-    user: import("vue").Ref<{
-        name: string;
-        image: string;
+    userInfo: import("vue").Ref<{
+        username: string;
+        avatarImagePath: string;
+        prestigeStatus: string;
+        friendCount: number;
+        karmaCoins: number;
+        totalTodos: number;
+        totalEvents: number;
     }, {
-        name: string;
-        image: string;
+        username: string;
+        avatarImagePath: string;
+        prestigeStatus: string;
+        friendCount: number;
+        karmaCoins: number;
+        totalTodos: number;
+        totalEvents: number;
     } | {
-        name: string;
-        image: string;
+        username: string;
+        avatarImagePath: string;
+        prestigeStatus: string;
+        friendCount: number;
+        karmaCoins: number;
+        totalTodos: number;
+        totalEvents: number;
     }>;
     isDarkMode: import("vue").Ref<boolean, boolean>;
     handleSectionChange: (newSection: any) => void;
@@ -24,13 +39,14 @@ declare const _default: import("vue").DefineComponent<{}, {
         subActions: Map<string, /*elided*/ any> & Omit<Map<string, ToDoAction>, keyof Map<any, any>>;
         completed: boolean;
         id: string;
-        getAsObj: () => import("../types/utilityTypes").ToDoObj;
+        category: string;
+        getAsObj: () => import("../engine/toDoAction").ToDoObj;
         isCompleted: () => boolean;
         addOrUpdateSubToDoAction: (SubToDoAction: ToDoAction) => void;
         removeSubToDoAction: (subActionId: string) => void;
         setAsCompleted: () => void;
         setAsNotCompleted: () => void;
-    }[], ToDoAction[] | {
+    }[], {
         title: string;
         description: string;
         priority: ToDoPriority;
@@ -40,13 +56,14 @@ declare const _default: import("vue").DefineComponent<{}, {
         subActions: Map<string, /*elided*/ any> & Omit<Map<string, ToDoAction>, keyof Map<any, any>>;
         completed: boolean;
         id: string;
-        getAsObj: () => import("../types/utilityTypes").ToDoObj;
+        category: string;
+        getAsObj: () => import("../engine/toDoAction").ToDoObj;
         isCompleted: () => boolean;
         addOrUpdateSubToDoAction: (SubToDoAction: ToDoAction) => void;
         removeSubToDoAction: (subActionId: string) => void;
         setAsCompleted: () => void;
         setAsNotCompleted: () => void;
-    }[]>;
+    }[] | ToDoAction[]>;
 }, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<{}> & Readonly<{}>, {}, {}, {
     Sidebar: import("vue").DefineComponent<{}, {}, any>;
     NotificationManager: import("vue").DefineComponent<{}, {}, {
@@ -81,5 +98,6 @@ declare const _default: import("vue").DefineComponent<{}, {
         onSelect?: ((todo: ToDoAction) => any) | undefined;
         onUpdate?: ((updatedTodo: ToDoAction) => any) | undefined;
     }>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, false, {}, HTMLDivElement>;
+    Calendar: import("vue").DefineComponent<{}, {}, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<{}> & Readonly<{}>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {}, HTMLDivElement>;
 }, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
 export default _default;

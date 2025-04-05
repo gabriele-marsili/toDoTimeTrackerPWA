@@ -1,4 +1,4 @@
-import { ToDoAction } from '../types/utilityTypes';
+import { ToDoAction } from '../engine/toDoAction';
 export interface Props {
     todos: ToDoAction[];
     viewMode: 'list' | 'grid';

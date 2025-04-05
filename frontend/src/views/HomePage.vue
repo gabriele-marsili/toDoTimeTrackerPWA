@@ -22,30 +22,47 @@
                 </div>
                 <!-- Colonna 3: Info Utente + Time Tracker -->
                 <div class="last-box">
+
                     <div class="sub-box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center">
                         <h3>User Info</h3>
-                        <!-- Inserisci il componente o contenuto Info Utente -->
-
-
-                        <div class="avatar-wrapper">
-                            <img :src="userInfo.avatarImagePath" alt="User Avatar" class="avatar" />
+                        <div class="user-info-container">
+                            <!-- Colonna sinistra: dettagli utente -->
+                            <div class="user-details">
+                                <div class="username">{{ userInfo.username }}</div>
+                                <div class="info-grid">
+                                    <div class="info-left">
+                                        <div class="prestige-badge">
+                                            <span class="material-symbols-outlined badge-icon">star</span>
+                                            <span class="prestige-text">{{ userInfo.prestigeStatus }}</span>
+                                        </div>
+                                        <div class="karma-coins">
+                                            <span class="material-symbols-outlined karma-coins-icon">paid</span>
+                                            <span>{{ userInfo.karmaCoins }} Karma Coins</span>
+                                        </div>
+                                    </div>
+                                    <div class="info-right">
+                                        <div class="todo-count">
+                                            <span class="material-symbols-outlined todo-icon">task</span>
+                                            <span>{{ userInfo.totalTodos }} Todos</span>
+                                        </div>
+                                        <div class="event-count">
+                                            <span class="material-symbols-outlined events-count-coins-icon">event</span>
+                                            <span>{{ userInfo.totalEvents }} Events</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Colonna destra: avatar e friend count -->
+                            <div class="avatar-container">
+                                <div class="avatar-wrapper">
+                                    <img :src="userInfo.avatarImagePath" alt="User Avatar" class="avatar" />
+                                </div>
+                                <div class="friend-count">
+                                    <span class="material-symbols-outlined friend-icon">people</span>
+                                    <span>{{ userInfo.friendCount }} Friends</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="info-details">
-                            <div class="username">{{ userInfo.username }}</div>
-                            <div class="prestige-badge">
-                                <span class="material-symbols-outlined badge-icon">star</span>
-                                <span class="prestige-text">{{ userInfo.prestigeStatus }}</span>
-                            </div>
-                            <div class="karma-coins">
-                                <span class="material-symbols-outlined karma-coins-icon">coin</span>
-                                <span>{{ userInfo.karmaCoins }} Karma Coins</span>
-                            </div>
-                            <div class="friend-count">
-                                <span class="material-symbols-outlined friend-icon">people</span>
-                                <span>{{ userInfo.friendCount }} Friends</span>
-                            </div>
-                        </div>
-
                     </div>
 
                     <div class="sub-box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center">
@@ -56,9 +73,9 @@
                 </div>
             </div>
 
-            <div class="footer  p-15 rounded-2xl elevated shadow-lg text-center">
+            <div class="footer p-15 rounded-2xl elevated shadow-lg text-center">
                 <h3>Calendar</h3>
-                <!-- Inserisci il componente calendario o il contenuto degli eventi -->
+                <Calendar></Calendar>
             </div>
 
         </div>
@@ -72,20 +89,23 @@ import Sidebar from '../components/Sidebar.vue';
 import NotificationManager from '../gestors/NotificationManager.vue';
 import ConnectionStatus from '../components/ConnectionStatus.vue';
 import ToDoList from '../components/ToDoList.vue'
-import { ToDoAction, ToDoPriority } from '../types/utilityTypes';
+import { ToDoAction, ToDoPriority } from '../engine/toDoAction';
+import Calendar from '../components/Calendar.vue';
 
 export default {
-    components: { Sidebar, NotificationManager, ConnectionStatus, ToDoList },
+    components: { Sidebar, NotificationManager, ConnectionStatus, ToDoList, Calendar },
     setup() {
         const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
         const todayToDoActions = ref<ToDoAction[]>([])
 
         const userInfo = ref({
-            username: "user name",
-            avatarImagePath: "",
+            username: "WhoIsMars",
+            avatarImagePath: "../../public/user.avif",
             prestigeStatus: "Shoe insole",
             friendCount: 0,
-            karmaCoins: 42
+            karmaCoins: 42,
+            totalTodos: todayToDoActions.value.length,
+            totalEvents: 5
         });
 
         const notificationManager = ref(null); // Riferimento per NotificationManager
@@ -378,29 +398,73 @@ grigio : #1e1e1e
     height: 35vh;
     box-sizing: border-box;
     width: 100%;
+    overflow-y: auto;
 }
 
+.footer::-webkit-scrollbar {
+    display: none;
+}
 
-.user-info {
+.user-info-container {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 15px;
-    padding: 10px;
+    margin-top: 15px;
     background: var(--background-dark, #212121);
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.avatar-wrapper {
-    flex-shrink: 0;
+.user-details {
+    flex: 1;
+    text-align: left;
 }
 
-.avatar {
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.info-left {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* Colonna destra: impila verticalmente i due elementi e li allinea a destra */
+.info-right {
+  display: flex;
+  flex-direction: column;
+  align-items:flex-start;
+  gap: 5px;
+}
+
+.avatar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.friend-count {
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: #aaa;
+}
+
+/* Se non sono già presenti, puoi mantenere o aggiornare i seguenti stili per avatar-wrapper e avatar */
+.avatar-wrapper {
+    /* Assicurati che l'avatar sia in un cerchio con cornice personalizzabile */
     width: 60px;
     height: 60px;
     border-radius: 50%;
     border: 3px solid var(--avatar-border-color, #10B981);
-    /* personalizzabile via variabile CSS */
+    overflow: hidden;
+}
+
+.avatar {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
 }
 
@@ -417,17 +481,21 @@ grigio : #1e1e1e
 }
 
 .prestige-badge,
-.friend-count,
-.karma-coins {
+.karma-coins,
+.todo-count,
+.event-count {
     display: flex;
     align-items: center;
+    gap: 4px;
     font-size: 0.9em;
-    margin-top: 4px;
+    color: #fff;
 }
 
 .badge-icon,
+.todo-icon,
 .friend-icon,
-.karma-coins-icon {
+.karma-coins-icon,
+.events-count-coins-icon {
     font-size: 1em;
     margin-right: 4px;
     color: #FFD700;

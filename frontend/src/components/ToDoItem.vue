@@ -53,7 +53,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { ToDoAction, ToDoObj } from '../types/utilityTypes'
+import { ToDoAction, ToDoObj } from '../engine/toDoAction'
 
 interface Props {
   todo: ToDoAction,

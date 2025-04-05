@@ -1,10 +1,19 @@
-import { computed, defineProps, defineEmits } from 'vue';
+import { computed, defineProps, defineEmits, ref } from 'vue';
 import ToDoItem from './ToDoItem.vue';
+const viewMode = ref('list');
+const toggleViewMode = () => viewMode.value = viewMode.value === 'list' ? 'grid' : 'list';
 const props = defineProps();
 const emit = defineEmits();
 // Filtra i todo che non sono completati
 const filteredTodos = computed(() => {
-    return props.todos.filter(todo => !todo.isCompleted());
+    return [...props.todos].sort((a, b) => {
+        if (!a.isCompleted() && b.isCompleted())
+            return -1;
+        if (a.isCompleted() && !b.isCompleted())
+            return 1;
+        return 0;
+    });
+    //return props.todos.filter(todo => !todo.isCompleted());
 });
 // Quando un item viene cliccato, emetti l'evento "select"
 function openAction(todo) {
@@ -20,11 +29,11 @@ function __VLS_template() {
     const __VLS_ctx = {};
     let __VLS_components;
     let __VLS_directives;
-    ['todo-list',];
+    ['todo-list', 'todo-list-container',];
     // CSS variable injection 
     // CSS variable injection end 
     __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
-        ...{ class: ("todo-list") },
+        ...{ class: ("todo-list-container") },
         ...{ class: ((__VLS_ctx.viewMode)) },
     });
     for (const [todo] of __VLS_getVForSourceType((__VLS_ctx.filteredTodos))) {
@@ -41,11 +50,13 @@ function __VLS_template() {
         const __VLS_0 = __VLS_asFunctionalComponent(ToDoItem, new ToDoItem({
             ...{ 'onUpdate': {} },
             ...{ 'onClick': {} },
+            viewMode: ((__VLS_ctx.viewMode)),
             todo: ((todo)),
         }));
         const __VLS_1 = __VLS_0({
             ...{ 'onUpdate': {} },
             ...{ 'onClick': {} },
+            viewMode: ((__VLS_ctx.viewMode)),
             todo: ((todo)),
         }, ...__VLS_functionalComponentArgsRest(__VLS_0));
         let __VLS_5;
@@ -61,7 +72,7 @@ function __VLS_template() {
         let __VLS_3;
         var __VLS_4;
     }
-    ['todo-list', 'todo-item-wrapper',];
+    ['todo-list-container', 'todo-item-wrapper',];
     var __VLS_slots;
     var $slots;
     let __VLS_inheritedAttrs;
@@ -81,6 +92,7 @@ const __VLS_self = (await import('vue')).defineComponent({
     setup() {
         return {
             ToDoItem: ToDoItem,
+            viewMode: viewMode,
             filteredTodos: filteredTodos,
             openAction: openAction,
             onItemUpdate: onItemUpdate,
