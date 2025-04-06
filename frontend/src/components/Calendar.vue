@@ -77,7 +77,7 @@
 
         <!-- Modal o form per aggiungere/modificare evento (da implementare) -->
         <div v-if="showEventForm" class="modal">
-            <div class="ad-event-content">
+            <div class="add-event-content">
                 <h3>Add New Event</h3>
                 <div class="form-group">
                     <label for="eventDate">Event Date:</label>
@@ -356,7 +356,7 @@ onMounted(() => {
 }
 
 .month-picker-content,
-.ad-event-content {
+.add-event-content {
     background: #212121;
     color: #fff;
     padding: 20px;
@@ -368,7 +368,7 @@ onMounted(() => {
 
 
 
-.ad-event-content {
+.add-event-content {
     width: 500px;
     height: 400px;
     display: flex;
@@ -377,7 +377,7 @@ onMounted(() => {
     overflow-y: auto;
 }
 
-.ad-event-content h3 {
+.add-event-content h3 {
     margin-bottom: 10px;
 }
 
@@ -469,7 +469,7 @@ onMounted(() => {
 /* Nascondi scrollbar in WebKit e Firefox se necessario */
 .calendar::-webkit-scrollbar,
 .calendar-grid::-webkit-scrollbar,
-.ad-event-content::-webkit-scrollbar {
+.add-event-content::-webkit-scrollbar {
     display: none;
 }
 

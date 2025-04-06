@@ -11,7 +11,7 @@ function __VLS_template() {
     const __VLS_ctx = {};
     let __VLS_components;
     let __VLS_directives;
-    ['calendar-event',];
+    ['calendar-event', 'event-actions',];
     // CSS variable injection 
     // CSS variable injection end 
     __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
@@ -21,13 +21,12 @@ function __VLS_template() {
         ...{ class: ("event-header") },
     });
     __VLS_elementAsFunction(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: ("material-symbols-outlined g-icon") },
+    });
+    __VLS_elementAsFunction(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
         ...{ class: ("event-date") },
     });
-    (__VLS_ctx.formattedDate);
-    __VLS_elementAsFunction(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
-        ...{ class: ("event-duration") },
-    });
-    (__VLS_ctx.event.durationInH);
+    (__VLS_ctx.formattedDate.split("-")[1]);
     __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: ("event-body") },
     });
@@ -35,14 +34,6 @@ function __VLS_template() {
         ...{ class: ("event-title") },
     });
     (__VLS_ctx.event.title);
-    __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({
-        ...{ class: ("event-description") },
-    });
-    (__VLS_ctx.event.description);
-    __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({
-        ...{ class: ("event-category") },
-    });
-    (__VLS_ctx.event.category);
     __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: ("event-actions") },
     });
@@ -51,12 +42,18 @@ function __VLS_template() {
                 __VLS_ctx.$emit('edit', __VLS_ctx.event);
             } },
     });
+    __VLS_elementAsFunction(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: ("material-symbols-outlined g-icon") },
+    });
     __VLS_elementAsFunction(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
         ...{ onClick: (...[$event]) => {
                 __VLS_ctx.$emit('delete', __VLS_ctx.event);
             } },
     });
-    ['calendar-event', 'event-header', 'event-date', 'event-duration', 'event-body', 'event-title', 'event-description', 'event-category', 'event-actions',];
+    __VLS_elementAsFunction(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({
+        ...{ class: ("material-symbols-outlined g-icon") },
+    });
+    ['calendar-event', 'event-header', 'material-symbols-outlined', 'g-icon', 'event-date', 'event-body', 'event-title', 'event-actions', 'material-symbols-outlined', 'g-icon', 'material-symbols-outlined', 'g-icon',];
     var __VLS_slots;
     var $slots;
     let __VLS_inheritedAttrs;

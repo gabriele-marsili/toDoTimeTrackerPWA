@@ -5,8 +5,9 @@ import ConnectionStatus from '../components/ConnectionStatus.vue';
 import ToDoList from '../components/ToDoList.vue';
 import { ToDoAction } from '../engine/toDoAction';
 import Calendar from '../components/Calendar.vue';
+import TimeTrackerRuleList from '../components/TimeTrackerRuleList.vue';
 export default (await import('vue')).defineComponent({
-    components: { Sidebar, NotificationManager, ConnectionStatus, ToDoList, Calendar },
+    components: { Sidebar, NotificationManager, ConnectionStatus, ToDoList, Calendar, TimeTrackerRuleList },
     setup() {
         const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
         const todayToDoActions = ref([]);
@@ -74,7 +75,7 @@ export default (await import('vue')).defineComponent({
 ; /* PartiallyEnd: #3632/script.vue */
 function __VLS_template() {
     const __VLS_ctx = {};
-    const __VLS_componentsOption = { Sidebar, NotificationManager, ConnectionStatus, ToDoList, Calendar };
+    const __VLS_componentsOption = { Sidebar, NotificationManager, ConnectionStatus, ToDoList, Calendar, TimeTrackerRuleList };
     let __VLS_components;
     let __VLS_directives;
     ['user-menu', 'bottone', 'selettore', 'reset_button', 'reset_button', 'apply_button', 'apply_button', 'cancel_button', 'cancel_button', 'footer',];
@@ -246,15 +247,20 @@ function __VLS_template() {
         ...{ class: ("sub-box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center") },
     });
     __VLS_elementAsFunction(__VLS_intrinsicElements.h3, __VLS_intrinsicElements.h3)({});
+    const __VLS_33 = {}.TimeTrackerRuleList;
+    /** @type { [typeof __VLS_components.TimeTrackerRuleList, typeof __VLS_components.TimeTrackerRuleList, ] } */ ;
+    // @ts-ignore
+    const __VLS_34 = __VLS_asFunctionalComponent(__VLS_33, new __VLS_33({}));
+    const __VLS_35 = __VLS_34({}, ...__VLS_functionalComponentArgsRest(__VLS_34));
     __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
         ...{ class: ("footer p-15 rounded-2xl elevated shadow-lg text-center") },
     });
     __VLS_elementAsFunction(__VLS_intrinsicElements.h3, __VLS_intrinsicElements.h3)({});
-    const __VLS_33 = {}.Calendar;
+    const __VLS_39 = {}.Calendar;
     /** @type { [typeof __VLS_components.Calendar, typeof __VLS_components.Calendar, ] } */ ;
     // @ts-ignore
-    const __VLS_34 = __VLS_asFunctionalComponent(__VLS_33, new __VLS_33({}));
-    const __VLS_35 = __VLS_34({}, ...__VLS_functionalComponentArgsRest(__VLS_34));
+    const __VLS_40 = __VLS_asFunctionalComponent(__VLS_39, new __VLS_39({}));
+    const __VLS_41 = __VLS_40({}, ...__VLS_functionalComponentArgsRest(__VLS_40));
     ['home-app', 'main-content', 'content-grid', 'box', 'max-w-lg', 'w-full', 'p-15', 'rounded-2xl', 'elevated', 'shadow-lg', 'text-center', 'box', 'max-w-lg', 'w-full', 'p-15', 'rounded-2xl', 'elevated', 'shadow-lg', 'text-center', 'last-box', 'sub-box', 'max-w-lg', 'w-full', 'p-15', 'rounded-2xl', 'elevated', 'shadow-lg', 'text-center', 'user-info-container', 'user-details', 'username', 'info-grid', 'info-left', 'prestige-badge', 'material-symbols-outlined', 'badge-icon', 'prestige-text', 'karma-coins', 'material-symbols-outlined', 'karma-coins-icon', 'info-right', 'todo-count', 'material-symbols-outlined', 'todo-icon', 'event-count', 'material-symbols-outlined', 'events-count-coins-icon', 'avatar-container', 'avatar-wrapper', 'avatar', 'friend-count', 'material-symbols-outlined', 'friend-icon', 'sub-box', 'max-w-lg', 'w-full', 'p-15', 'rounded-2xl', 'elevated', 'shadow-lg', 'text-center', 'footer', 'p-15', 'rounded-2xl', 'elevated', 'shadow-lg', 'text-center',];
     var __VLS_slots;
     var $slots;

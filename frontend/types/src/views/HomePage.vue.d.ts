@@ -98,6 +98,49 @@ declare const _default: import("vue").DefineComponent<{}, {
         onSelect?: ((todo: ToDoAction) => any) | undefined;
         onUpdate?: ((updatedTodo: ToDoAction) => any) | undefined;
     }>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, false, {}, HTMLDivElement>;
-    Calendar: import("vue").DefineComponent<{}, {}, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<{}> & Readonly<{}>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {}, HTMLDivElement>;
+    Calendar: import("vue").DefineComponent<{}, {}, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<{}> & Readonly<{}>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {
+        notificationManager: import("vue").CreateComponentPublicInstanceWithMixins<Readonly<{}>, {}, {
+            currentNotification: null;
+        }, {}, {
+            showNotification(notification: any): void;
+            dismissNotification(): void;
+        }, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, import("vue").PublicProps, {}, true, {}, {}, {
+            Notification: import("vue").DefineComponent<{}, {}, any>;
+        } & import("vue").GlobalComponents, import("vue").GlobalDirectives, string, {}, any, import("vue").ComponentProvideOptions, {
+            P: {};
+            B: {};
+            D: {};
+            C: {};
+            M: {};
+            Defaults: {};
+        }, Readonly<{}>, {}, {
+            currentNotification: null;
+        }, {}, {
+            showNotification(notification: any): void;
+            dismissNotification(): void;
+        }, {}> | null;
+    }, any>;
+    TimeTrackerRuleList: import("vue").DefineComponent<{}, {}, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<{}> & Readonly<{}>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {
+        notificationManager: import("vue").CreateComponentPublicInstanceWithMixins<Readonly<{}>, {}, {
+            currentNotification: null;
+        }, {}, {
+            showNotification(notification: any): void;
+            dismissNotification(): void;
+        }, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, import("vue").PublicProps, {}, true, {}, {}, {
+            Notification: import("vue").DefineComponent<{}, {}, any>;
+        } & import("vue").GlobalComponents, import("vue").GlobalDirectives, string, {}, any, import("vue").ComponentProvideOptions, {
+            P: {};
+            B: {};
+            D: {};
+            C: {};
+            M: {};
+            Defaults: {};
+        }, Readonly<{}>, {}, {
+            currentNotification: null;
+        }, {}, {
+            showNotification(notification: any): void;
+            dismissNotification(): void;
+        }, {}> | null;
+    }, any>;
 }, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
 export default _default;

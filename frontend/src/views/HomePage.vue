@@ -67,7 +67,7 @@
 
                     <div class="sub-box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center">
                         <h3>Time Tracker</h3>
-                        <!-- Inserisci il componente o contenuto Time Tracker -->
+                        <TimeTrackerRuleList></TimeTrackerRuleList>
                     </div>
 
                 </div>
@@ -91,9 +91,10 @@ import ConnectionStatus from '../components/ConnectionStatus.vue';
 import ToDoList from '../components/ToDoList.vue'
 import { ToDoAction, ToDoPriority } from '../engine/toDoAction';
 import Calendar from '../components/Calendar.vue';
+import TimeTrackerRuleList from '../components/TimeTrackerRuleList.vue';
 
 export default {
-    components: { Sidebar, NotificationManager, ConnectionStatus, ToDoList, Calendar },
+    components: { Sidebar, NotificationManager, ConnectionStatus, ToDoList, Calendar, TimeTrackerRuleList },
     setup() {
         const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
         const todayToDoActions = ref<ToDoAction[]>([])
@@ -374,7 +375,7 @@ grigio : #1e1e1e
     display: flex;
     flex-direction: column;
     height: 100%;
-    gap: 20px
+    gap: 23px
 }
 
 .sub-box {
@@ -386,6 +387,11 @@ grigio : #1e1e1e
     display: flex;
     height: 28%;
     flex-direction: column;
+    overflow-y: auto;
+    max-height: 300px;
+}
+.sub-box::-webkit-scrollbar{
+    display: none;
 }
 
 /* Footer (Calendario/Eventi): occupa quasi tutta la larghezza del main content */

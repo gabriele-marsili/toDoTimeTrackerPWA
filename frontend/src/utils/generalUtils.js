@@ -33,3 +33,8 @@ export function parseDate(date) {
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${day}/${month}/${year} - ${hours}:${minutes}`;
 }
+export function minToParsedTime(min) {
+    let h = parseInt(String(min / 60));
+    let m = parseInt(String(min % 60));
+    return `${h} H and ${m} min`;
+}
