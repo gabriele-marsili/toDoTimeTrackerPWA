@@ -89,7 +89,7 @@ import Sidebar from '../components/Sidebar.vue';
 import NotificationManager from '../gestors/NotificationManager.vue';
 import ConnectionStatus from '../components/ConnectionStatus.vue';
 import ToDoList from '../components/ToDoList.vue'
-import { ToDoAction, ToDoPriority } from '../engine/toDoAction';
+import { ToDoAction, ToDoPriority } from '../engine/toDoEngine';
 import Calendar from '../components/Calendar.vue';
 import TimeTrackerRuleList from '../components/TimeTrackerRuleList.vue';
 
@@ -456,6 +456,9 @@ grigio : #1e1e1e
     margin-top: 8px;
     font-size: 0.9em;
     color: #aaa;
+    display : flex;
+    flex-direction: row;
+    justify-content: center;
 }
 
 /* Se non sono già presenti, puoi mantenere o aggiornare i seguenti stili per avatar-wrapper e avatar */
@@ -502,9 +505,14 @@ grigio : #1e1e1e
 .friend-icon,
 .karma-coins-icon,
 .events-count-coins-icon {
-    font-size: 1em;
+    font-size: 1em;    
     margin-right: 4px;
     color: #FFD700;
     /* colore oro per il badge, personalizzabile */
 }
+
+.friend-icon{
+    margin-top: 5%;
+}
+
 </style>

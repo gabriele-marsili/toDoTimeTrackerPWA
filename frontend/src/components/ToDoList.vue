@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import { computed, defineProps, defineEmits, ref } from 'vue';
 import ToDoItem from './ToDoItem.vue';
-import { ToDoAction } from '../engine/toDoAction';
+import { ToDoAction } from '../engine/toDoEngine';
 
 export interface Props {
     todos: ToDoAction[];
