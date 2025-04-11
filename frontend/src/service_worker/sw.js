@@ -4,7 +4,7 @@ import { cleanupOutdatedCaches, getCacheKeyForURL, precacheAndRoute } from 'work
 import { registerRoute, setCatchHandler } from 'workbox-routing';
 import { NetworkFirst, CacheFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
-import { SW_BROADCAST_CHANNEL } from '../utils/generalUtils';
+import { SW_BROADCAST_CHANNEL } from '../utils/generalUtils.js';
 //messages via broadcast channel:
 const broadcast = new BroadcastChannel(SW_BROADCAST_CHANNEL);
 const manifest = self.__WB_MANIFEST;

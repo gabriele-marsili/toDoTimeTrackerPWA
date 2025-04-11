@@ -92,15 +92,7 @@ export declare class API_gestor {
      * @param licenseKey Identificativo univoco per il documento.
      * @param action L'istanza di ToDoAction da aggiungere.
     */
-    addToDoAction(licenseKey: string, action: ToDoAction): Promise<baseResponse>;
-    /**
-     * Aggiorna una ToDoAction esistente.
-     * Recupera l'array delle azioni, sostituisce quella che ha lo stesso id e aggiorna il documento.
-     *
-     * @param licenseKey Identificativo univoco per il documento.
-     * @param updatedAction L'istanza di ToDoAction già aggiornata.
-     */
-    updateToDoAction(licenseKey: string, updatedAction: ToDoAction): Promise<baseResponse>;
+    addOrUpdateToDoAction(licenseKey: string, action: ToDoAction): Promise<baseResponse>;
     /**
      * Elimina una ToDoAction data la licenseKey e l'id dell'azione.
      * Utilizza arrayRemove per rimuovere l'azione specifica cercando la stringa corrispondente.

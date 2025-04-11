@@ -28,3 +28,6 @@ dev-dist
 
 .env
 /src/backend-comunication/keyFile.json
+/src/tests
+/jest.config.cjs
+/babel.config.cjs

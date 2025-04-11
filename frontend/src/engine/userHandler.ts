@@ -1,7 +1,7 @@
 import { User, UserCredential } from "firebase/auth";
-import { API_gestor } from "../backend-comunication/api_comunication";
-import { prestigeLevels, userDBentry, UserPrestigeLevel } from "../types/userTypes";
-import { baseResponse } from "../types/utilityTypes";
+import { API_gestor } from "../backend-comunication/api_comunication.js";
+import { prestigeLevels, userDBentry, UserPrestigeLevel } from "../types/userTypes.js";
+import { baseResponse } from "../types/utilityTypes.js";
 
 
 
@@ -26,8 +26,8 @@ export class UserHandler {
     }
 
 
-    public getUserInfo(update=false){
-        if(update){
+    public getUserInfo(update = false) {
+        if (update) {
             this.updateLocalUserInfo();
         }
         return {
@@ -41,9 +41,9 @@ export class UserHandler {
         }
     }
 
-     public async updateUserInfo(uInfo: userDBentry): Promise<baseResponse> {
+    public async updateUserInfo(uInfo: userDBentry): Promise<baseResponse> {
         return await this.apiGestor.updateUserInfo(uInfo);
-     }
+    }
 
     private updateLocalUserInfo() {
         const info = this.apiGestor.getUserInfo()

@@ -2,6 +2,8 @@
   "compilerOptions": {
     "composite": true,
     "declaration": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
     "declarationDir": "./types",
     "strict": true,
     "module": "ESNext",
@@ -13,7 +15,8 @@
     "types": [
       "vite-plugin-pwa/client",
       "vite-plugin-pwa/info",
-      "vite/client"
+      "vite/client",
+      "jest"
     ],
     "lib": [
       "ESNext",
@@ -26,6 +29,6 @@
     "src/**/*.ts",
     "src/**/*.vue",
     "src/**/*.d.ts",
-    "src/main_offline.ts"
+    "src/main_offline.ts",
   ]
 }

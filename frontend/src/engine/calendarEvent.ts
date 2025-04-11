@@ -1,4 +1,4 @@
-import { TTT_Notification } from "./notification";
+import { TTT_Notification } from "./notification.js";
 
 export type CalendarObj = {
     eventDate: Date;

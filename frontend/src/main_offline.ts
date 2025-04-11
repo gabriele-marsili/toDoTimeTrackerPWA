@@ -1,9 +1,11 @@
 import { createApp } from 'vue'
 import './style_offline.css'
-import router from './router'
-import App_offline from './App_offline.vue';
 
-import { registerServiceWorker } from './service_worker/registerSW';
+
+
+import App_offline from './App_offline.vue';
+import router from './router/index.js';
+import { registerServiceWorker } from './service_worker/registerSW.js';
 
 registerServiceWorker()
 

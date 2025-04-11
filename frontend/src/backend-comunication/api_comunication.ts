@@ -1,12 +1,12 @@
 import { Analytics } from "firebase/analytics";
 import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updatePassword, User, UserCredential } from "firebase/auth";
 import { arrayRemove, arrayUnion, collection, doc, Firestore, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
-import { analytics, auth, db } from "./firebase";
-import { generateLicenseKey, getDeviceId, hashPassword } from "../utils/generalUtils";
-import { baseResponse } from "../types/utilityTypes";
+import { analytics, auth, db } from "./firebase.js";
+import { generateLicenseKey, getDeviceId, hashPassword } from "../utils/generalUtils.js";
+import { baseResponse } from "../types/utilityTypes.js";
 import sodium from 'libsodium-wrappers';
-import { userDBentry } from "../types/userTypes";
-import { ToDoAction, ToDoObj } from "../engine/toDoEngine";
+import { userDBentry } from "../types/userTypes.js";
+import { ToDoAction, ToDoObj } from "../engine/toDoEngine.js";
 
 
 type InitDHresponse = {
@@ -37,7 +37,7 @@ export class API_gestor {
 
     private auth: Auth
     private db: Firestore
-    private analytics: Analytics
+    private analytics: Analytics | null;
     private user: User | null = null;
     private userCredentials: UserCredential | null = null;
     private licenseKey: string;
@@ -699,14 +699,14 @@ export class API_gestor {
                 where("licenseKey", "==", licenseKey)
             );
             const userSnapshot = await getDocs(userQuery);
-            console.log("userSnapshot:\n", userSnapshot)
+            //console.log("userSnapshot:\n", userSnapshot)
             if (userSnapshot.empty) {
                 throw new Error("Invalid license key");
             }
 
             let success = false
             let e_message = "User not found"
-            userSnapshot.forEach(async (document) => {
+            for (let document of userSnapshot.docs) {
                 const userData = document.data()
                 console.log("user data\n", userData)
                 if (userData.licenseKey == licenseKey) {
@@ -723,7 +723,7 @@ export class API_gestor {
                     }
 
                 }
-            })
+            }
 
             return {
                 success,
@@ -985,6 +985,7 @@ export class API_gestor {
 
 
     // ----- handle to do <--> db :
+
     /**
      * Aggiunge una nuova ToDoAction alla collezione "toDoActions" in Firestore.
      * Se il documento per la licenseKey non esiste, lo crea con un array contenente l'azione.
@@ -993,81 +994,56 @@ export class API_gestor {
      * @param licenseKey Identificativo univoco per il documento.
      * @param action L'istanza di ToDoAction da aggiungere.
     */
-    public async addToDoAction(licenseKey: string, action: ToDoAction): Promise<baseResponse> {
-        const actionStr = JSON.stringify(action.getAsObj());
-        const docRef = doc(this.db, "toDoActions", licenseKey);
+    public async addOrUpdateToDoAction(licenseKey: string, action: ToDoAction): Promise<baseResponse> {
+
 
         try {
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                // Se il documento esiste, aggiunge l'azione all'array
-                await updateDoc(docRef, {
-                    actions: arrayUnion(actionStr)
-                });
+            const q = query(collection(this.db, "toDoActions"), where("licenseKey", "==", licenseKey))
+            const snapshot = await getDocs(q);
+
+            if (!snapshot.empty) {
+                const userDoc = snapshot.docs[0].ref;
+                const docData = snapshot.docs[0].data()
+                console.log("raw docData.toDo_actions :\n", docData.toDo_actions)
+                let updatedActions: ToDoObj[] = docData.toDo_actions || []
+
+                console.log("not updated actions:\n", updatedActions)
+
+                let index = updatedActions.findIndex(x => x.id == action.id)
+                console.log("index : ", index);
+                if (index != -1) {
+                    updatedActions[index] = action.getAsObj()
+                } else {
+                    updatedActions.push(action.getAsObj())
+                }
+
+                console.log("updated actions:\n", updatedActions)
+
+
+                await updateDoc(userDoc, { licenseKey: licenseKey, toDo_actions: updatedActions });
+
+
             } else {
-                // Se il documento non esiste, lo crea con l'array iniziale
-                await setDoc(docRef, {
-                    actions: [actionStr]
-                });
+                if (!this.user) {
+                    throw new Error("user not logged")
+                }
+                await setDoc(doc(collection(db, "toDoActions"), this.user.uid), { toDo_actions: [action.getAsObj()], licenseKey: licenseKey });
             }
 
             return {
                 success: true,
-                errorMessage : ""
+                errorMessage: ""
             }
-        } catch (error:any) {
+        } catch (error: any) {
             console.error("Error adding ToDoAction:", error);
             return {
                 success: false,
-                errorMessage : error.message
+                errorMessage: error.message
             }
         }
     }
 
-    /**
-     * Aggiorna una ToDoAction esistente.
-     * Recupera l'array delle azioni, sostituisce quella che ha lo stesso id e aggiorna il documento.
-     *
-     * @param licenseKey Identificativo univoco per il documento.
-     * @param updatedAction L'istanza di ToDoAction già aggiornata.
-     */
-    public async updateToDoAction(licenseKey: string, updatedAction: ToDoAction): Promise<baseResponse> {
-        const docRef = doc(this.db, "toDoActions", licenseKey);
-        try {
-            const docSnap = await getDoc(docRef);
-            if (!docSnap.exists()) {
-                throw new Error(`No ToDoActions found for licenseKey ${licenseKey}`);
-            }
-            // Recupera l'array delle azioni (stringhe)
-            const data = docSnap.data();
-            const actions: string[] = data.actions ?? [];
-            // Serializzazione della nuova azione
-            const updatedActionStr = JSON.stringify(updatedAction.getAsObj());
-            // Sostituisce l'azione che ha lo stesso id
-            const newActions = actions.map((actionStr) => {
-                try {
-                    const actionObj = JSON.parse(actionStr);
-                    if (actionObj.id === updatedAction.id) {
-                        return updatedActionStr;
-                    }
-                    return actionStr;
-                } catch (e) {
-                    return actionStr;
-                }
-            });
-            await setDoc(docRef, { actions: newActions });
-            return {
-                success: true,
-                errorMessage : ""
-            }
-        } catch (error:any) {
-            console.error("Error updating ToDoAction:", error);
-            return {
-                success: false,
-                errorMessage : error.message
-            }
-        }
-    }
+
 
     /**
      * Elimina una ToDoAction data la licenseKey e l'id dell'azione.
@@ -1077,8 +1053,12 @@ export class API_gestor {
      * @param actionId Id dell'azione da eliminare.
      */
     public async removeToDoAction(licenseKey: string, actionId: string): Promise<baseResponse> {
-        const docRef = doc(this.db, "toDoActions", licenseKey);
+
         try {
+            if (!this.user) {
+                throw new Error("user not logged")
+            }
+            const docRef = doc(this.db, "toDoActions", this.user.uid);
             const docSnap = await getDoc(docRef);
             if (!docSnap.exists()) {
                 throw new Error(`No ToDoActions found for licenseKey ${licenseKey}`);
@@ -1108,13 +1088,13 @@ export class API_gestor {
             });
             return {
                 success: true,
-                errorMessage : ""
+                errorMessage: ""
             }
-        } catch (error:any) {
+        } catch (error: any) {
             console.error("Error removing ToDoAction:", error);
             return {
                 success: false,
-                errorMessage : error.message
+                errorMessage: error.message
             }
         }
     }
@@ -1127,39 +1107,32 @@ export class API_gestor {
      * @returns Array di oggetti ToDoAction serializzati come JSON.
      */
     public async getToDoActions(licenseKey: string): Promise<{
-        success : boolean,
-        errorMessage : string,
-        toDoObjects : ToDoObj[]
+        success: boolean,
+        errorMessage: string,
+        toDoObjects: ToDoObj[]
     }> {
-        const docRef = doc(this.db, "toDoActions", licenseKey);
+
         try {
-            const docSnap = await getDoc(docRef);
-            if (!docSnap.exists()) {
-                throw new Error("doc not found in DB");
+            const q = query(collection(this.db, "toDoActions"), where("licenseKey", "==", licenseKey))
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                throw new Error("no to do found for license key : " + licenseKey);
             }
-            const data = docSnap.data();
-            const actions: string[] = data.actions ?? [];
-            // Deserializza ogni stringa in oggetto
-            const toDoObjs = actions.map((actionStr) => {
-                try {
-                    return JSON.parse(actionStr) as ToDoObj;
-                } catch (error) {
-                    console.warn("Error parsing a ToDoAction string:", error);
-                    return null;
-                }
-            }).filter(a => a !== null);
+            const docData = snapshot.docs[0].data()
+            let parsedActions: ToDoObj[] = docData.toDo_actions || [];
 
             return {
-                success : true,
-                errorMessage : '',
-                toDoObjects : toDoObjs
+                success: true,
+                errorMessage: '',
+                toDoObjects: parsedActions
             }
-        } catch (error:any) {
+        } catch (error: any) {
             console.error("Error getting ToDoActions:", error);
             return {
-                success : true,
-                errorMessage : error.message,
-                toDoObjects : []
+                success: true,
+                errorMessage: error.message,
+                toDoObjects: []
             }
         }
     }

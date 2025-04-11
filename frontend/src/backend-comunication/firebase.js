@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
-import { getAnalytics } from "firebase/analytics";
+import { getAnalytics, isSupported } from "firebase/analytics";
 const firebaseConfig = {
     apiKey: "AIzaSyD0iZyzMT-SZC1KPmJxIQjBXg5kjWOKhME",
     authDomain: "ttt-webapp-unipi.firebaseapp.com",
@@ -20,5 +20,13 @@ const auth = getAuth(app);
 const db = initializeFirestore(app, {
     localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
 });
-const analytics = getAnalytics(app);
+let analytics = null;
+if (typeof window !== 'undefined') {
+    // siamo nel browser
+    isSupported().then((yes) => {
+        if (yes) {
+            analytics = getAnalytics(app);
+        }
+    });
+}
 export { auth, db, analytics };
