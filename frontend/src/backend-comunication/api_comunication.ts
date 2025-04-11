@@ -7,6 +7,8 @@ import { baseResponse } from "../types/utilityTypes.js";
 import sodium from 'libsodium-wrappers';
 import { userDBentry } from "../types/userTypes.js";
 import { ToDoAction, ToDoObj } from "../engine/toDoEngine.js";
+import { CalendarEvent, CalendarObj } from "../engine/calendarEvent.js";
+import { TimeTrackerRule, TimeTrackerRuleObj } from "../engine/timeTracker.js";
 
 
 type InitDHresponse = {
@@ -1064,19 +1066,16 @@ export class API_gestor {
                 throw new Error(`No ToDoActions found for licenseKey ${licenseKey}`);
             }
             const data = docSnap.data();
-            const actions: string[] = data.actions ?? [];
-
-            // Cerca la stringa corrispondente all'azione con id actionId
-            let actionToRemove: string | null = null;
-            for (const actionStr of actions) {
+            const actions: ToDoObj[] = data.actions ?? [];
+            
+            let actionToRemove: ToDoObj | null = null;
+            for (const actionObj of actions) {
                 try {
-                    const actionObj = JSON.parse(actionStr);
                     if (actionObj.id === actionId) {
-                        actionToRemove = actionStr;
+                        actionToRemove = actionObj;
                         break;
                     }
                 } catch (e) {
-                    // Se non riesce a parsare, ignora
                     continue;
                 }
             }
@@ -1137,5 +1136,224 @@ export class API_gestor {
         }
     }
 
+    // ----- handle calendar events <--> db :
+    
+    public async addOrUpdateCalendarEvent(licenseKey: string, event : CalendarEvent): Promise<baseResponse> {
+        try {
+            const q = query(collection(this.db, "calendarEvents"), where("licenseKey", "==", licenseKey))
+            const snapshot = await getDocs(q);
+
+            if (!snapshot.empty) {
+                const userDoc = snapshot.docs[0].ref;
+                const docData = snapshot.docs[0].data()                
+                let updatedEvents: CalendarObj[] = docData.events || []
+
+                let index = updatedEvents.findIndex(x => x.id == event.id)
+                console.log("index : ", index);
+                if (index != -1) {
+                    updatedEvents[index] = event.getAsObj()
+                } else {
+                    updatedEvents.push(event.getAsObj())
+                }
+
+                console.log("updated events:\n", updatedEvents)
+
+
+                await updateDoc(userDoc, { licenseKey: licenseKey, events: updatedEvents });
+            } else {
+                if (!this.user) {
+                    throw new Error("user not logged")
+                }
+                await setDoc(doc(collection(db, "calendarEvents"), this.user.uid), { events: [event.getAsObj()], licenseKey: licenseKey });
+            }
+
+            return {
+                success: true,
+                errorMessage: ""
+            }
+        } catch (error: any) {
+            console.error("Error adding/updating calendar event:", error);
+            return {
+                success: false,
+                errorMessage: error.message
+            }
+        }
+    }
+
+    public async removeCalendarEvent(licenseKey: string, eventId: string): Promise<baseResponse> {
+
+        try {
+            if (!this.user) {
+                throw new Error("user not logged")
+            }
+            const docRef = doc(this.db, "calendarEvents", this.user.uid);
+            const docSnap = await getDoc(docRef);
+            if (!docSnap.exists()) {
+                throw new Error(`No calendar events found for licenseKey ${licenseKey}`);
+            }
+            const data = docSnap.data();
+            const events: CalendarObj[] = data.events ?? [];
+
+            let eventToRemove: CalendarObj | null = null;
+            for (const event of events) {
+                try {
+                    if (event.id === eventId) {
+                        eventToRemove = event;
+                        break;
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+            if (!eventToRemove) {
+                throw new Error(`Calendar event with id ${eventId} not found for licenseKey ${licenseKey}`);
+            }
+            await updateDoc(docRef, {
+                actions: arrayRemove(eventToRemove)
+            });
+            return {
+                success: true,
+                errorMessage: ""
+            }
+        } catch (error: any) {
+            console.error("Error removing calendar event:", error);
+            return {
+                success: false,
+                errorMessage: error.message
+            }
+        }
+    }
+
+   
+    public async getCalendarEvents(licenseKey: string): Promise<{
+        success: boolean,
+        errorMessage: string,
+        eventObjects: CalendarObj[]
+    }> {
+
+        try {
+            const q = query(collection(this.db, "calendarEvents"), where("licenseKey", "==", licenseKey))
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                throw new Error("no calendar events found for license key : " + licenseKey);
+            }
+            const docData = snapshot.docs[0].data()
+            let parsedEvents: CalendarObj[] = docData.events || [];
+
+            return {
+                success: true,
+                errorMessage: '',
+                eventObjects: parsedEvents
+            }
+        } catch (error: any) {
+            console.error("Error getting calendar Events:", error);
+            return {
+                success: true,
+                errorMessage: error.message,
+                eventObjects: []
+            }
+        }
+    }
+
+    // ----- handle time tracker rules <--> db :
+
+    public async addOrUpdateTimeTrackerRule(licenseKey: string, rule: TimeTrackerRule): Promise<baseResponse> {
+        try {
+            const q = query(collection(this.db, "timeTrackerRules"), where("licenseKey", "==", licenseKey));
+            const snapshot = await getDocs(q);
+    
+            if (!snapshot.empty) {
+                const userDoc = snapshot.docs[0].ref;
+                const docData = snapshot.docs[0].data();
+                let updatedRules: TimeTrackerRuleObj[] = docData.rules || [];
+    
+                const index = updatedRules.findIndex(r => r.id === rule.id);
+                if (index !== -1) {
+                    updatedRules[index] = rule.getAsObj();
+                } else {
+                    updatedRules.push(rule.getAsObj());
+                }
+    
+                await updateDoc(userDoc, { licenseKey: licenseKey, rules: updatedRules });
+            } else {
+                if (!this.user) throw new Error("user not logged");
+    
+                await setDoc(doc(collection(this.db, "timeTrackerRules"), this.user.uid), {
+                    rules: [rule.getAsObj()],
+                    licenseKey: licenseKey
+                });
+            }
+    
+            return { success: true, errorMessage: "" };
+        } catch (error: any) {
+            console.error("Error adding/updating time tracker rule:", error);
+            return { success: false, errorMessage: error.message };
+        }
+    }
+    
+
+    public async removeTimeTrackerRule(licenseKey: string, ruleId: string): Promise<baseResponse> {
+        try {
+            if (!this.user) throw new Error("user not logged");
+    
+            const docRef = doc(this.db, "timeTrackerRules", this.user.uid);
+            const docSnap = await getDoc(docRef);
+    
+            if (!docSnap.exists()) {
+                throw new Error(`No time tracker rules found for licenseKey ${licenseKey}`);
+            }
+    
+            const data = docSnap.data();
+            const rules: TimeTrackerRuleObj[] = data.rules ?? [];
+    
+            const ruleToRemove = rules.find(r => r.id === ruleId);
+            if (!ruleToRemove) {
+                throw new Error(`Time Tracker rule with id ${ruleId} not found for licenseKey ${licenseKey}`);
+            }
+    
+            await updateDoc(docRef, {
+                rules: arrayRemove(ruleToRemove)
+            });
+    
+            return { success: true, errorMessage: "" };
+        } catch (error: any) {
+            console.error("Error removing time tracker rule:", error);
+            return { success: false, errorMessage: error.message };
+        }
+    }
+    
+    public async getTimeTrackerRules(licenseKey: string): Promise<{
+        success: boolean,
+        errorMessage: string,
+        rules: TimeTrackerRuleObj[]
+    }> {
+        try {
+            const q = query(collection(this.db, "timeTrackerRules"), where("licenseKey", "==", licenseKey));
+            const snapshot = await getDocs(q);
+    
+            if (snapshot.empty) {
+                throw new Error("No time tracker rules found for license key: " + licenseKey);
+            }
+    
+            const docData = snapshot.docs[0].data();
+            const parsedRules: TimeTrackerRuleObj[] = docData.rules || [];
+    
+            return {
+                success: true,
+                errorMessage: '',
+                rules: parsedRules
+            };
+        } catch (error: any) {
+            console.error("Error getting time tracker rules:", error);
+            return {
+                success: false,
+                errorMessage: error.message,
+                rules: []
+            };
+        }
+    }
+    
+    
 
 }

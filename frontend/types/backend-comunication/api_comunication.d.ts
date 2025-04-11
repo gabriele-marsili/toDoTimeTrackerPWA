@@ -2,6 +2,8 @@ import { User, UserCredential } from "firebase/auth";
 import { baseResponse } from "../types/utilityTypes.js";
 import { userDBentry } from "../types/userTypes.js";
 import { ToDoAction, ToDoObj } from "../engine/toDoEngine.js";
+import { CalendarEvent, CalendarObj } from "../engine/calendarEvent.js";
+import { TimeTrackerRule, TimeTrackerRuleObj } from "../engine/timeTracker.js";
 /**
  * singleton class to interact with the backend via API
  */
@@ -112,5 +114,19 @@ export declare class API_gestor {
         success: boolean;
         errorMessage: string;
         toDoObjects: ToDoObj[];
+    }>;
+    addOrUpdateCalendarEvent(licenseKey: string, event: CalendarEvent): Promise<baseResponse>;
+    removeCalendarEvent(licenseKey: string, eventId: string): Promise<baseResponse>;
+    getCalendarEvents(licenseKey: string): Promise<{
+        success: boolean;
+        errorMessage: string;
+        eventObjects: CalendarObj[];
+    }>;
+    addOrUpdateTimeTrackerRule(licenseKey: string, rule: TimeTrackerRule): Promise<baseResponse>;
+    removeTimeTrackerRule(licenseKey: string, ruleId: string): Promise<baseResponse>;
+    getTimeTrackerRules(licenseKey: string): Promise<{
+        success: boolean;
+        errorMessage: string;
+        rules: TimeTrackerRuleObj[];
     }>;
 }
