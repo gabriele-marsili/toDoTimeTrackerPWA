@@ -40,8 +40,15 @@ export function parseDate(date: Date): string {
     return `${day}/${month}/${year} - ${hours}:${minutes}`;
 }
 
-export function minToParsedTime(min:number){
-    let h = parseInt(String(min/60));
-    let m = parseInt(String(min%60));
+export function minToParsedTime(min: number) {
+    let h = parseInt(String(min / 60));
+    let m = parseInt(String(min % 60));
     return `${h} H and ${m} min`
+}
+
+export function isToday(date: Date): boolean {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+        date.getMonth() === today.getMonth() &&
+        date.getFullYear() === today.getFullYear();
 }

@@ -10,13 +10,13 @@
         </span>
         <div class="meta-info">
           <span class="todo-date">{{ dateWithTimeString }}</span>
-          <span v-if="localToDoObj.subActions.size > 0" class="subtask-count">
+          <span v-if="localToDoObj.subActions.length > 0" class="subtask-count">
             <span class="material-symbols-outlined g-icon">account_tree</span> {{ subTaskProgress }}
           </span>
         </div>
       </div>
       <div class="action-buttons">
-        <button v-if="!localToDoObj.completed" @click="toggleEditing">
+        <button v-if="!localToDoObj.completed" @click="editing = !editing">
           <span class="material-symbols-outlined g-icon">edit</span>
         </button>
         <button @click="copyToDo">
@@ -28,25 +28,27 @@
       </div>
     </div>
 
-    <!-- Se siamo in modalità editing, mostriamo anche l'area di modifica per descrizione, date, priorità -->
+    <!-- edit box -->
     <div v-if="editing && !localToDoObj.completed" class="todo-details">
-      <textarea v-model="localToDoObj.description" placeholder="Descrizione (facoltativa)"></textarea>
+      <textarea v-model="localToDoObj.description" placeholder="Description"></textarea>
       <div class="todo-fields">
         <label>
-          Priorità:
+          Priority:
           <select v-model.number="localToDoObj.priority">
             <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
           </select>
         </label>
         <label>
-          Scadenza:
+          Expiration:
           <input type="datetime-local" v-model="expirationString" />
         </label>
         <label>
-          Promemoria:
+          Notify Date:
           <input type="datetime-local" v-model="notifyDateString" />
         </label>
       </div>
+      <button class="baseButton" @click="updateToDo">Confirm Edit</button>
+      <button class="baseButton" @click="editing = false">Cancel</button><!-- da ripristinare val pre-edit -->
     </div>
   </div>
 </template>
@@ -61,7 +63,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(["update"]);
+const emit = defineEmits(["update", "delete", "copy"]);
 
 const localTodo = ref<ToDoAction>(props.todo);
 const localToDoObj = ref<ToDoObj>(props.todo.getAsObj());
@@ -78,7 +80,7 @@ function parseDate(str: string): Date {
 }
 
 const subTaskProgress = computed(() => {
-  const total = localToDoObj.value.subActions.size;
+  const total = localToDoObj.value.subActions.length;
   const completed = [...localToDoObj.value.subActions.values()].filter(t => t.completed).length;
   return `${completed}/${total}`;
 });
@@ -107,12 +109,7 @@ const notifyDateString = computed({
   }
 });
 
-function toggleEditing() {
-  if (editing.value) {
-    emit('update', localTodo.value);
-  }
-  editing.value = !editing.value;
-}
+
 
 function onCompletedChange() {
   if (localToDoObj.value.completed) {
@@ -125,11 +122,18 @@ function onCompletedChange() {
 }
 
 function copyToDo() {
-  console.log("Copy action");
+  const localToDoValue = localTodo.value;
+  const copiedToDo = new ToDoAction(localToDoValue.id, localToDoValue.title, localToDoValue.priority, localToDoValue.dateWithTime, localToDoValue.expiration, localToDoValue.notifyDate, localToDoValue.category, localToDoValue.description)
+  localToDoValue.subActions.forEach(subA => copiedToDo.addOrUpdateSubToDoAction(subA))
+  emit("copy", copiedToDo)
 }
 
 function deleteToDo() {
-  console.log("Delete action");
+  emit("delete", localTodo)
+}
+
+function updateToDo() {
+  emit("update", localTodo);
 }
 
 watch(() => props.todo, (newVal) => {

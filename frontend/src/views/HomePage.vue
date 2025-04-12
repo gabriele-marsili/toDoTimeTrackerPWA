@@ -17,7 +17,7 @@
                 <!-- Colonna 2: Generic To Do -->
                 <div class="box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center">
                     <h3>Generic To Do</h3>
-                    <ToDoList :todos=todayToDoActions viewMode="grid"></ToDoList>
+                    <ToDoList :todos=genericToDoActions viewMode="grid"></ToDoList>
 
                 </div>
                 <!-- Colonna 3: Info Utente + Time Tracker -->
@@ -33,21 +33,22 @@
                                     <div class="info-left">
                                         <div class="prestige-badge">
                                             <span class="material-symbols-outlined badge-icon">star</span>
-                                            <span class="prestige-text">{{ userInfo.prestigeStatus }}</span>
+                                            <span class="prestige-text">{{
+                                                userHandler.getUserPrestigeTitle(todoCompletedQuantity) }}</span>
                                         </div>
                                         <div class="karma-coins">
                                             <span class="material-symbols-outlined karma-coins-icon">paid</span>
-                                            <span>{{ userInfo.karmaCoins }} Karma Coins</span>
+                                            <span>{{ userInfo.karmaCoinsBalance }} Karma Coins</span>
                                         </div>
                                     </div>
                                     <div class="info-right">
                                         <div class="todo-count">
                                             <span class="material-symbols-outlined todo-icon">task</span>
-                                            <span>{{ userInfo.totalTodos }} Todos</span>
+                                            <span>{{ totalToDoQuantity }} Todos</span>
                                         </div>
                                         <div class="event-count">
                                             <span class="material-symbols-outlined events-count-coins-icon">event</span>
-                                            <span>{{ userInfo.totalEvents }} Events</span>
+                                            <span>{{ totalEventsQuantity }} Events</span>
                                         </div>
                                     </div>
                                 </div>
@@ -59,7 +60,7 @@
                                 </div>
                                 <div class="friend-count">
                                     <span class="material-symbols-outlined friend-icon">people</span>
-                                    <span>{{ userInfo.friendCount }} Friends</span>
+                                    <span>{{ userInfo.friends.length }} Friends</span>
                                 </div>
                             </div>
                         </div>
@@ -89,24 +90,45 @@ import Sidebar from '../components/Sidebar.vue';
 import NotificationManager from '../gestors/NotificationManager.vue';
 import ConnectionStatus from '../components/ConnectionStatus.vue';
 import ToDoList from '../components/ToDoList.vue'
-import { ToDoAction, ToDoPriority } from '../engine/toDoEngine';
+import { ToDoAction, ToDoHandler, ToDoPriority } from '../engine/toDoEngine';
 import Calendar from '../components/Calendar.vue';
 import TimeTrackerRuleList from '../components/TimeTrackerRuleList.vue';
+import { API_gestor } from '../backend-comunication/api_comunication';
+import { UserHandler } from '../engine/userHandler';
+import { userDBentry } from '../types/userTypes';
+import { isToday } from '../utils/generalUtils';
 
 export default {
     components: { Sidebar, NotificationManager, ConnectionStatus, ToDoList, Calendar, TimeTrackerRuleList },
     setup() {
         const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
-        const todayToDoActions = ref<ToDoAction[]>([])
+        const todayToDoActions = ref<ToDoAction[]>([]);
+        const genericToDoActions = ref<ToDoAction[]>([]);
+        const api_gestor = API_gestor.getInstance()
+        const todoHandler = ToDoHandler.getInstance(api_gestor)
+        const userHandler = UserHandler.getInstance(api_gestor)
+        const defaultImagePath = "../../public/user.avif"
+        const todoCompletedQuantity = ref(0);
+        const totalToDoQuantity = ref(0);
+        const totalEventsQuantity = ref(0);
 
-        const userInfo = ref({
+        const userInfo = ref<userDBentry>({
             username: "WhoIsMars",
-            avatarImagePath: "../../public/user.avif",
-            prestigeStatus: "Shoe insole",
-            friendCount: 0,
-            karmaCoins: 42,
-            totalTodos: todayToDoActions.value.length,
-            totalEvents: 5
+            avatarImagePath: defaultImagePath,
+            age: 1,
+            categories: [],
+            createdAt: new Date(),
+            email: "",
+            firstName: "",
+            lastName: "",
+            licenseIsValid: false,
+            licenseKey: "",
+            notifications: false,
+            permissions: false,
+            phone: "",
+            timeTrackerActive: false,
+            karmaCoinsBalance: 0,
+            friends: [],
         });
 
         const notificationManager = ref(null); // Riferimento per NotificationManager
@@ -127,7 +149,33 @@ export default {
         }
 
 
-        onMounted(() => {
+        async function askToDo() {
+            try {
+                const toDOres = await todoHandler.loadAllToDos(userInfo.value.licenseKey)
+                if (toDOres.success) {
+                    const todoList = toDOres.toDos
+                    totalToDoQuantity.value = todoList.length
+                    todayToDoActions.value = []
+                    todoCompletedQuantity.value = 0
+                    for (let to_do of todoList) {
+                        if (to_do.completed) {
+                            todoCompletedQuantity.value++
+                        }
+                        const toDoAction = todoHandler.fromToDoObj(to_do)
+                        if (isToday(to_do.dateWithTime)) {
+                            todayToDoActions.value.push(toDoAction)
+                        }
+                        genericToDoActions.value.push(toDoAction)
+                    }
+                } else {
+                    throw new Error(toDOres.errorMessage);
+                }
+            } catch (error: any) {
+                sendNotify("error", `Error obtaining todo actions : ${error.message} `)
+            }
+        }
+
+        onMounted(async () => {
             if (isDarkMode.value) {
                 document.body.classList.add('dark');
                 document.body.classList.remove('light');
@@ -141,45 +189,23 @@ export default {
                 sendNotify("info", "Welcome back in TTT App")
             }, 300);
 
-            //construct fake to to for testing :
-            let i = 0;
-            let today = new Date().getDay()
-            while (i < 10) {
-                i++
-                let t = new ToDoAction(
-                    `TdA ${i}`,
-                    `TdA ${i}`,
-                    i as ToDoPriority,
-                    new Date(),
-                    new Date(today + 1),
-                    new Date(),
-                    'description of the action',
-                )
-                if (i % 2 == 0) {
-                    let s = new ToDoAction(
-                        `sub TdA ${i}`,
-                        `sub TdA ${i}`,
-                        i as ToDoPriority,
-                        new Date(),
-                        new Date(today + 1),
-                        new Date(),
-                        'description of the sub to do action',
-                    )
-                    t.addOrUpdateSubToDoAction(s)
-                }
-                todayToDoActions.value.push(t)
-            }
-
-            //to do : ask to do by api / cache
+            userInfo.value = userHandler.getUserInfo(true).userInfo_DB
+            await askToDo()
         });
 
         return {
+            askToDo,
             userInfo,
             isDarkMode,
             handleSectionChange,
             notificationManager,
             sendNotify,
-            todayToDoActions
+            todayToDoActions,
+            genericToDoActions,
+            userHandler,
+            todoCompletedQuantity,
+            totalToDoQuantity,
+            totalEventsQuantity
         };
     },
 };
@@ -390,7 +416,8 @@ grigio : #1e1e1e
     overflow-y: auto;
     max-height: 300px;
 }
-.sub-box::-webkit-scrollbar{
+
+.sub-box::-webkit-scrollbar {
     display: none;
 }
 
@@ -427,23 +454,23 @@ grigio : #1e1e1e
 }
 
 .info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
 }
 
 .info-left {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
 /* Colonna destra: impila verticalmente i due elementi e li allinea a destra */
 .info-right {
-  display: flex;
-  flex-direction: column;
-  align-items:flex-start;
-  gap: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
 }
 
 .avatar-container {
@@ -456,7 +483,7 @@ grigio : #1e1e1e
     margin-top: 8px;
     font-size: 0.9em;
     color: #aaa;
-    display : flex;
+    display: flex;
     flex-direction: row;
     justify-content: center;
 }
@@ -505,14 +532,13 @@ grigio : #1e1e1e
 .friend-icon,
 .karma-coins-icon,
 .events-count-coins-icon {
-    font-size: 1em;    
+    font-size: 1em;
     margin-right: 4px;
     color: #FFD700;
     /* colore oro per il badge, personalizzabile */
 }
 
-.friend-icon{
+.friend-icon {
     margin-top: 5%;
 }
-
 </style>

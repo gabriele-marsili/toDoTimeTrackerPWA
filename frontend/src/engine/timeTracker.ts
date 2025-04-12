@@ -125,7 +125,7 @@ export class TimeTrackerHandler {
         }
     }
 
-    private fromRuleObj(ruleObj: TimeTrackerRuleObj): TimeTrackerRule {
+    public fromRuleObj(ruleObj: TimeTrackerRuleObj): TimeTrackerRule {
         const rule = new TimeTrackerRule(
             ruleObj.id,
             ruleObj.site_or_app_name,
@@ -134,6 +134,7 @@ export class TimeTrackerHandler {
             ruleObj.category
         );
         rule.remainingTimeMin = ruleObj.remainingTimeMin;
+        this.rules.set(rule.id,rule)
         return rule;
     }
 }

@@ -114,6 +114,9 @@ import { onMounted, ref } from 'vue';
 import TimeTrackerRuleItem from './TimeTrackerRuleItem.vue';
 import NotificationManager from '../gestors/NotificationManager.vue'
 import { TimeTrackerRule, ruleType } from '../engine/timeTracker';
+import { TimeTrackerHandler } from '../engine/timeTracker';
+import { API_gestor } from '../backend-comunication/api_comunication';
+import { UserHandler } from '../engine/userHandler';
 
 const currentRule = ref<TimeTrackerRule>(
     new TimeTrackerRule('', '', 1, 'notify & close', '')
@@ -131,13 +134,15 @@ var backupEditValues = {
     site_or_app_name: ''
 }
 const notificationManager = ref(null);
-
 const minutes = ref(0)
 const hours = ref(0)
 const rules = ref<TimeTrackerRule[]>([]);
 const showAddNewRuleBox = ref(false);
 const showEditRuleBox = ref(false);
-
+const api_gestor = API_gestor.getInstance()
+const timeTrackerRuleHandler = TimeTrackerHandler.getInstance(api_gestor)
+let licenseKey = ""
+const userHandler = UserHandler.getInstance(api_gestor)
 
 function sendNotify(type: "info" | "warning" | "error" | "success", text: string) {
     if (notificationManager.value) {
@@ -151,7 +156,7 @@ function sendNotify(type: "info" | "warning" | "error" | "success", text: string
 }
 
 
-function addNewRule() { // to do : backend comunication
+async function addNewRule() {
     let errors = [];
     if (currentRule.value.category == "") {
         errors.push("Missing Category")
@@ -172,13 +177,19 @@ function addNewRule() { // to do : backend comunication
     }
     const id = "Rule " + Date.now().toString(); // to do (get by backend)
     const newRule = new TimeTrackerRule(id, currentRule.value.site_or_app_name, hours.value * 60 + minutes.value, currentRule.value.rule, currentRule.value.category);
-    rules.value.push(newRule);
-    sendNotify("success", "Successfully added rule for site " + newRule.site_or_app_name);
-    showAddNewRuleBox.value = false;
+    const addRuleRes = await timeTrackerRuleHandler.addOrUpdateRule(licenseKey, newRule)
+    if (!addRuleRes.success) {
+        sendNotify("error", "Error adding new rule : " + addRuleRes.errorMessage)
+    } else {
+        rules.value.push(newRule);
+        sendNotify("success", "Successfully added rule for site " + newRule.site_or_app_name);
+        showAddNewRuleBox.value = false;
+    }
+
 }
 
 
-function editRule() { // to do : backend comunication
+async function editRule() { // to do : backend comunication
     let errors = [];
     if (ruleToEdit.value.category == "") {
         errors.push("Missing Category")
@@ -209,11 +220,16 @@ function editRule() { // to do : backend comunication
         ruleToEdit.value.remainingTimeMin = 60 * hours.value + minutes.value
     }
 
+    const editRes = await timeTrackerRuleHandler.addOrUpdateRule(licenseKey, ruleToEdit.value)
+    if (!editRes.success) {
+        sendNotify("error", "Error editing rule : " + editRes.errorMessage)
+    } else {
 
-    sendNotify("success", "Successfully edited rule for site " + r.site_or_app_name);
-    showEditRuleBox.value = false;
-    hours.value = 0
-    minutes.value = 0
+        sendNotify("success", "Successfully edited rule for site " + r.site_or_app_name);
+        showEditRuleBox.value = false;
+        hours.value = 0
+        minutes.value = 0
+    }
 }
 
 function cancelEditRule() {
@@ -244,6 +260,7 @@ function cancelAddRule() {
     showAddNewRuleBox.value = false;
 }
 
+//set backup rule & open edit box
 function onRuleEdit(rule_To_Edit: TimeTrackerRule) {
     ruleToEdit.value = rule_To_Edit
     backupEditValues.category = rule_To_Edit.category
@@ -255,19 +272,40 @@ function onRuleEdit(rule_To_Edit: TimeTrackerRule) {
     showEditRuleBox.value = true;
 }
 
-function onRuleDelete(ruleToDelete: TimeTrackerRule) {
-    rules.value = rules.value.filter(r => r.id !== ruleToDelete.id);
+async function onRuleDelete(ruleToDelete: TimeTrackerRule) {
+    try {
+        const deleteRes = await timeTrackerRuleHandler.removeRule(licenseKey,ruleToDelete.id)
+        if(!deleteRes.success){
+            throw new Error(deleteRes.errorMessage)
+        }
+        rules.value = rules.value.filter(r => r.id !== ruleToDelete.id);
+        sendNotify("success","Successfully deleted rule for site "+ruleToDelete.site_or_app_name)
+    } catch (error:any) {
+        sendNotify("error","Error deleting rule : "+error.message)
+    }
+    
 }
 
+async function askTimeTrackerRules() {
+    try {
+        const ttRulesRes = await timeTrackerRuleHandler.loadAllRules(licenseKey)
+        if (ttRulesRes.success) {
+            const tt_rules = ttRulesRes.rules
 
-
-onMounted(() => { //to do : add ask rules -> backend
-    let i = 0;
-    while (i < 10) {
-        i++;
-        let r = new TimeTrackerRule('id ' + i, 'site ' + i, i * 10, 'notify & close', 'category ye')
-        rules.value.push(r);
+            for (let rule of tt_rules) {
+                rules.value.push(timeTrackerRuleHandler.fromRuleObj(rule))
+            }
+        } else {
+            throw new Error(ttRulesRes.errorMessage);
+        }
+    } catch (error: any) {
+        sendNotify("error", `Error obtaining todo actions : ${error.message} `)
     }
+}
+
+onMounted(async () => { //to do : add ask rules -> backend    
+    licenseKey = userHandler.getUserInfo(true).userInfo_DB.licenseKey
+    await askTimeTrackerRules()
 })
 </script>
 

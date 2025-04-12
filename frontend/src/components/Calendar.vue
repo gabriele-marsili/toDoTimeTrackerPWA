@@ -78,7 +78,7 @@
         <!-- Modal o form per aggiungere/modificare evento (da implementare) -->
         <div v-if="showEventForm" class="modal">
             <div class="add-event-content">
-                <h3>Add New Event</h3>
+                <h3>{{ isEditEvent ? "Edit" : "Add New" }} Event</h3>
                 <div class="form-group">
                     <label for="eventDate">Event Date:</label>
                     <input class="baseInputField" id="eventDate" type="datetime-local" v-model="eventDateInput" />
@@ -105,10 +105,10 @@
                 </div>
 
                 <div class="add-event-actions">
-                    <button class="baseButton" @click="addEvent">Apply
+                    <button class="baseButton" @click="addOrUpdateEvent">Apply
                         <span class="material-symbols-outlined g-icon">check_circle</span>
                     </button>
-                    <button class="baseButton" @click="cancelAddEvent">Cancel
+                    <button class="baseButton" @click="canceladdOrUpdateEvent">Cancel
                         <span class="material-symbols-outlined g-icon">cancel</span>
                     </button>
                 </div>
@@ -120,13 +120,41 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import CalendarEvent from './CalendarEvent.vue';
-import { CalendarEvent as CalendarEventClass, CalendarObj } from '../engine/calendarEvent';
+import { CalendarEvent as CalendarEventClass, CalendarEventHandler, CalendarObj } from '../engine/calendarEvent';
 import NotificationManager from '../gestors/NotificationManager.vue';
+import { API_gestor } from '../backend-comunication/api_comunication';
+import { userDBentry } from '../types/userTypes';
+import { UserHandler } from '../engine/userHandler';
+
+const api_gestor = API_gestor.getInstance()
+const userHandler = UserHandler.getInstance(api_gestor)
+const calendarHandler = CalendarEventHandler.getInstance(api_gestor)
+const defaultImagePath = "../../public/user.avif"
+const userInfo = ref<userDBentry>({
+    username: "",
+    avatarImagePath: defaultImagePath,
+    age: 1,
+    categories: [],
+    createdAt: new Date(),
+    email: "",
+    firstName: "",
+    lastName: "",
+    licenseIsValid: false,
+    licenseKey: "",
+    notifications: false,
+    permissions: false,
+    phone: "",
+    timeTrackerActive: false,
+    karmaCoinsBalance: 0,
+    friends: [],
+});
 
 const currentDate = ref(new Date());
 const events = ref<CalendarEventClass[]>([]);
 const showEventForm = ref(false);
+const isEditEvent = ref(false)
 const currentEvent = ref<CalendarObj>({
+    id: '',
     eventDate: new Date(),
     title: '',
     description: '',
@@ -208,10 +236,21 @@ function applyMonthPicker() {
 function editEvent(event: CalendarEventClass) {
     console.log('Edit event:', event);
     showEventForm.value = true;
+    isEditEvent.value = true
 }
 
-function deleteEvent(event: CalendarEventClass) {
-    events.value = events.value.filter(e => e !== event);
+async function deleteEvent(event: CalendarEventClass) {
+    try {
+        const deleteRes = await calendarHandler.removeEvent(userInfo.value.licenseKey, event.id)
+        if (!deleteRes.success) {
+            throw new Error(deleteRes.errorMessage)
+        } else {
+            events.value = events.value.filter(e => e !== event);
+            sendNotify("success", "Event " + currentEvent.value.title + " deleted successfully")
+        }
+    } catch (error: any) {
+        sendNotify("error", "Error deleting event : " + error.message);
+    }
 }
 
 
@@ -226,59 +265,87 @@ function sendNotify(type: "info" | "warning" | "error" | "success", text: string
     }
 }
 
-function addEvent() {
+async function addOrUpdateEvent() {
     let errorMessage = '';
 
-    // Validazione base: titolo non vuoto, data valida e durata > 0
-    if (!currentEvent.value.title.trim()) {
-        errorMessage = 'Title is required.';
-        return;
-    }
+    try {
+        // Validazione base: titolo non vuoto, data valida e durata > 0
+        if (!currentEvent.value.title.trim()) {
+            errorMessage = 'Title is required.';
+            return;
+        }
 
-    if (!eventDateInput.value || eventDateInput.value == "") {
-        errorMessage = 'Event date is required.';
-        return;
-    }
-    // Converti la stringa dell'input in Date
-    const newEventDate = new Date(eventDateInput.value);
-    if (isNaN(newEventDate.getTime())) {
-        errorMessage = 'Invalid event date.';
-        return;
-    }
-    if (currentEvent.value.durationInH < 0) {
-        errorMessage = 'Duration must be >= 0.';
-        return;
-    }
+        if (!eventDateInput.value || eventDateInput.value == "") {
+            errorMessage = 'Event date is required.';
+            return;
+        }
+        // Converti la stringa dell'input in Date
+        const newEventDate = new Date(eventDateInput.value);
+        if (isNaN(newEventDate.getTime())) {
+            errorMessage = 'Invalid event date.';
+            return;
+        }
+        if (currentEvent.value.durationInH < 0) {
+            errorMessage = 'Duration must be >= 0.';
+            return;
+        }
 
-    if (errorMessage != "") {
-        sendNotify("error", errorMessage)
-    } else {
-        // Imposta l'evento con la data convertita
-        currentEvent.value.eventDate = newEventDate;
+        if (errorMessage != "") {
+            sendNotify("error", errorMessage)
+        } else {
+            // Imposta l'evento con la data convertita
+            currentEvent.value.eventDate = newEventDate;
 
-        let eventID = "." //get event id to do 
+            let eventID = "." //get event id to do 
 
-        const newEvent = new CalendarEventClass(
-            eventID,
-            newEventDate,
-            currentEvent.value.title,
-            currentEvent.value.description,
-            currentEvent.value.notifications,
-            currentEvent.value.category,
-            currentEvent.value.durationInH
-        );
-        // Aggiungi il nuovo evento all'array degli eventi
-        events.value.push(newEvent);
-        sendNotify("success", "Event " + currentEvent.value.title + " added successfully")
+            const newEvent = new CalendarEventClass(
+                eventID,
+                newEventDate,
+                currentEvent.value.title,
+                currentEvent.value.description,
+                currentEvent.value.notifications,
+                currentEvent.value.category,
+                currentEvent.value.durationInH
+            );
+
+            const index = events.value.findIndex(e => e.id == eventID)
+            if (index != -1 && !isEditEvent.value) {
+                throw new Error("Invalid event id : already present")
+            }
+            if (index == -1 && isEditEvent.value) {
+                throw new Error("Invalid event id : editing an event not already present")
+            }
+
+            const addRes = await calendarHandler.addOrUpdateEvent(userInfo.value.licenseKey, newEvent)
+            if (!addRes.success) {
+                throw new Error(addRes.errorMessage)
+            } else {
+                let a = isEditEvent.value ? "added" : "edited"
+                if (isEditEvent.value) {
+                    if (index != -1) {
+                        events.value[index] = newEvent;
+                    }
+                } else {
+                    events.value.push(newEvent);
+                }
+                sendNotify("success", "Event " + currentEvent.value.title + " " + a + " successfully")
+            }
+        }
+    } catch (error: any) {
+        let a = isEditEvent.value ? "adding" : "editing"
+        sendNotify("error", "Error " + a + " event : " + error.message)
+
+    } finally {
+        // Resetta il form
+        resetEventForm();
+        showEventForm.value = false;
+        isEditEvent.value = false;
     }
-
-    // Resetta il form
-    resetEventForm();
-    showEventForm.value = false;
 }
 
 function resetEventForm() {
     currentEvent.value = {
+        id: '',
         eventDate: new Date(),
         title: '',
         description: '',
@@ -289,34 +356,32 @@ function resetEventForm() {
     eventDateInput.value = ""
 }
 
-function cancelAddEvent() {
+function canceladdOrUpdateEvent() {
     resetEventForm();
     showEventForm.value = false;
 }
 
-onMounted(() => {
-    // Creazione di eventi fittizi per il mese corrente
-    const year = currentDate.value.getFullYear();
-    const month = currentDate.value.getMonth();
-    const days = new Date(year, month + 1, 0).getDate();
-    for (let i = 1; i <= Math.min(10, days); i++) {
-        let e = new CalendarEventClass(
-            "e " + i,
-            new Date(year, month, i),
-            `Event ${i}`,
-            "description",
-            [],
-            `Category ${i}`,
-            i
-        );
-        events.value.push(e);
-        if (i % 2 == 0) {
-            e.title = `Other Event ${i}`
-            e.id = e.id + " .2"
-            events.value.push(e);
-        }
 
+async function askCalendarEvents() {
+    try {
+        const calendarHandlerRes = await calendarHandler.loadAllEvents(userInfo.value.licenseKey)
+        if (calendarHandlerRes.success) {
+            const calendarEvents = calendarHandlerRes.events
+            events.value = []
+            for (let event of calendarEvents) {
+                events.value.push(calendarHandler.fromCalendarObj(event))
+            }
+        } else {
+            throw new Error(calendarHandlerRes.errorMessage);
+        }
+    } catch (error: any) {
+        sendNotify("error", `Error obtaining calendar events : ${error.message} `)
     }
+}
+
+onMounted(async () => {
+    userInfo.value = userHandler.getUserInfo(true).userInfo_DB
+    await askCalendarEvents();
 });
 </script>
 

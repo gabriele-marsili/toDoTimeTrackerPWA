@@ -172,5 +172,6 @@ export type userDBentry = {
     timeTrackerActive: boolean,
     username: string,    
     karmaCoinsBalance: number,
-    friends: friend[]
+    friends: friend[],
+    avatarImagePath: string
 }

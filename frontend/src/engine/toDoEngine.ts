@@ -228,7 +228,7 @@ export class ToDoHandler {
      * @param toDoObj obj to convert
      * @returns istance of ToDoAction
      */
-    private fromToDoObj(toDoObj: ToDoObj): ToDoAction {
+    public fromToDoObj(toDoObj: ToDoObj): ToDoAction {
         const action = new ToDoAction(
             toDoObj.id,
             toDoObj.title,
@@ -246,6 +246,8 @@ export class ToDoHandler {
             action.subActions.set(todoA.id, todoA)
 
         }
+
+        this.todos.set(action.id,action);
         return action;
     }
 }

@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { TimeTrackerRule, ruleType } from '../engine/timeTracker';
+import { TimeTrackerRule } from '../engine/timeTracker';
 import { minToParsedTime } from '../utils/generalUtils';
 
 interface Props {

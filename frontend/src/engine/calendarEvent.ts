@@ -125,8 +125,8 @@ export class CalendarEventHandler {
         }
     }
 
-    private fromCalendarObj(obj: CalendarObj & { id: string }): CalendarEvent {
-        return new CalendarEvent(
+    public fromCalendarObj(obj: CalendarObj & { id: string }): CalendarEvent {
+        const event = new CalendarEvent(
             obj.id,
             new Date(obj.eventDate),
             obj.title,
@@ -135,5 +135,7 @@ export class CalendarEventHandler {
             obj.category,
             obj.durationInH
         );
+        this.events.set(event.id,event);
+        return event
     }
 }
