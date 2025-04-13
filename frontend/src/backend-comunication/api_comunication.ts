@@ -3,7 +3,7 @@ import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signO
 import { arrayRemove, arrayUnion, collection, doc, Firestore, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { analytics, auth, db } from "./firebase.js";
 import { generateLicenseKey, getDeviceId, hashPassword } from "../utils/generalUtils.js";
-import { baseResponse } from "../types/utilityTypes.js";
+import { baseResponse, firestoneDate } from "../types/utilityTypes.js";
 import sodium from 'libsodium-wrappers';
 import { userDBentry } from "../types/userTypes.js";
 import { ToDoAction, ToDoObj } from "../engine/toDoEngine.js";
@@ -695,6 +695,8 @@ export class API_gestor {
 
     public async loginWithLicenseKey(licenseKey: string): Promise<baseResponse> {
         try {
+            await this.checkInit()
+
             // Verifica se esiste un documento con la licenseKey
             const userQuery = query(
                 collection(this.db, "users"),
@@ -1060,14 +1062,20 @@ export class API_gestor {
             if (!this.user) {
                 throw new Error("user not logged")
             }
-            const docRef = doc(this.db, "toDoActions", this.user.uid);
-            const docSnap = await getDoc(docRef);
-            if (!docSnap.exists()) {
-                throw new Error(`No ToDoActions found for licenseKey ${licenseKey}`);
+            console.log("this.user.uid:\n",this.user.uid)
+            const q = query(collection(this.db, "toDoActions"), where("licenseKey", "==", licenseKey))
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                throw new Error("no to do found for license key : " + licenseKey);
             }
-            const data = docSnap.data();
-            const actions: ToDoObj[] = data.actions ?? [];
-            
+            const docData = snapshot.docs[0].data()
+            const docRef = snapshot.docs[0].ref;
+            let actions: ToDoObj[] = docData.toDo_actions || [];
+
+            console.log("actions:\n",actions)
+            console.log("actionId:\n",actionId)
+
             let actionToRemove: ToDoObj | null = null;
             for (const actionObj of actions) {
                 try {
@@ -1083,7 +1091,7 @@ export class API_gestor {
                 throw new Error(`ToDoAction with id ${actionId} not found for licenseKey ${licenseKey}`);
             }
             await updateDoc(docRef, {
-                actions: arrayRemove(actionToRemove)
+                toDo_actions: arrayRemove(actionToRemove)
             });
             return {
                 success: true,
@@ -1120,6 +1128,19 @@ export class API_gestor {
             }
             const docData = snapshot.docs[0].data()
             let parsedActions: ToDoObj[] = docData.toDo_actions || [];
+            console.log("parsedActions (api gestor):\n", parsedActions)
+            for (let action of parsedActions) {
+
+                let firestoneDateWithTime = action.dateWithTime as unknown as firestoneDate
+                action.dateWithTime = new Date(firestoneDateWithTime.seconds * 1000 + Math.floor(firestoneDateWithTime.nanoseconds / 1_000_000));
+
+                let firestonenotifyDate = action.notifyDate as unknown as firestoneDate
+                action.notifyDate = new Date(firestonenotifyDate.seconds * 1000 + Math.floor(firestonenotifyDate.nanoseconds / 1_000_000));
+
+                let firestone_expiration = action.expiration as unknown as firestoneDate
+                action.expiration = new Date(firestone_expiration.seconds * 1000 + Math.floor(firestone_expiration.nanoseconds / 1_000_000));
+
+            }
 
             return {
                 success: true,
@@ -1137,15 +1158,15 @@ export class API_gestor {
     }
 
     // ----- handle calendar events <--> db :
-    
-    public async addOrUpdateCalendarEvent(licenseKey: string, event : CalendarEvent): Promise<baseResponse> {
+
+    public async addOrUpdateCalendarEvent(licenseKey: string, event: CalendarEvent): Promise<baseResponse> {
         try {
             const q = query(collection(this.db, "calendarEvents"), where("licenseKey", "==", licenseKey))
             const snapshot = await getDocs(q);
 
             if (!snapshot.empty) {
                 const userDoc = snapshot.docs[0].ref;
-                const docData = snapshot.docs[0].data()                
+                const docData = snapshot.docs[0].data()
                 let updatedEvents: CalendarObj[] = docData.events || []
 
                 let index = updatedEvents.findIndex(x => x.id == event.id)
@@ -1209,7 +1230,7 @@ export class API_gestor {
                 throw new Error(`Calendar event with id ${eventId} not found for licenseKey ${licenseKey}`);
             }
             await updateDoc(docRef, {
-                actions: arrayRemove(eventToRemove)
+                events: arrayRemove(eventToRemove)
             });
             return {
                 success: true,
@@ -1224,7 +1245,7 @@ export class API_gestor {
         }
     }
 
-   
+
     public async getCalendarEvents(licenseKey: string): Promise<{
         success: boolean,
         errorMessage: string,
@@ -1240,6 +1261,10 @@ export class API_gestor {
             }
             const docData = snapshot.docs[0].data()
             let parsedEvents: CalendarObj[] = docData.events || [];
+            for (let event of parsedEvents) {
+                let firestoneDate = event.eventDate as unknown as firestoneDate
+                event.eventDate = new Date(firestoneDate.seconds * 1000 + Math.floor(firestoneDate.nanoseconds / 1_000_000));
+            }
 
             return {
                 success: true,
@@ -1262,67 +1287,67 @@ export class API_gestor {
         try {
             const q = query(collection(this.db, "timeTrackerRules"), where("licenseKey", "==", licenseKey));
             const snapshot = await getDocs(q);
-    
+
             if (!snapshot.empty) {
                 const userDoc = snapshot.docs[0].ref;
                 const docData = snapshot.docs[0].data();
                 let updatedRules: TimeTrackerRuleObj[] = docData.rules || [];
-    
+
                 const index = updatedRules.findIndex(r => r.id === rule.id);
                 if (index !== -1) {
                     updatedRules[index] = rule.getAsObj();
                 } else {
                     updatedRules.push(rule.getAsObj());
                 }
-    
+
                 await updateDoc(userDoc, { licenseKey: licenseKey, rules: updatedRules });
             } else {
                 if (!this.user) throw new Error("user not logged");
-    
+
                 await setDoc(doc(collection(this.db, "timeTrackerRules"), this.user.uid), {
                     rules: [rule.getAsObj()],
                     licenseKey: licenseKey
                 });
             }
-    
+
             return { success: true, errorMessage: "" };
         } catch (error: any) {
             console.error("Error adding/updating time tracker rule:", error);
             return { success: false, errorMessage: error.message };
         }
     }
-    
+
 
     public async removeTimeTrackerRule(licenseKey: string, ruleId: string): Promise<baseResponse> {
         try {
             if (!this.user) throw new Error("user not logged");
-    
+
             const docRef = doc(this.db, "timeTrackerRules", this.user.uid);
             const docSnap = await getDoc(docRef);
-    
+
             if (!docSnap.exists()) {
                 throw new Error(`No time tracker rules found for licenseKey ${licenseKey}`);
             }
-    
+
             const data = docSnap.data();
             const rules: TimeTrackerRuleObj[] = data.rules ?? [];
-    
+
             const ruleToRemove = rules.find(r => r.id === ruleId);
             if (!ruleToRemove) {
                 throw new Error(`Time Tracker rule with id ${ruleId} not found for licenseKey ${licenseKey}`);
             }
-    
+
             await updateDoc(docRef, {
                 rules: arrayRemove(ruleToRemove)
             });
-    
+
             return { success: true, errorMessage: "" };
         } catch (error: any) {
             console.error("Error removing time tracker rule:", error);
             return { success: false, errorMessage: error.message };
         }
     }
-    
+
     public async getTimeTrackerRules(licenseKey: string): Promise<{
         success: boolean,
         errorMessage: string,
@@ -1331,14 +1356,14 @@ export class API_gestor {
         try {
             const q = query(collection(this.db, "timeTrackerRules"), where("licenseKey", "==", licenseKey));
             const snapshot = await getDocs(q);
-    
+
             if (snapshot.empty) {
                 throw new Error("No time tracker rules found for license key: " + licenseKey);
             }
-    
+
             const docData = snapshot.docs[0].data();
             const parsedRules: TimeTrackerRuleObj[] = docData.rules || [];
-    
+
             return {
                 success: true,
                 errorMessage: '',
@@ -1353,7 +1378,7 @@ export class API_gestor {
             };
         }
     }
-    
-    
+
+
 
 }

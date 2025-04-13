@@ -36,5 +36,7 @@ export declare class CalendarEventHandler {
         errorMessage: string;
         events: CalendarObj[];
     }>;
-    private fromCalendarObj;
+    fromCalendarObj(obj: CalendarObj & {
+        id: string;
+    }): CalendarEvent;
 }

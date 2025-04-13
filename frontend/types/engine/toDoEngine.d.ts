@@ -88,5 +88,5 @@ export declare class ToDoHandler {
      * @param toDoObj obj to convert
      * @returns istance of ToDoAction
      */
-    private fromToDoObj;
+    fromToDoObj(toDoObj: ToDoObj): ToDoAction;
 }

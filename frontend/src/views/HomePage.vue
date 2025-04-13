@@ -34,7 +34,7 @@
                                         <div class="prestige-badge">
                                             <span class="material-symbols-outlined badge-icon">star</span>
                                             <span class="prestige-text">{{
-                                                userHandler.getUserPrestigeTitle(todoCompletedQuantity) }}</span>
+                                                userHandler.getUserPrestigeTitle(todoCompletedQuantity).title }}</span>
                                         </div>
                                         <div class="karma-coins">
                                             <span class="material-symbols-outlined karma-coins-icon">paid</span>
@@ -113,7 +113,7 @@ export default {
         const totalEventsQuantity = ref(0);
 
         const userInfo = ref<userDBentry>({
-            username: "WhoIsMars",
+            username: "",
             avatarImagePath: defaultImagePath,
             age: 1,
             categories: [],
@@ -154,6 +154,7 @@ export default {
                 const toDOres = await todoHandler.loadAllToDos(userInfo.value.licenseKey)
                 if (toDOres.success) {
                     const todoList = toDOres.toDos
+                    console.log("todoList:\n",todoList)
                     totalToDoQuantity.value = todoList.length
                     todayToDoActions.value = []
                     todoCompletedQuantity.value = 0
@@ -162,7 +163,8 @@ export default {
                             todoCompletedQuantity.value++
                         }
                         const toDoAction = todoHandler.fromToDoObj(to_do)
-                        if (isToday(to_do.dateWithTime)) {
+                        console.log("toDoAction:\n",toDoAction)
+                        if (isToday(toDoAction.dateWithTime)) {
                             todayToDoActions.value.push(toDoAction)
                         }
                         genericToDoActions.value.push(toDoAction)
@@ -189,7 +191,16 @@ export default {
                 sendNotify("info", "Welcome back in TTT App")
             }, 300);
 
-            userInfo.value = userHandler.getUserInfo(true).userInfo_DB
+            //to do : da togliere da qui (serve solo per debug)
+            await api_gestor.loginWithLicenseKey("FN9F-VDNN-IQEQ-X8E0")
+
+            console.log("userHandler:\n",userHandler)            
+            const userInfoRes = userHandler.getUserInfo(true)
+            console.log("userInfoRes:\n",userInfoRes)
+            userInfo.value = userInfoRes.userInfo_DB
+            if(userInfo.value.avatarImagePath == ""){
+                userInfo.value.avatarImagePath = defaultImagePath
+            }
             await askToDo()
         });
 
@@ -392,7 +403,7 @@ grigio : #1e1e1e
     border-radius: 8px;
     color: #ffffff;
     box-sizing: border-box;
-    height: 60%;
+    height: 80%;
     display: flex;
     flex-direction: column;
 }
@@ -411,7 +422,7 @@ grigio : #1e1e1e
     color: #ffffff;
     box-sizing: border-box;
     display: flex;
-    height: 28%;
+    height: 37.3%;
     flex-direction: column;
     overflow-y: auto;
     max-height: 300px;

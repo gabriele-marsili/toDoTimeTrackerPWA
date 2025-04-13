@@ -31,14 +31,24 @@ export async function hashPassword(password: string): Promise<Uint8Array> {
 
 export const SW_BROADCAST_CHANNEL = "service_worker_channel"
 
-export function parseDate(date: Date): string {
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${day}/${month}/${year} - ${hours}:${minutes}`;
+export function formatDate(d: Date): string {
+    console.log("d in format date:\n", d)
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const res = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} : ${pad(d.getHours())}.${pad(d.getMinutes())}`;
+    console.log("res in format date:\n", res)
+    return res
 }
+
+export function parseStringToDate(dateString: string): Date {
+
+    const [datePart, timePart] = dateString.split(' : ');
+    const [day, month, year] = datePart.split('/').map(Number);
+    const [hours, minutes] = timePart.split('.').map(Number);
+
+    return new Date(year, month - 1, day, hours, minutes);
+
+}
+
 
 export function minToParsedTime(min: number) {
     let h = parseInt(String(min / 60));

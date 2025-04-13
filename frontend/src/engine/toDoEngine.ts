@@ -233,9 +233,9 @@ export class ToDoHandler {
             toDoObj.id,
             toDoObj.title,
             toDoObj.priority,
-            new Date(toDoObj.dateWithTime),
-            new Date(toDoObj.expiration),
-            new Date(toDoObj.notifyDate),
+            toDoObj.dateWithTime,
+            toDoObj.expiration,
+            toDoObj.notifyDate,
             toDoObj.category,
             toDoObj.description
         );
@@ -247,7 +247,7 @@ export class ToDoHandler {
 
         }
 
-        this.todos.set(action.id,action);
+        this.todos.set(action.id, action);
         return action;
     }
 }

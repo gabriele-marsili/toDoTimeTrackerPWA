@@ -128,7 +128,7 @@ export class CalendarEventHandler {
     public fromCalendarObj(obj: CalendarObj & { id: string }): CalendarEvent {
         const event = new CalendarEvent(
             obj.id,
-            new Date(obj.eventDate),
+            obj.eventDate,
             obj.title,
             obj.description,
             obj.notifications,

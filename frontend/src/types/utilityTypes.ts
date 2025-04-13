@@ -8,3 +8,8 @@ export type broadcastChannelMessage = {
     type: broadcastMessageType,
     content: any
 }
+
+export type firestoneDate = {
+    seconds: number,
+    nanoseconds: number
+}

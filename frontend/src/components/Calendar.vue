@@ -128,7 +128,7 @@ import { UserHandler } from '../engine/userHandler';
 
 const api_gestor = API_gestor.getInstance()
 const userHandler = UserHandler.getInstance(api_gestor)
-const calendarHandler = CalendarEventHandler.getInstance(api_gestor)
+const calendarHandler = CalendarEventHandler.getInstance(api_gestor);
 const defaultImagePath = "../../public/user.avif"
 const userInfo = ref<userDBentry>({
     username: "",
@@ -237,6 +237,7 @@ function editEvent(event: CalendarEventClass) {
     console.log('Edit event:', event);
     showEventForm.value = true;
     isEditEvent.value = true
+    currentEvent.value = event
 }
 
 async function deleteEvent(event: CalendarEventClass) {
@@ -245,7 +246,7 @@ async function deleteEvent(event: CalendarEventClass) {
         if (!deleteRes.success) {
             throw new Error(deleteRes.errorMessage)
         } else {
-            events.value = events.value.filter(e => e !== event);
+            events.value = events.value.filter(e => e.id !== event.id);
             sendNotify("success", "Event " + currentEvent.value.title + " deleted successfully")
         }
     } catch (error: any) {
@@ -296,7 +297,7 @@ async function addOrUpdateEvent() {
             // Imposta l'evento con la data convertita
             currentEvent.value.eventDate = newEventDate;
 
-            let eventID = "." //get event id to do 
+            let eventID = ".." //get event id to do 
 
             const newEvent = new CalendarEventClass(
                 eventID,
@@ -320,7 +321,7 @@ async function addOrUpdateEvent() {
             if (!addRes.success) {
                 throw new Error(addRes.errorMessage)
             } else {
-                let a = isEditEvent.value ? "added" : "edited"
+                let action = isEditEvent.value ? "edited" : "added"
                 if (isEditEvent.value) {
                     if (index != -1) {
                         events.value[index] = newEvent;
@@ -328,7 +329,8 @@ async function addOrUpdateEvent() {
                 } else {
                     events.value.push(newEvent);
                 }
-                sendNotify("success", "Event " + currentEvent.value.title + " " + a + " successfully")
+                sendNotify("success", "Event " + currentEvent.value.title + " " + action + " successfully")
+                await askCalendarEvents()
             }
         }
     } catch (error: any) {
@@ -367,6 +369,7 @@ async function askCalendarEvents() {
         const calendarHandlerRes = await calendarHandler.loadAllEvents(userInfo.value.licenseKey)
         if (calendarHandlerRes.success) {
             const calendarEvents = calendarHandlerRes.events
+            console.log("calendarEvents by db:\n",calendarEvents)
             events.value = []
             for (let event of calendarEvents) {
                 events.value.push(calendarHandler.fromCalendarObj(event))
@@ -380,6 +383,9 @@ async function askCalendarEvents() {
 }
 
 onMounted(async () => {
+    //to do : da togliere da qui (serve solo per debug)
+    await api_gestor.loginWithLicenseKey("FN9F-VDNN-IQEQ-X8E0")
+
     userInfo.value = userHandler.getUserInfo(true).userInfo_DB
     await askCalendarEvents();
 });

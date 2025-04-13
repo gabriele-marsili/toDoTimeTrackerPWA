@@ -3,7 +3,7 @@
     <div class="calendar-event">        
         <div class="event-header">
             <span class="material-symbols-outlined g-icon">schedule</span>
-            <span class="event-date">{{ formattedDate.split("-")[1] }}</span>            
+            <span class="event-date">{{ formattedDate.split(":")[1] }}</span>            
         </div>
         <div class="event-body">
             <h4 class="event-title">{{ event.title }}</h4>
@@ -23,7 +23,7 @@
 <script setup lang="ts">
 import { computed, defineProps, defineEmits } from 'vue';
 import { CalendarEvent } from '../engine/calendarEvent';
-import { parseDate } from '../utils/generalUtils';
+import { formatDate } from '../utils/generalUtils';
 
 const props = defineProps<{
     event: CalendarEvent;
@@ -35,8 +35,8 @@ const emit = defineEmits<{
 }>();
 
 const formattedDate = computed(() => {
-    const date = props.event.eventDate;
-    return parseDate(date);
+    const date = props.event.eventDate;        
+    return formatDate(date);
 });
 </script>
 

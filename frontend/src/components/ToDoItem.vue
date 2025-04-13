@@ -56,6 +56,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { ToDoAction, ToDoObj } from '../engine/toDoEngine'
+import { formatDate, parseStringToDate } from '../utils/generalUtils';
 
 interface Props {
   todo: ToDoAction,
@@ -69,15 +70,9 @@ const localTodo = ref<ToDoAction>(props.todo);
 const localToDoObj = ref<ToDoObj>(props.todo.getAsObj());
 const editing = ref(false);
 
-function formatDate(date: Date): string {
-  const d = new Date(date);
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
-function parseDate(str: string): Date {
-  return new Date(str);
-}
+
+
 
 const subTaskProgress = computed(() => {
   const total = localToDoObj.value.subActions.length;
@@ -88,7 +83,7 @@ const subTaskProgress = computed(() => {
 const dateWithTimeString = computed({
   get: () => formatDate(localTodo.value.dateWithTime),
   set: (val: string) => {
-    localTodo.value.dateWithTime = parseDate(val);
+    localTodo.value.dateWithTime = parseStringToDate(val);
     emit('update', localTodo.value);
   }
 });
@@ -96,7 +91,7 @@ const dateWithTimeString = computed({
 const expirationString = computed({
   get: () => formatDate(localTodo.value.expiration),
   set: (val: string) => {
-    localTodo.value.expiration = parseDate(val);
+    localTodo.value.expiration = parseStringToDate(val);
     emit('update', localTodo.value);
   }
 });
@@ -104,7 +99,7 @@ const expirationString = computed({
 const notifyDateString = computed({
   get: () => formatDate(localTodo.value.notifyDate),
   set: (val: string) => {
-    localTodo.value.notifyDate = parseDate(val);
+    localTodo.value.notifyDate = parseStringToDate(val);
     emit('update', localTodo.value);
   }
 });
@@ -123,17 +118,20 @@ function onCompletedChange() {
 
 function copyToDo() {
   const localToDoValue = localTodo.value;
-  const copiedToDo = new ToDoAction(localToDoValue.id, localToDoValue.title, localToDoValue.priority, localToDoValue.dateWithTime, localToDoValue.expiration, localToDoValue.notifyDate, localToDoValue.category, localToDoValue.description)
+  
+  //to do : get id by to do handler  
+  const copiedToDo = new ToDoAction(localToDoValue.id+"1234567", localToDoValue.title, localToDoValue.priority, localToDoValue.dateWithTime, localToDoValue.expiration, localToDoValue.notifyDate, localToDoValue.category, localToDoValue.description)
+  console.log("copiedToDo:\n",copiedToDo)
   localToDoValue.subActions.forEach(subA => copiedToDo.addOrUpdateSubToDoAction(subA))
   emit("copy", copiedToDo)
 }
 
 function deleteToDo() {
-  emit("delete", localTodo)
+  emit("delete", localTodo.value)
 }
 
 function updateToDo() {
-  emit("update", localTodo);
+  emit("update", localTodo.value);
 }
 
 watch(() => props.todo, (newVal) => {

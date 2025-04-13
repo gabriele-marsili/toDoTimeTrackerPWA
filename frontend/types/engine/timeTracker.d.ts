@@ -34,5 +34,5 @@ export declare class TimeTrackerHandler {
         errorMessage: string;
         rules: TimeTrackerRuleObj[];
     }>;
-    private fromRuleObj;
+    fromRuleObj(ruleObj: TimeTrackerRuleObj): TimeTrackerRule;
 }

@@ -6,8 +6,8 @@
         </button>
         -->
         <div v-for="todo in filteredTodos" :key="todo.id" class="todo-item-wrapper">
-            <ToDoItem :viewMode="viewMode" :todo="todo" @update="onItemUpdate(todo)" @delete="onItemDelete(todo)"
-                @copy="onItemCopy(todo)" @click.stop />
+            <ToDoItem :viewMode="viewMode" :todo="todo" @update="onItemUpdate" @delete="onItemDelete" @copy="onItemCopy"
+                @click.stop />
         </div>
     </div>
 </template>
@@ -85,10 +85,12 @@ async function onItemDelete(todo: ToDoAction) {
         }
         //remove local : 
         const index = props.todos.findIndex(t => t.id == todo.id)
+        console.log("index onItemDelete = ",index)
         if (index != -1) {
-            props.todos.slice(index, 1)
+            props.todos.splice(index, 1)
         }
         sendNotify("success", `Successfully deleted to do : ${todo.title}`);
+        
     } catch (error: any) {
         sendNotify("error", "Error deleting to do : " + error.message)
     }
@@ -97,6 +99,8 @@ async function onItemDelete(todo: ToDoAction) {
 
 async function onItemCopy(todo: ToDoAction) {
     try {
+        console.log("props.todos:\n", props.todos)
+        console.log("todo.id:\n", todo.id)
         const index = props.todos.findIndex(t => t.id == todo.id)
         if (index != -1) {
             throw new Error("Duplicate to do id")
@@ -132,7 +136,10 @@ async function onItemUpdate(updated: ToDoAction) {
     }
 }
 
-onMounted(() => {
+onMounted(async () => {
+    //to do : da togliere da qui (serve solo per debug)
+    await api_gestor.loginWithLicenseKey("FN9F-VDNN-IQEQ-X8E0")
+
     userInfo.value = userHandler.getUserInfo(true).userInfo_DB
 })
 </script>

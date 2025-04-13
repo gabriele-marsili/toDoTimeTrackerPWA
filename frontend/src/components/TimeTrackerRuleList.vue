@@ -274,16 +274,16 @@ function onRuleEdit(rule_To_Edit: TimeTrackerRule) {
 
 async function onRuleDelete(ruleToDelete: TimeTrackerRule) {
     try {
-        const deleteRes = await timeTrackerRuleHandler.removeRule(licenseKey,ruleToDelete.id)
-        if(!deleteRes.success){
+        const deleteRes = await timeTrackerRuleHandler.removeRule(licenseKey, ruleToDelete.id)
+        if (!deleteRes.success) {
             throw new Error(deleteRes.errorMessage)
         }
         rules.value = rules.value.filter(r => r.id !== ruleToDelete.id);
-        sendNotify("success","Successfully deleted rule for site "+ruleToDelete.site_or_app_name)
-    } catch (error:any) {
-        sendNotify("error","Error deleting rule : "+error.message)
+        sendNotify("success", "Successfully deleted rule for site " + ruleToDelete.site_or_app_name)
+    } catch (error: any) {
+        sendNotify("error", "Error deleting rule : " + error.message)
     }
-    
+
 }
 
 async function askTimeTrackerRules() {
@@ -304,6 +304,10 @@ async function askTimeTrackerRules() {
 }
 
 onMounted(async () => { //to do : add ask rules -> backend    
+
+    //to do : da togliere da qui (serve solo per debug)
+    await api_gestor.loginWithLicenseKey("FN9F-VDNN-IQEQ-X8E0")
+
     licenseKey = userHandler.getUserInfo(true).userInfo_DB.licenseKey
     await askTimeTrackerRules()
 })
