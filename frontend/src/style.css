@@ -206,10 +206,6 @@ body {
 
 }
 
-.selettore:hover {
-  background-color: #15b68020;
-  border-color: #10b981;
-}
 
 .modal {
   position: fixed;
@@ -266,4 +262,5 @@ input[type="number"] {
 
 .form-group input:focus {
   border-color: var(--button-border);
+  box-shadow: 0px 4px 6px rgba(16, 185, 129, 0.369)
 }

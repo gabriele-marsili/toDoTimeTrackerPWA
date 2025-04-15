@@ -1,7 +1,8 @@
 <template>
     <BackgroundEffect>
         <ConnectionStatus />
-        <div :class="themeClass" class="flex flex-col items-center justify-center min-h-screen p-6">
+        <NotificationManager ref="notificationManager" />
+        <div :class="isDarkMode ? 'dark' : 'light'" class="flex flex-col items-center justify-center min-h-screen p-6">
             
             <div class="max-w-lg w-full p-15 rounded-2xl elevated">
                 <div class="flex items-center mb-4 gap-4">
@@ -30,19 +31,38 @@
     </BackgroundEffect>
 </template>
 
-<script>
+<script lang="ts">
 import { ref, onMounted } from 'vue';
 import DarkModeSwitcher from '../components/DarkModeSwitcher.vue';
 import BackgroundEffect from '../components/BackgroundEffect.vue';
 import ConnectionStatus from '../components/ConnectionStatus.vue';
+import { API_gestor } from '../backend-comunication/api_comunication';
+import { UserHandler } from '../engine/userHandler';
+import { useRouter } from 'vue-router';
+import NotificationManager from '../gestors/NotificationManager.vue';
+import { delay } from '../utils/generalUtils';
 
 
 export default {
-    components: { DarkModeSwitcher, BackgroundEffect, ConnectionStatus },
+    components: { DarkModeSwitcher, NotificationManager, BackgroundEffect, ConnectionStatus },
     setup() {
+        const api_gestor = API_gestor.getInstance()
         const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
-
-        onMounted(() => {
+        const userHandler = UserHandler.getInstance(api_gestor)
+        const router = useRouter()
+        const notificationManager = ref(null); // Riferimento per NotificationManager
+        function sendNotify(type: "info" | "warning" | "error" | "success", text: string) {
+            if (notificationManager.value) {
+                (notificationManager.value as any).showNotification({
+                    type: type,
+                    message: text,
+                })
+            } else {
+                console.log("notification manager not found")
+            }
+        }
+        
+        onMounted(async () => {
             if (isDarkMode.value) {
                 document.body.classList.add('dark');
                 document.body.classList.remove('light');
@@ -50,10 +70,22 @@ export default {
                 document.body.classList.add('light');
                 document.body.classList.remove('dark');
             }
+
+            const userInfoRes = await userHandler.getUserInfo(true)
+            if(userInfoRes.userInfo_DB){ //user already logged => redirect to home page
+                sendNotify("info","Welcome back "+userInfoRes.userInfo_DB.username+", loading Home Page...")
+                await delay(1500)
+                router.push("/home")
+            }
         });
 
         return {
-            isDarkMode
+            isDarkMode,            
+            sendNotify,
+            router,
+            api_gestor,
+            userHandler,
+            notificationManager
         }
     }
 }

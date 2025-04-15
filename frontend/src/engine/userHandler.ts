@@ -26,9 +26,12 @@ export class UserHandler {
     }
 
 
-    public getUserInfo(update = false) {
+    public async getUserInfo(update = false) {
         if (update) {
-            this.updateLocalUserInfo();
+            await this.updateLocalUserInfo();
+        }
+        if (!this.userByDB) {
+            await this.updateLocalUserInfo();
         }
         return {
             userInfo: {
@@ -45,14 +48,17 @@ export class UserHandler {
         return await this.apiGestor.updateUserInfo(uInfo);
     }
 
-    private updateLocalUserInfo() {
-        const info = this.apiGestor.getUserInfo()
+    private async updateLocalUserInfo() {
+        const info = await this.apiGestor.getUserInfo()
+
+        console.log("info in update local user info (user handler):\n", info)
         const uInfo = info.userInfo;
         this.userByDB = info.userInfo_DB
         this.user = uInfo.user
         this.licenseKey = uInfo.licenseKey
         this.userEmail = uInfo.userEmail
         this.userCredentials = uInfo.userCredentials
+
     }
 
     /**

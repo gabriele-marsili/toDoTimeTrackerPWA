@@ -389,8 +389,8 @@ async function askCalendarEvents() {
 }
 
 onMounted(async () => {
-    const userInfoRes = userHandler.getUserInfo(true)
-    console.log("userInfoRes:\n", userInfoRes)
+    const userInfoRes = await userHandler.getUserInfo(true)
+    console.log("userInfoRes (calendar):\n", userInfoRes)
     if (!userInfoRes.userInfo_DB) { // => user not logged 
         
         //redirect to welcome

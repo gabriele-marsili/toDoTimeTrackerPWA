@@ -306,9 +306,9 @@ async function askTimeTrackerRules() {
     }
 }
 
-onMounted(async () => { //to do : add ask rules -> backend        
-    const userInfoRes = userHandler.getUserInfo(true)
-    console.log("userInfoRes:\n", userInfoRes)
+onMounted(async () => { 
+    const userInfoRes = await userHandler.getUserInfo(true)
+    console.log("userInfoRes (time tracker rule):\n", userInfoRes)
     if (!userInfoRes.userInfo_DB) { // => user not logged 
         
         //redirect to welcome

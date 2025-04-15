@@ -1,8 +1,8 @@
 import { Analytics } from "firebase/analytics";
-import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updatePassword, User, UserCredential } from "firebase/auth";
-import { arrayRemove, arrayUnion, collection, doc, Firestore, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updatePassword, User, UserCredential, onAuthStateChanged } from "firebase/auth";
+import { arrayRemove, collection, doc, Firestore, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { analytics, auth, db } from "./firebase.js";
-import { generateLicenseKey, getDeviceId, hashPassword } from "../utils/generalUtils.js";
+import { delay, generateLicenseKey, getDeviceId, hashPassword } from "../utils/generalUtils.js";
 import { baseResponse, firestoneDate } from "../types/utilityTypes.js";
 import sodium from 'libsodium-wrappers';
 import { userDBentry } from "../types/userTypes.js";
@@ -53,8 +53,21 @@ export class API_gestor {
         this.analytics = analytics;
         this.licenseKey = ""
         this.userEmail = ""
-
         this.initialized = false;
+
+        // Iscriviti al listener di stato di autenticazione
+        onAuthStateChanged(auth, async (user: User | null) => {
+            this.user = user;
+            console.log("auth state updated, new user:\n", user);
+            //retrive user db datas by user email
+            if (this.user && this.user.email) {
+                const res = await this.getUserByEmail(this.user.email)
+                if (res.success && res.data) {
+                    this.userByDB = res.data;
+                }
+            }
+        });
+
     }
 
     /**
@@ -742,7 +755,25 @@ export class API_gestor {
         }
     }
 
-    public getUserInfo() {
+    public async getUserInfo() {
+        if (!this.userByDB) { //try to get data by login with lk or email : 
+            if (this.licenseKey && this.licenseKey != "") {
+                await this.loginWithLicenseKey(this.licenseKey)
+            } else if ((this.userEmail && this.userEmail != "") || (this.user && this.user.email)) {
+                const email = (this.userEmail && this.userEmail != "") ? this.userEmail : this.user && this.user.email ? this.user.email : ""
+                if (email != "") {
+                    const r = await this.getUserByEmail(this.userEmail)
+                    if (r.success && r.data) {
+                        this.userByDB = r.data
+                    }
+                }
+            }
+        }
+
+        if(!this.userByDB){ //await to try to get data from onAuthStateChanged :
+            await delay(1500)
+        }
+
         return {
             userInfo: {
                 licenseKey: this.licenseKey,
@@ -1062,7 +1093,7 @@ export class API_gestor {
             if (!this.user) {
                 throw new Error("user not logged")
             }
-            console.log("this.user.uid:\n",this.user.uid)
+            console.log("this.user.uid:\n", this.user.uid)
             const q = query(collection(this.db, "toDoActions"), where("licenseKey", "==", licenseKey))
             const snapshot = await getDocs(q);
 
@@ -1073,8 +1104,8 @@ export class API_gestor {
             const docRef = snapshot.docs[0].ref;
             let actions: ToDoObj[] = docData.toDo_actions || [];
 
-            console.log("actions:\n",actions)
-            console.log("actionId:\n",actionId)
+            console.log("actions:\n", actions)
+            console.log("actionId:\n", actionId)
 
             let actionToRemove: ToDoObj | null = null;
             for (const actionObj of actions) {

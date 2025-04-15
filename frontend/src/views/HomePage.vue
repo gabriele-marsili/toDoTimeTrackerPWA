@@ -209,8 +209,8 @@ export default {
 
 
             console.log("userHandler:\n", userHandler)
-            const userInfoRes = userHandler.getUserInfo(true)
-            console.log("userInfoRes:\n", userInfoRes)
+            const userInfoRes = await userHandler.getUserInfo(true)
+            console.log("userInfoRes (home):\n", userInfoRes)
             if (!userInfoRes.userInfo_DB) { // => user not logged 
                 sendNotify("warning", "Not logged, please log in")
                 await delay(1500)

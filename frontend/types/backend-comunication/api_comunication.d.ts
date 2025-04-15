@@ -61,7 +61,7 @@ export declare class API_gestor {
     updateUserInfo(uInfo: userDBentry): Promise<baseResponse>;
     registerUser(userForm: userDBentry): Promise<baseResponse>;
     loginWithLicenseKey(licenseKey: string): Promise<baseResponse>;
-    getUserInfo(): {
+    getUserInfo(): Promise<{
         userInfo: {
             licenseKey: string;
             user: User | null;
@@ -69,7 +69,7 @@ export declare class API_gestor {
             userEmail: string;
         };
         userInfo_DB: userDBentry;
-    };
+    }>;
     logOut(): Promise<baseResponse>;
     private checkIfUserExist;
     getUserByEmail(email: string): Promise<{

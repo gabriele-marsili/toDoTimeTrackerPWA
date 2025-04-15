@@ -1,5 +1,5 @@
 <template>
-  <div class="todo-item" :class="{ completed: localToDoObj.completed, [viewMode]: true }">
+  <div @click="editing = true" class="todo-item" :class="{ completed: localToDoObj.completed, [viewMode]: true }">
     <!-- Header: checkbox + titolo + pulsanti -->
     <div class="todo-header">
       <input class="baseCheckbox" type="checkbox" v-model="localToDoObj.completed" @change="onCompletedChange"
@@ -48,12 +48,12 @@
         <div class="form-group">
           <label for="todo_expiration">Expiration:</label>
           <!--<input id="todo_expiration" type="datetime-local" class="baseInputField" v-model="expirationString" />-->
-          <DatePicker v-model="expirationString" />
+          <DatePicker :isDarkMode=isDarkMode v-model="expirationString" />
         </div>
 
         <div class="form-group">
           <label for="todo_expiration">Notify Date:</label>
-          <DatePicker v-model="notifyDateString" />
+          <DatePicker  :isDarkMode=isDarkMode v-model="notifyDateString" />
           <!--<<input id="todo_expiration" type="datetime-local" class="baseInputField" v-model="notifyDateString" />-->
         </div>
 
@@ -84,7 +84,7 @@ interface Props {
 
 const props = defineProps<Props>();
 const emit = defineEmits(["update", "delete", "copy"]);
-
+const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
 const localTodo = ref<ToDoAction>(props.todo);
 const localToDoObj = ref<ToDoObj>(props.todo.getAsObj());
 const editing = ref(false);

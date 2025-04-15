@@ -143,8 +143,8 @@ async function onItemUpdate(updated: ToDoAction) {
 }
 
 onMounted(async () => {
-    const userInfoRes = userHandler.getUserInfo(true)
-    console.log("userInfoRes:\n", userInfoRes)
+    const userInfoRes = await userHandler.getUserInfo(true)
+    console.log("userInfoRes (to do list):\n", userInfoRes)
     if (!userInfoRes.userInfo_DB) { // => user not logged 
         //redirect to welcome
         await delay(2000)
