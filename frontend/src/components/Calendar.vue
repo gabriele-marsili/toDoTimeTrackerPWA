@@ -125,11 +125,14 @@ import NotificationManager from '../gestors/NotificationManager.vue';
 import { API_gestor } from '../backend-comunication/api_comunication';
 import { userDBentry } from '../types/userTypes';
 import { UserHandler } from '../engine/userHandler';
+import { useRouter } from 'vue-router';
+import { delay } from '../utils/generalUtils';
 
 const api_gestor = API_gestor.getInstance()
 const userHandler = UserHandler.getInstance(api_gestor)
 const calendarHandler = CalendarEventHandler.getInstance(api_gestor);
 const defaultImagePath = "../../public/user.avif"
+const router = useRouter()
 const userInfo = ref<userDBentry>({
     username: "",
     avatarImagePath: defaultImagePath,
@@ -148,7 +151,7 @@ const userInfo = ref<userDBentry>({
     karmaCoinsBalance: 0,
     friends: [],
 });
-
+const emit = defineEmits(["calendarEvent"])
 const currentDate = ref(new Date());
 const events = ref<CalendarEventClass[]>([]);
 const showEventForm = ref(false);
@@ -248,6 +251,7 @@ async function deleteEvent(event: CalendarEventClass) {
         } else {
             events.value = events.value.filter(e => e.id !== event.id);
             sendNotify("success", "Event " + currentEvent.value.title + " deleted successfully")
+            emit("calendarEvent",{type : "delete event", newEventsQuantity : events.value.length})
         }
     } catch (error: any) {
         sendNotify("error", "Error deleting event : " + error.message);
@@ -328,6 +332,7 @@ async function addOrUpdateEvent() {
                     }
                 } else {
                     events.value.push(newEvent);
+                    emit("calendarEvent",{type : "add event", newEventsQuantity : events.value.length})
                 }
                 sendNotify("success", "Event " + currentEvent.value.title + " " + action + " successfully")
                 await askCalendarEvents()
@@ -369,11 +374,12 @@ async function askCalendarEvents() {
         const calendarHandlerRes = await calendarHandler.loadAllEvents(userInfo.value.licenseKey)
         if (calendarHandlerRes.success) {
             const calendarEvents = calendarHandlerRes.events
-            console.log("calendarEvents by db:\n",calendarEvents)
+            console.log("calendarEvents by db:\n", calendarEvents)
             events.value = []
             for (let event of calendarEvents) {
                 events.value.push(calendarHandler.fromCalendarObj(event))
             }
+            emit("calendarEvent",{type : "load events", newEventsQuantity : events.value.length})
         } else {
             throw new Error(calendarHandlerRes.errorMessage);
         }
@@ -383,10 +389,17 @@ async function askCalendarEvents() {
 }
 
 onMounted(async () => {
-    //to do : da togliere da qui (serve solo per debug)
-    await api_gestor.loginWithLicenseKey("FN9F-VDNN-IQEQ-X8E0")
+    const userInfoRes = userHandler.getUserInfo(true)
+    console.log("userInfoRes:\n", userInfoRes)
+    if (!userInfoRes.userInfo_DB) { // => user not logged 
+        
+        //redirect to welcome
+        await delay(2000)
+        //redirect to welcome
+        router.push("/welcome")
+    }
 
-    userInfo.value = userHandler.getUserInfo(true).userInfo_DB
+    userInfo.value = userInfoRes.userInfo_DB
     await askCalendarEvents();
 });
 </script>

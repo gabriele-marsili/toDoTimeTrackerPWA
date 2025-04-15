@@ -29,27 +29,45 @@
     </div>
 
     <!-- edit box -->
-    <div v-if="editing && !localToDoObj.completed" class="todo-details">
-      <textarea v-model="localToDoObj.description" placeholder="Description"></textarea>
-      <div class="todo-fields">
-        <label>
-          Priority:
-          <select v-model.number="localToDoObj.priority">
+    <div v-if="editing && !localToDoObj.completed" class="modal">
+      <div class="content">
+        <h3>Edit To Do Action : {{ localToDoObj.title }}</h3>
+        <div class="form-group">
+          <label for="todo_description">Description:</label>
+          <input id="todo_description" class="baseInputField" type="text" v-model="localToDoObj.description"
+            placeholder="Description" />
+        </div>
+
+        <div class="form-group">
+          <label for="todo_priority">Priority:</label>
+          <select class="selettore" id="todo_priority" v-model.number="localToDoObj.priority">
             <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
           </select>
-        </label>
-        <label>
-          Expiration:
-          <input type="datetime-local" v-model="expirationString" />
-        </label>
-        <label>
-          Notify Date:
-          <input type="datetime-local" v-model="notifyDateString" />
-        </label>
+        </div>
+
+        <div class="form-group">
+          <label for="todo_expiration">Expiration:</label>
+          <!--<input id="todo_expiration" type="datetime-local" class="baseInputField" v-model="expirationString" />-->
+          <DatePicker v-model="expirationString" />
+        </div>
+
+        <div class="form-group">
+          <label for="todo_expiration">Notify Date:</label>
+          <DatePicker v-model="notifyDateString" />
+          <!--<<input id="todo_expiration" type="datetime-local" class="baseInputField" v-model="notifyDateString" />-->
+        </div>
+
+        <div class="button-actions">
+          <button class="baseButton" @click="updateToDo">Confirm Edit
+            <span class="material-symbols-outlined g-icon">check_circle</span>
+          </button>
+          <button class="baseButton" @click="editing = false">Cancel
+            <span class="material-symbols-outlined g-icon">cancel</span>
+          </button><!--to do: da ripristinare val pre-edit -->
+        </div>
       </div>
-      <button class="baseButton" @click="updateToDo">Confirm Edit</button>
-      <button class="baseButton" @click="editing = false">Cancel</button><!-- da ripristinare val pre-edit -->
     </div>
+
   </div>
 </template>
 
@@ -57,6 +75,7 @@
 import { ref, computed, watch } from 'vue';
 import { ToDoAction, ToDoObj } from '../engine/toDoEngine'
 import { formatDate, parseStringToDate } from '../utils/generalUtils';
+import DatePicker from './DatePicker.vue';
 
 interface Props {
   todo: ToDoAction,
@@ -69,10 +88,6 @@ const emit = defineEmits(["update", "delete", "copy"]);
 const localTodo = ref<ToDoAction>(props.todo);
 const localToDoObj = ref<ToDoObj>(props.todo.getAsObj());
 const editing = ref(false);
-
-
-
-
 
 const subTaskProgress = computed(() => {
   const total = localToDoObj.value.subActions.length;
@@ -118,10 +133,10 @@ function onCompletedChange() {
 
 function copyToDo() {
   const localToDoValue = localTodo.value;
-  
+
   //to do : get id by to do handler  
-  const copiedToDo = new ToDoAction(localToDoValue.id+"1234567", localToDoValue.title, localToDoValue.priority, localToDoValue.dateWithTime, localToDoValue.expiration, localToDoValue.notifyDate, localToDoValue.category, localToDoValue.description)
-  console.log("copiedToDo:\n",copiedToDo)
+  const copiedToDo = new ToDoAction(localToDoValue.id + "1234567", localToDoValue.title, localToDoValue.priority, localToDoValue.dateWithTime, localToDoValue.expiration, localToDoValue.notifyDate, localToDoValue.category, localToDoValue.description)
+  console.log("copiedToDo:\n", copiedToDo)
   localToDoValue.subActions.forEach(subA => copiedToDo.addOrUpdateSubToDoAction(subA))
   emit("copy", copiedToDo)
 }
@@ -213,5 +228,41 @@ watch(() => props.todo, (newVal) => {
 
 .action-buttons button:hover {
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+/*edit to do box */
+.content {
+  background: #212121;
+  color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 500px;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow-y: auto;
+  text-align: center;
+  border: 1px solid #15b680d4;
+}
+
+.content h3 {
+  margin-bottom: 10px;
+}
+
+.content::-webkit-scrollbar {
+  display: none;
+}
+
+.button-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 10px
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  /* Eventuali altre proprietà per modificare colore, dimensioni, margini dell’icona */
 }
 </style>

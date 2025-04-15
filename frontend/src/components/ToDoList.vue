@@ -20,6 +20,8 @@ import { API_gestor } from '../backend-comunication/api_comunication';
 import { UserHandler } from '../engine/userHandler';
 import { userDBentry } from '../types/userTypes';
 import NotificationManager from '../gestors/NotificationManager.vue';
+import { useRouter } from 'vue-router';
+import { delay } from '../utils/generalUtils';
 export interface Props {
     todos: ToDoAction[];
     // viewMode: 'list' mostra ogni item in una riga,
@@ -49,6 +51,8 @@ const userInfo = ref<userDBentry>({
     karmaCoinsBalance: 0,
     friends: [],
 });
+const router = useRouter();
+const emit = defineEmits(["todoEvent"])
 const viewMode = ref<'list' | 'grid'>('list');
 //const toggleViewMode = () => viewMode.value = viewMode.value === 'list' ? 'grid' : 'list';
 
@@ -85,12 +89,13 @@ async function onItemDelete(todo: ToDoAction) {
         }
         //remove local : 
         const index = props.todos.findIndex(t => t.id == todo.id)
-        console.log("index onItemDelete = ",index)
+        console.log("index onItemDelete = ", index)
         if (index != -1) {
             props.todos.splice(index, 1)
         }
         sendNotify("success", `Successfully deleted to do : ${todo.title}`);
-        
+        emit("todoEvent",{type:"delete to do",newToDoQuantity : props.todos.length})
+
     } catch (error: any) {
         sendNotify("error", "Error deleting to do : " + error.message)
     }
@@ -113,6 +118,7 @@ async function onItemCopy(todo: ToDoAction) {
         //copy local : 
         props.todos.push(todo)
         sendNotify("success", `Successfully copyed to do : ${todo.title}`);
+        emit("todoEvent",{type:"copy to do",newToDoQuantity : props.todos.length})
     } catch (error: any) {
         sendNotify("error", "Error copying to do : " + error.message)
     }
@@ -137,10 +143,16 @@ async function onItemUpdate(updated: ToDoAction) {
 }
 
 onMounted(async () => {
-    //to do : da togliere da qui (serve solo per debug)
-    await api_gestor.loginWithLicenseKey("FN9F-VDNN-IQEQ-X8E0")
+    const userInfoRes = userHandler.getUserInfo(true)
+    console.log("userInfoRes:\n", userInfoRes)
+    if (!userInfoRes.userInfo_DB) { // => user not logged 
+        //redirect to welcome
+        await delay(2000)
+        //redirect to welcome
+        router.push("/welcome")
+    }
 
-    userInfo.value = userHandler.getUserInfo(true).userInfo_DB
+    userInfo.value = userInfoRes.userInfo_DB
 })
 </script>
 

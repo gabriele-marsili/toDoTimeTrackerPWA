@@ -2,6 +2,7 @@ declare const _default: import("vue").DefineComponent<{}, {
     login: () => Promise<void>;
     notificationManager: import("vue").Ref<null, null>;
     licensekey: import("vue").Ref<string, string>;
+    router: import("vue-router").Router;
     isOnline: import("vue").Ref<boolean, boolean>;
 }, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<{}> & Readonly<{}>, {}, {}, {
     NotificationManager: import("vue").DefineComponent<{}, {}, {

@@ -17,7 +17,7 @@
                 <!-- Colonna 2: Generic To Do -->
                 <div class="box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center">
                     <h3>Generic To Do</h3>
-                    <ToDoList :todos=genericToDoActions viewMode="grid"></ToDoList>
+                    <ToDoList @todoEvent = handleToDoEvent :todos=genericToDoActions viewMode="grid"></ToDoList>
 
                 </div>
                 <!-- Colonna 3: Info Utente + Time Tracker -->
@@ -76,7 +76,7 @@
 
             <div class="footer p-15 rounded-2xl elevated shadow-lg text-center">
                 <h3>Calendar</h3>
-                <Calendar></Calendar>
+                <Calendar @calendarEvent=handleCalendarEvent></Calendar>
             </div>
 
         </div>
@@ -96,7 +96,8 @@ import TimeTrackerRuleList from '../components/TimeTrackerRuleList.vue';
 import { API_gestor } from '../backend-comunication/api_comunication';
 import { UserHandler } from '../engine/userHandler';
 import { userDBentry } from '../types/userTypes';
-import { isToday } from '../utils/generalUtils';
+import { delay, isToday } from '../utils/generalUtils';
+import { useRouter } from 'vue-router';
 
 export default {
     components: { Sidebar, NotificationManager, ConnectionStatus, ToDoList, Calendar, TimeTrackerRuleList },
@@ -109,7 +110,7 @@ export default {
         const userHandler = UserHandler.getInstance(api_gestor)
         const defaultImagePath = "../../public/user.avif"
         const todoCompletedQuantity = ref(0);
-        const totalToDoQuantity = ref(0);
+        const totalToDoQuantity = ref(genericToDoActions.value.length);
         const totalEventsQuantity = ref(0);
 
         const userInfo = ref<userDBentry>({
@@ -131,6 +132,7 @@ export default {
             friends: [],
         });
 
+        const router = useRouter();
         const notificationManager = ref(null); // Riferimento per NotificationManager
 
         const handleSectionChange = (newSection: any) => {
@@ -154,7 +156,7 @@ export default {
                 const toDOres = await todoHandler.loadAllToDos(userInfo.value.licenseKey)
                 if (toDOres.success) {
                     const todoList = toDOres.toDos
-                    console.log("todoList:\n",todoList)
+                    console.log("todoList:\n", todoList)
                     totalToDoQuantity.value = todoList.length
                     todayToDoActions.value = []
                     todoCompletedQuantity.value = 0
@@ -163,7 +165,7 @@ export default {
                             todoCompletedQuantity.value++
                         }
                         const toDoAction = todoHandler.fromToDoObj(to_do)
-                        console.log("toDoAction:\n",toDoAction)
+                        console.log("toDoAction:\n", toDoAction)
                         if (isToday(toDoAction.dateWithTime)) {
                             todayToDoActions.value.push(toDoAction)
                         }
@@ -177,6 +179,16 @@ export default {
             }
         }
 
+        function handleCalendarEvent(eventContent: { type: string, newEventsQuantity: number }) {
+            console.log("new calendar event : ",eventContent)
+            totalEventsQuantity.value = eventContent.newEventsQuantity
+        }
+
+        function handleToDoEvent(eventContent: { type: string, newToDoQuantity: number }) {
+            console.log("new to do event : ",eventContent)
+            totalToDoQuantity.value = eventContent.newToDoQuantity
+        }
+
         onMounted(async () => {
             if (isDarkMode.value) {
                 document.body.classList.add('dark');
@@ -186,25 +198,36 @@ export default {
                 document.body.classList.remove('dark');
             }
 
+
+
             // Mostra una notifica di benvenuto dopo il montaggio
             setTimeout(() => {
-                sendNotify("info", "Welcome back in TTT App")
+                if (userInfo.value.username != "") {
+                    sendNotify("info", userInfo.value.username + " welcome back in TTT App")
+                }
             }, 300);
 
-            //to do : da togliere da qui (serve solo per debug)
-            await api_gestor.loginWithLicenseKey("FN9F-VDNN-IQEQ-X8E0")
 
-            console.log("userHandler:\n",userHandler)            
+            console.log("userHandler:\n", userHandler)
             const userInfoRes = userHandler.getUserInfo(true)
-            console.log("userInfoRes:\n",userInfoRes)
+            console.log("userInfoRes:\n", userInfoRes)
+            if (!userInfoRes.userInfo_DB) { // => user not logged 
+                sendNotify("warning", "Not logged, please log in")
+                await delay(1500)
+                //redirect to welcome
+                router.push("/welcome")
+            }
+
             userInfo.value = userInfoRes.userInfo_DB
-            if(userInfo.value.avatarImagePath == ""){
+            if (userInfo.value.avatarImagePath == "") {
                 userInfo.value.avatarImagePath = defaultImagePath
             }
             await askToDo()
         });
 
         return {
+            handleCalendarEvent,
+            handleToDoEvent,
             askToDo,
             userInfo,
             isDarkMode,

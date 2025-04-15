@@ -2,6 +2,14 @@ import { ToDoAction, ToDoPriority } from '../engine/toDoEngine';
 import { UserHandler } from '../engine/userHandler';
 import { userDBentry } from '../types/userTypes';
 declare const _default: import("vue").DefineComponent<{}, {
+    handleCalendarEvent: (eventContent: {
+        type: string;
+        newEventsQuantity: number;
+    }) => void;
+    handleToDoEvent: (eventContent: {
+        type: string;
+        newToDoQuantity: number;
+    }) => void;
     askToDo: () => Promise<void>;
     userInfo: import("vue").Ref<{
         age: number;
@@ -155,7 +163,11 @@ declare const _default: import("vue").DefineComponent<{}, {
         }, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
         BroadcastListener: import("vue").DefineComponent<{}, {}, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<{}> & Readonly<{}>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
     }, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
-    ToDoList: import("vue").DefineComponent<import("../components/ToDoList.vue").Props, {}, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<import("../components/ToDoList.vue").Props> & Readonly<{}>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, false, {
+    ToDoList: import("vue").DefineComponent<import("../components/ToDoList.vue").Props, {}, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {
+        todoEvent: (...args: any[]) => void;
+    }, string, import("vue").PublicProps, Readonly<import("../components/ToDoList.vue").Props> & Readonly<{
+        onTodoEvent?: ((...args: any[]) => any) | undefined;
+    }>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, false, {
         notificationManager: import("vue").CreateComponentPublicInstanceWithMixins<Readonly<{}>, {}, {
             currentNotification: null;
         }, {}, {
@@ -177,7 +189,11 @@ declare const _default: import("vue").DefineComponent<{}, {
             dismissNotification(): void;
         }, {}> | null;
     }, any>;
-    Calendar: import("vue").DefineComponent<{}, {}, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<{}> & Readonly<{}>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {
+    Calendar: import("vue").DefineComponent<{}, {}, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {
+        calendarEvent: (...args: any[]) => void;
+    }, string, import("vue").PublicProps, Readonly<{}> & Readonly<{
+        onCalendarEvent?: ((...args: any[]) => any) | undefined;
+    }>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {
         notificationManager: import("vue").CreateComponentPublicInstanceWithMixins<Readonly<{}>, {}, {
             currentNotification: null;
         }, {}, {

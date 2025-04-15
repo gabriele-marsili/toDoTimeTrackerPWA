@@ -220,7 +220,7 @@ body {
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
-  justify-content: center;   
+  justify-content: center;
   z-index: 9999;
 }
 
@@ -234,4 +234,36 @@ input[type="number"]::-webkit-outer-spin-button {
 /* Rimuove spinner in Firefox */
 input[type="number"] {
   -moz-appearance: textfield;
+}
+
+
+
+.form-group {
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.9em;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #333;
+  color: #fff;
+}
+
+.form-group input {
+  border: 0.7px solid var(--input-field-border);
+  transition: border-color 0.3s ease, border-width 0.3s ease;
+}
+
+.form-group input:focus {
+  border-color: var(--button-border);
 }

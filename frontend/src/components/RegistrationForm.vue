@@ -132,7 +132,8 @@ import { ref, reactive, computed } from 'vue';
 import NotificationManager from '../gestors/NotificationManager.vue';
 import { API_gestor } from '../backend-comunication/api_comunication';
 import { delay } from '../utils/generalUtils';
-
+import { useRouter } from 'vue-router';
+const router = useRouter()
 const totalPoints = 100;
 const isOnline = ref(navigator.onLine)
 const form = reactive({
@@ -286,6 +287,8 @@ const submitForm = async () => {
                 type: "info",
                 message: "We've sent you the license key via email, please check also the spam",
             });
+            await delay(1500)
+            router.push("/login") //load login page 
 
         } else {
             let e_msg = registrationEsit.errorMessage

@@ -27,6 +27,8 @@
 import { ref } from "vue";
 import NotificationManager from '../gestors/NotificationManager.vue';
 import { API_gestor } from "../backend-comunication/api_comunication";
+import { useRouter } from "vue-router";
+import { delay } from "../utils/generalUtils";
 
 export default {
     components: { NotificationManager },
@@ -35,7 +37,12 @@ export default {
         const licensekey = ref("");
         const notificationManager = ref(null); // Riferimento per NotificationManager
         const apiGestor = API_gestor.getInstance()
+        const router = useRouter()
         const login = async () => {
+            notificationManager.value.showNotification({
+                type: "info",
+                message: "Logging in...",
+            });
 
             // Rimuove eventuali spazi vuoti iniziali e finali
             const licenseKeyValue = licensekey.value.trim();
@@ -48,7 +55,7 @@ export default {
                 });
                 return;
             }
-            
+
             // Controllo validità license key (adatta la regex al formato desiderato)
             const licenseKeyRegex = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
             if (!licenseKeyRegex.test(licenseKeyValue)) {
@@ -62,7 +69,7 @@ export default {
             const loginResponse = await apiGestor.loginWithLicenseKey(licenseKeyValue)
             if (!loginResponse.success) {
                 let e_msg = loginResponse.errorMessage
-                if(!isOnline.value){
+                if (!isOnline.value) {
                     e_msg = "Bad connection, please try again when you're online"
                 }
 
@@ -79,14 +86,17 @@ export default {
                 message: "Logged successfully",
             });
 
+            await delay(1500)
+            router.push("/home") //load home page after login
         };
 
 
 
         return {
             login,
-            notificationManager,            
+            notificationManager,
             licensekey,
+            router,
             isOnline
         }
     }

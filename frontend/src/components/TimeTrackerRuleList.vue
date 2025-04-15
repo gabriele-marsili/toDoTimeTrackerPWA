@@ -117,7 +117,10 @@ import { TimeTrackerRule, ruleType } from '../engine/timeTracker';
 import { TimeTrackerHandler } from '../engine/timeTracker';
 import { API_gestor } from '../backend-comunication/api_comunication';
 import { UserHandler } from '../engine/userHandler';
+import { useRouter } from 'vue-router';
+import { delay } from '../utils/generalUtils';
 
+const router = useRouter();
 const currentRule = ref<TimeTrackerRule>(
     new TimeTrackerRule('', '', 1, 'notify & close', '')
 );
@@ -303,12 +306,17 @@ async function askTimeTrackerRules() {
     }
 }
 
-onMounted(async () => { //to do : add ask rules -> backend    
-
-    //to do : da togliere da qui (serve solo per debug)
-    await api_gestor.loginWithLicenseKey("FN9F-VDNN-IQEQ-X8E0")
-
-    licenseKey = userHandler.getUserInfo(true).userInfo_DB.licenseKey
+onMounted(async () => { //to do : add ask rules -> backend        
+    const userInfoRes = userHandler.getUserInfo(true)
+    console.log("userInfoRes:\n", userInfoRes)
+    if (!userInfoRes.userInfo_DB) { // => user not logged 
+        
+        //redirect to welcome
+        await delay(2000)
+        //redirect to welcome
+        router.push("/welcome")
+    }
+    licenseKey = userInfoRes.userInfo_DB.licenseKey
     await askTimeTrackerRules()
 })
 </script>
@@ -371,33 +379,4 @@ onMounted(async () => { //to do : add ask rules -> backend
 }
 
 
-.form-group {
-    margin-bottom: 10px;
-    text-align: left;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 4px;
-    font-size: 0.9em;
-}
-
-.form-group input,
-.form-group select {
-    width: 100%;
-    padding: 6px 8px;
-    border: 1px solid #444;
-    border-radius: 4px;
-    background: #333;
-    color: #fff;
-}
-
-.form-group input {
-    border: 0.7px solid var(--input-field-border);
-    transition: border-color 0.3s ease, border-width 0.3s ease;
-}
-
-.form-group input:focus {
-    border-color: var(--button-border);
-}
 </style>

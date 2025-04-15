@@ -1,4 +1,8 @@
-declare const _default: import("vue").DefineComponent<{}, {}, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<{}> & Readonly<{}>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {
+declare const _default: import("vue").DefineComponent<{}, {}, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {
+    calendarEvent: (...args: any[]) => void;
+}, string, import("vue").PublicProps, Readonly<{}> & Readonly<{
+    onCalendarEvent?: ((...args: any[]) => any) | undefined;
+}>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {
     notificationManager: import("vue").CreateComponentPublicInstanceWithMixins<Readonly<{}>, {}, {
         currentNotification: null;
     }, {}, {
