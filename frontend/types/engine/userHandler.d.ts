@@ -14,7 +14,7 @@ export declare class UserHandler {
     private userEmail;
     private userByDB;
     private constructor();
-    getUserInfo(update?: boolean): {
+    getUserInfo(update?: boolean): Promise<{
         userInfo: {
             licenseKey: string;
             user: User | null;
@@ -22,7 +22,7 @@ export declare class UserHandler {
             userEmail: string;
         };
         userInfo_DB: userDBentry;
-    };
+    }>;
     updateUserInfo(uInfo: userDBentry): Promise<baseResponse>;
     private updateLocalUserInfo;
     /**

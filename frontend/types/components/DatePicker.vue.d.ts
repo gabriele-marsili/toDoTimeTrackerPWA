@@ -3,27 +3,31 @@ declare const _default: import("vue").DefineComponent<import("vue").ExtractPropT
         type: DateConstructor;
         default: null;
     };
+    isDarkMode: {
+        type: BooleanConstructor;
+        default: boolean;
+    };
 }>, {}, {
     fp: null;
 }, {
     formattedDate(): string;
 }, {
-    /**
-     * Callback chiamato da Flatpickr quando la data viene cambiata.
-     * Emette l'evento input con il nuovo valore (oggetto Date).
-     */
     onChange(selectedDates: any): void;
-    /**
-     * Funzione per formattare un oggetto Date in formato "gg/mm/yyyy hh:mm".
-     */
     formatDate(date: any): string;
     onInput(event: any): void;
+    updateDarkMode(isDark: any): void;
+    updateCalendarPosition(selectedDates: any, dateStr: any, instance: any): void;
 }, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<import("vue").ExtractPropTypes<{
     value: {
         type: DateConstructor;
         default: null;
     };
+    isDarkMode: {
+        type: BooleanConstructor;
+        default: boolean;
+    };
 }>> & Readonly<{}>, {
+    isDarkMode: boolean;
     value: Date;
 }, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
 export default _default;

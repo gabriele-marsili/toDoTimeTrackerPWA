@@ -165,8 +165,10 @@ declare const _default: import("vue").DefineComponent<{}, {
     }, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
     ToDoList: import("vue").DefineComponent<import("../components/ToDoList.vue").Props, {}, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {
         todoEvent: (...args: any[]) => void;
+        subToDoEvent: (...args: any[]) => void;
     }, string, import("vue").PublicProps, Readonly<import("../components/ToDoList.vue").Props> & Readonly<{
         onTodoEvent?: ((...args: any[]) => any) | undefined;
+        onSubToDoEvent?: ((...args: any[]) => any) | undefined;
     }>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, false, {
         notificationManager: import("vue").CreateComponentPublicInstanceWithMixins<Readonly<{}>, {}, {
             currentNotification: null;

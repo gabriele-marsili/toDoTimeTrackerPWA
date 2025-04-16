@@ -6,8 +6,8 @@
         </button>
         -->
         <div v-for="todo in filteredTodos" :key="todo.id" class="todo-item-wrapper">
-            <ToDoItem :viewMode="viewMode" :todo="todo" @update="onItemUpdate" @delete="onItemDelete" @copy="onItemCopy"
-                @click.stop />
+            <ToDoItem :viewMode="viewMode" :todo="todo" @todoEvent="passToDoEvent" @update="onItemUpdate"
+                @delete="onItemDelete" @copy="onItemCopy" @click.stop />
         </div>
     </div>
 </template>
@@ -27,6 +27,7 @@ export interface Props {
     // viewMode: 'list' mostra ogni item in una riga,
     // viewMode: 'grid' mostra ogni item in un piccolo box
     viewMode: 'list' | 'grid';
+    isSubList : boolean
 }
 const notificationManager = ref(null); // Riferimento per NotificationManager
 const api_gestor = API_gestor.getInstance()
@@ -52,7 +53,7 @@ const userInfo = ref<userDBentry>({
     friends: [],
 });
 const router = useRouter();
-const emit = defineEmits(["todoEvent"])
+const emit = defineEmits(["todoEvent","subToDoEvent"])
 const viewMode = ref<'list' | 'grid'>('list');
 //const toggleViewMode = () => viewMode.value = viewMode.value === 'list' ? 'grid' : 'list';
 
@@ -79,9 +80,17 @@ function sendNotify(type: "info" | "warning" | "error" | "success", text: string
     }
 }
 
+function passToDoEvent(eventContent: { type: string, newToDoQuantity: number }) {
+    emit("todoEvent", eventContent)
+}
 
 async function onItemDelete(todo: ToDoAction) {
     try {
+        if(props.isSubList){ //pass the event to to-do item
+            emit("subToDoEvent",{type:"delete",todo})
+            return;
+        }
+        
         //remove by db:
         const deleteRes = await todoHandler.removeToDo(userInfo.value.licenseKey, todo.id)
         if (!deleteRes.success) {
@@ -94,13 +103,12 @@ async function onItemDelete(todo: ToDoAction) {
             props.todos.splice(index, 1)
         }
         sendNotify("success", `Successfully deleted to do : ${todo.title}`);
-        emit("todoEvent",{type:"delete to do",newToDoQuantity : props.todos.length})
+        emit("todoEvent", { type: "delete to do", newToDoQuantity: props.todos.length })
 
     } catch (error: any) {
         sendNotify("error", "Error deleting to do : " + error.message)
     }
 }
-
 
 async function onItemCopy(todo: ToDoAction) {
     try {
@@ -110,6 +118,12 @@ async function onItemCopy(todo: ToDoAction) {
         if (index != -1) {
             throw new Error("Duplicate to do id")
         }
+
+        if(props.isSubList){ //pass the event to to-do item
+            emit("subToDoEvent",{type:"copy",todo})
+            return;
+        }
+
         //copy in db:
         const addCopyRes = await todoHandler.addOrUpdateToDo(userInfo.value.licenseKey, todo)
         if (!addCopyRes.success) {
@@ -118,7 +132,7 @@ async function onItemCopy(todo: ToDoAction) {
         //copy local : 
         props.todos.push(todo)
         sendNotify("success", `Successfully copyed to do : ${todo.title}`);
-        emit("todoEvent",{type:"copy to do",newToDoQuantity : props.todos.length})
+        emit("todoEvent", { type: "copy to do", newToDoQuantity: props.todos.length })
     } catch (error: any) {
         sendNotify("error", "Error copying to do : " + error.message)
     }
@@ -126,6 +140,13 @@ async function onItemCopy(todo: ToDoAction) {
 
 async function onItemUpdate(updated: ToDoAction) {
     try {
+        console.log("is sub list ? ",props.isSubList)
+        console.log("updating to do:\n",updated)
+        if(props.isSubList){ //pass the event to to-do item
+            emit("subToDoEvent",{type:"update",todo:updated})
+            return;
+        }
+
         //update in db:
         const updateRes = await todoHandler.addOrUpdateToDo(userInfo.value.licenseKey, updated)
         if (!updateRes.success) {

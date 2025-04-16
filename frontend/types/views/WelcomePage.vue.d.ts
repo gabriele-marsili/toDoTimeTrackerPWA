@@ -1,7 +1,22 @@
+import { API_gestor } from '../backend-comunication/api_comunication';
+import { UserHandler } from '../engine/userHandler';
 declare const _default: import("vue").DefineComponent<{}, {
     isDarkMode: import("vue").Ref<boolean, boolean>;
+    sendNotify: (type: "info" | "warning" | "error" | "success", text: string) => void;
+    router: import("vue-router").Router;
+    api_gestor: API_gestor;
+    userHandler: UserHandler;
+    notificationManager: import("vue").Ref<null, null>;
 }, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<{}> & Readonly<{}>, {}, {}, {
     DarkModeSwitcher: import("vue").DefineComponent<{}, {}, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<{}>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {}, HTMLDivElement>;
+    NotificationManager: import("vue").DefineComponent<{}, {}, {
+        currentNotification: null;
+    }, {}, {
+        showNotification(notification: any): void;
+        dismissNotification(): void;
+    }, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<{}>, {}, {}, {
+        Notification: import("vue").DefineComponent<{}, {}, any>;
+    }, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
     BackgroundEffect: import("vue").DefineComponent<{}, {}, {
         particles: never[];
         maxParticles: number;

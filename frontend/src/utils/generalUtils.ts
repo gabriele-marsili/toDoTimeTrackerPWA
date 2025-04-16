@@ -1,3 +1,6 @@
+import { ToDoObj } from "../engine/toDoEngine";
+import { firestoneDate } from "../types/utilityTypes";
+
 export function generateLicenseKey(): string {
     return Array.from({ length: 4 }, () =>
         Math.random().toString(36).substring(2, 6).toUpperCase()
@@ -61,4 +64,20 @@ export function isToday(date: Date): boolean {
     return date.getDate() === today.getDate() &&
         date.getMonth() === today.getMonth() &&
         date.getFullYear() === today.getFullYear();
+}
+
+
+export function parseActionDates(action: ToDoObj) {
+    let firestoneDateWithTime = action.dateWithTime as unknown as firestoneDate
+    action.dateWithTime = new Date(firestoneDateWithTime.seconds * 1000 + Math.floor(firestoneDateWithTime.nanoseconds / 1_000_000));
+
+    let firestonenotifyDate = action.notifyDate as unknown as firestoneDate
+    action.notifyDate = new Date(firestonenotifyDate.seconds * 1000 + Math.floor(firestonenotifyDate.nanoseconds / 1_000_000));
+
+    let firestone_expiration = action.expiration as unknown as firestoneDate
+    action.expiration = new Date(firestone_expiration.seconds * 1000 + Math.floor(firestone_expiration.nanoseconds / 1_000_000));
+
+    for(let a of action.subActions){
+        parseActionDates(a)
+    }
 }

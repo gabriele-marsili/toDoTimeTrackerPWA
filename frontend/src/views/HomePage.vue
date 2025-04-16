@@ -12,12 +12,12 @@
                 <!-- Colonna 1: Today To Do -->
                 <div class="box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center">
                     <h3>Today To Do</h3>
-                    <ToDoList :todos=todayToDoActions viewMode="grid"></ToDoList>
+                    <ToDoList :is-sub-list="false" :todos=todayToDoActions @todoEvent = handleToDoEvent viewMode="grid"></ToDoList>
                 </div>
                 <!-- Colonna 2: Generic To Do -->
                 <div class="box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center">
                     <h3>Generic To Do</h3>
-                    <ToDoList @todoEvent = handleToDoEvent :todos=genericToDoActions viewMode="grid"></ToDoList>
+                    <ToDoList :is-sub-list="false" @todoEvent = handleToDoEvent :todos=genericToDoActions viewMode="grid"></ToDoList>
 
                 </div>
                 <!-- Colonna 3: Info Utente + Time Tracker -->

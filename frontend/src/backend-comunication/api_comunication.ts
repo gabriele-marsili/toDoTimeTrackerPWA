@@ -2,7 +2,7 @@ import { Analytics } from "firebase/analytics";
 import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updatePassword, User, UserCredential, onAuthStateChanged } from "firebase/auth";
 import { arrayRemove, collection, doc, Firestore, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { analytics, auth, db } from "./firebase.js";
-import { delay, generateLicenseKey, getDeviceId, hashPassword } from "../utils/generalUtils.js";
+import { delay, generateLicenseKey, getDeviceId, hashPassword, parseActionDates } from "../utils/generalUtils.js";
 import { baseResponse, firestoneDate } from "../types/utilityTypes.js";
 import sodium from 'libsodium-wrappers';
 import { userDBentry } from "../types/userTypes.js";
@@ -1161,16 +1161,7 @@ export class API_gestor {
             let parsedActions: ToDoObj[] = docData.toDo_actions || [];
             console.log("parsedActions (api gestor):\n", parsedActions)
             for (let action of parsedActions) {
-
-                let firestoneDateWithTime = action.dateWithTime as unknown as firestoneDate
-                action.dateWithTime = new Date(firestoneDateWithTime.seconds * 1000 + Math.floor(firestoneDateWithTime.nanoseconds / 1_000_000));
-
-                let firestonenotifyDate = action.notifyDate as unknown as firestoneDate
-                action.notifyDate = new Date(firestonenotifyDate.seconds * 1000 + Math.floor(firestonenotifyDate.nanoseconds / 1_000_000));
-
-                let firestone_expiration = action.expiration as unknown as firestoneDate
-                action.expiration = new Date(firestone_expiration.seconds * 1000 + Math.floor(firestone_expiration.nanoseconds / 1_000_000));
-
+                parseActionDates(action)
             }
 
             return {

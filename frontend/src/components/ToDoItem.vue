@@ -1,22 +1,22 @@
 <template>
-  <div @click="editing = true" class="todo-item" :class="{ completed: localToDoObj.completed, [viewMode]: true }">
+  <div class="todo-item" :class="{ completed: localTodo.completed, [viewMode]: true }">
     <!-- Header: checkbox + titolo + pulsanti -->
     <div class="todo-header">
-      <input class="baseCheckbox" type="checkbox" v-model="localToDoObj.completed" @change="onCompletedChange"
-        :disabled="localToDoObj.completed" />
+      <input class="baseCheckbox" type="checkbox" v-model="localTodo.completed" @change="onCompletedChange"
+        :disabled="localTodo.completed" />
       <div class="title-meta-wrapper">
-        <span class="todo-title" :class="{ strikethrough: localToDoObj.completed }">
-          {{ localToDoObj.title }}
+        <span class="todo-title" :class="{ strikethrough: localTodo.completed }">
+          {{ localTodo.title }}
         </span>
         <div class="meta-info">
           <span class="todo-date">{{ dateWithTimeString }}</span>
-          <span v-if="localToDoObj.subActions.length > 0" class="subtask-count">
+          <span v-if="localTodo.subActions.size > 0" class="subtask-count">
             <span class="material-symbols-outlined g-icon">account_tree</span> {{ subTaskProgress }}
           </span>
         </div>
       </div>
       <div class="action-buttons">
-        <button v-if="!localToDoObj.completed" @click="editing = !editing">
+        <button v-if="!localTodo.completed" @click="editing = !editing">
           <span class="material-symbols-outlined g-icon">edit</span>
         </button>
         <button @click="copyToDo">
@@ -29,18 +29,18 @@
     </div>
 
     <!-- edit box -->
-    <div v-if="editing && !localToDoObj.completed" class="modal">
+    <div v-if="editing && !localTodo.completed" class="modal">
       <div class="content">
-        <h3>Edit To Do Action : {{ localToDoObj.title }}</h3>
+        <h3>Edit To Do Action : {{ localTodo.title }}</h3>
         <div class="form-group">
           <label for="todo_description">Description:</label>
-          <input id="todo_description" class="baseInputField" type="text" v-model="localToDoObj.description"
+          <input id="todo_description" class="baseInputField" type="text" v-model="localTodo.description"
             placeholder="Description" />
         </div>
 
         <div class="form-group">
           <label for="todo_priority">Priority:</label>
-          <select class="selettore" id="todo_priority" v-model.number="localToDoObj.priority">
+          <select class="selettore" id="todo_priority" v-model.number="localTodo.priority">
             <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
           </select>
         </div>
@@ -53,17 +53,32 @@
 
         <div class="form-group">
           <label for="todo_expiration">Notify Date:</label>
-          <DatePicker  :isDarkMode=isDarkMode v-model="notifyDateString" />
+          <DatePicker :isDarkMode=isDarkMode v-model="notifyDateString" />
           <!--<<input id="todo_expiration" type="datetime-local" class="baseInputField" v-model="notifyDateString" />-->
         </div>
+
+        <!-- SubActions List -->
+        <div class="form-group">
+          <label>Sub Actions:</label>
+          <div class="box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center">
+            <ToDoList isSubList @subToDoEvent="handleSubToDoEvent" @todoEvent=passToDoEvent
+              :todos=Array.from(localTodo.subActions.values()) viewMode="grid">
+            </ToDoList>
+          </div>
+        </div>
+
 
         <div class="button-actions">
           <button class="baseButton" @click="updateToDo">Confirm Edit
             <span class="material-symbols-outlined g-icon">check_circle</span>
           </button>
-          <button class="baseButton" @click="editing = false">Cancel
+          <button class="baseButton" @click="() => {
+            if (originalToDoCopy) localTodo = JSON.parse(JSON.stringify(originalToDoCopy));
+            editing = false;
+          }">Cancel
             <span class="material-symbols-outlined g-icon">cancel</span>
-          </button><!--to do: da ripristinare val pre-edit -->
+          </button>
+
         </div>
       </div>
     </div>
@@ -72,10 +87,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, toRaw } from 'vue';
 import { ToDoAction, ToDoObj } from '../engine/toDoEngine'
 import { formatDate, parseStringToDate } from '../utils/generalUtils';
 import DatePicker from './DatePicker.vue';
+import ToDoList from './ToDoList.vue';
+
 
 interface Props {
   todo: ToDoAction,
@@ -83,15 +100,16 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(["update", "delete", "copy"]);
+const emit = defineEmits(["update", "delete", "copy", "todoEvent"]);
 const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
 const localTodo = ref<ToDoAction>(props.todo);
-const localToDoObj = ref<ToDoObj>(props.todo.getAsObj());
+//const localToDoObj = ref<ToDoObj>(props.todo.getAsObj());
 const editing = ref(false);
+const originalToDoCopy = ref<ToDoObj | null>(null);
 
 const subTaskProgress = computed(() => {
-  const total = localToDoObj.value.subActions.length;
-  const completed = [...localToDoObj.value.subActions.values()].filter(t => t.completed).length;
+  const total = localTodo.value.subActions.size;
+  const completed = [...localTodo.value.subActions.values()].filter(t => t.completed).length;
   return `${completed}/${total}`;
 });
 
@@ -122,7 +140,7 @@ const notifyDateString = computed({
 
 
 function onCompletedChange() {
-  if (localToDoObj.value.completed) {
+  if (localTodo.value.completed) {
     localTodo.value.setAsCompleted();
   } else {
     localTodo.value.setAsNotCompleted();
@@ -147,11 +165,50 @@ function deleteToDo() {
 
 function updateToDo() {
   emit("update", localTodo.value);
+  editing.value = false
 }
 
 watch(() => props.todo, (newVal) => {
   localTodo.value = newVal;
 });
+watch(editing, (val) => {
+  if (val) {
+    originalToDoCopy.value = JSON.parse(JSON.stringify(localTodo.value));
+  }
+});
+
+
+//handle sub-actions : 
+function passToDoEvent(eventContent: { type: string, newToDoQuantity: number }) {
+  emit("todoEvent", eventContent)
+}
+
+function handleSubToDoEvent(eventContent: { type: "delete" | "copy" | "update", todo: ToDoAction }) {
+  try {
+    const toDo = toRaw(eventContent.todo)
+    console.log("handleSubToDoEvent event:\n", eventContent)
+    console.log("toDo:\n", toDo)
+    console.log("toDo.id : ", toDo.id)    
+    switch (eventContent.type) {
+      case 'delete':
+        localTodo.value.subActions.delete(toDo.id)
+        break;
+      case 'copy': //add new copied to do
+        localTodo.value.subActions.set(toDo.id, toDo)
+        break;
+      case 'update': //update to do in the sub actions map
+        localTodo.value.subActions.set(toDo.id, toDo)
+        console.log("toDo sub action : ", toDo.id)
+        break;
+      default:
+        throw new Error("unsupported type : " + eventContent.type)
+    }
+
+    updateToDo() //propagate update event to parent component (main list) that will update db 
+  } catch (error) {
+    console.log("error in handleSubToDoEvent:\n", error)
+  }
+}
 </script>
 
 <style scoped>
@@ -255,6 +312,7 @@ watch(() => props.todo, (newVal) => {
 }
 
 .button-actions {
+  margin-top: 3%;
   display: flex;
   flex-direction: row;
   justify-content: center;
