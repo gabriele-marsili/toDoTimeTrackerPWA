@@ -60,20 +60,28 @@
         <!-- SubActions List -->
         <div class="form-group">
           <label>Sub Actions:</label>
-          <div class="box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center">
-            <ToDoList isSubList @subToDoEvent="handleSubToDoEvent" @todoEvent=passToDoEvent
-              :todos=Array.from(localTodo.subActions.values()) viewMode="grid">
-            </ToDoList>
-          </div>
+
+          <ToDoList isSubList @subToDoEvent="handleSubToDoEvent" @todoEvent=passToDoEvent
+            :todos=Array.from(localTodo.subActions.values()) viewMode="grid">
+          </ToDoList>
+
+
         </div>
 
 
         <div class="button-actions">
+          <button class="baseButton" @click="addSubToDo">
+            Add SubAction
+            <span class="material-symbols-outlined g-icon">add</span>
+          </button>
+
           <button class="baseButton" @click="updateToDo">Confirm Edit
             <span class="material-symbols-outlined g-icon">check_circle</span>
           </button>
           <button class="baseButton" @click="() => {
-            if (originalToDoCopy) localTodo = JSON.parse(JSON.stringify(originalToDoCopy));
+            if (originalToDoCopy) {
+              localTodo = originalToDoCopy.clone()
+            }
             editing = false;
           }">Cancel
             <span class="material-symbols-outlined g-icon">cancel</span>
@@ -88,7 +96,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, toRaw } from 'vue';
-import { ToDoAction, ToDoObj } from '../engine/toDoEngine'
+import { ToDoAction } from '../engine/toDoEngine'
 import { formatDate, parseStringToDate } from '../utils/generalUtils';
 import DatePicker from './DatePicker.vue';
 import ToDoList from './ToDoList.vue';
@@ -100,12 +108,12 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(["update", "delete", "copy", "todoEvent"]);
+const emit = defineEmits(["update", "delete", "copy", "todoEvent", "addSubToDo"]);
 const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
 const localTodo = ref<ToDoAction>(props.todo);
 //const localToDoObj = ref<ToDoObj>(props.todo.getAsObj());
 const editing = ref(false);
-const originalToDoCopy = ref<ToDoObj | null>(null);
+const originalToDoCopy = ref<ToDoAction | null>(null);
 
 const subTaskProgress = computed(() => {
   const total = localTodo.value.subActions.size;
@@ -149,6 +157,10 @@ function onCompletedChange() {
   emit('update', localTodo.value);
 }
 
+function addSubToDo() {
+  emit("addSubToDo", localTodo.value.id)
+}
+
 function copyToDo() {
   const localToDoValue = localTodo.value;
 
@@ -173,7 +185,7 @@ watch(() => props.todo, (newVal) => {
 });
 watch(editing, (val) => {
   if (val) {
-    originalToDoCopy.value = JSON.parse(JSON.stringify(localTodo.value));
+    originalToDoCopy.value = localTodo.value.clone();
   }
 });
 
@@ -188,7 +200,7 @@ function handleSubToDoEvent(eventContent: { type: "delete" | "copy" | "update", 
     const toDo = toRaw(eventContent.todo)
     console.log("handleSubToDoEvent event:\n", eventContent)
     console.log("toDo:\n", toDo)
-    console.log("toDo.id : ", toDo.id)    
+    console.log("toDo.id : ", toDo.id)
     switch (eventContent.type) {
       case 'delete':
         localTodo.value.subActions.delete(toDo.id)
@@ -322,5 +334,24 @@ function handleSubToDoEvent(eventContent: { type: "delete" | "copy" | "update", 
 input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
   /* Eventuali altre proprietà per modificare colore, dimensioni, margini dell’icona */
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color);
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid #15b680d4;
+  height: 20px;
+  width: 20px;
+  border-radius: 75%;
+  cursor: pointer;
+
+  text-align: center;
+}
+
+.addButton:hover {
+  background-color: rgba(16, 185, 129, 0.305);
 }
 </style>

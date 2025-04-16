@@ -83,6 +83,28 @@ export class ToDoAction { //OSS : attributi public per Vue
     public setAsNotCompleted() {
         this.completed = false;
     }
+
+    public clone(): ToDoAction {
+        // Crea una nuova istanza con le stesse proprietà base.
+        const cloned = new ToDoAction(
+            this.id,
+            this.title,
+            this.priority,
+            new Date(this.dateWithTime.getTime()),
+            new Date(this.expiration.getTime()),
+            new Date(this.notifyDate.getTime()),
+            this.category,
+            this.description
+        );
+        cloned.completed = this.completed;
+
+        // Copia ricorsivamente le sub-actions.
+        this.subActions.forEach((subAction) => {
+            cloned.subActions.set(subAction.id, subAction.clone());
+        });
+        return cloned;
+    }
+
 }
 
 
