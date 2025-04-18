@@ -46,15 +46,18 @@
         </div>
 
         <div class="form-group">
+          <label for="todo_date">Date:</label>
+          <DatePicker :isDarkMode=isDarkMode v-model="localTodo.dateWithTime"  />
+        </div>
+
+        <div class="form-group">
           <label for="todo_expiration">Expiration:</label>
-          <!--<input id="todo_expiration" type="datetime-local" class="baseInputField" v-model="expirationString" />-->
-          <DatePicker :isDarkMode=isDarkMode v-model="expirationString" />
+          <DatePicker :isDarkMode=isDarkMode v-model="localTodo.expiration" />
         </div>
 
         <div class="form-group">
           <label for="todo_expiration">Notify Date:</label>
-          <DatePicker :isDarkMode=isDarkMode v-model="notifyDateString" />
-          <!--<<input id="todo_expiration" type="datetime-local" class="baseInputField" v-model="notifyDateString" />-->
+          <DatePicker :isDarkMode=isDarkMode v-model="localTodo.notifyDate" />
         </div>
 
         <!-- SubActions List -->
@@ -114,7 +117,6 @@ const localTodo = ref<ToDoAction>(props.todo);
 //const localToDoObj = ref<ToDoObj>(props.todo.getAsObj());
 const editing = ref(false);
 const originalToDoCopy = ref<ToDoAction | null>(null);
-
 const subTaskProgress = computed(() => {
   const total = localTodo.value.subActions.size;
   const completed = [...localTodo.value.subActions.values()].filter(t => t.completed).length;
@@ -129,7 +131,7 @@ const dateWithTimeString = computed({
   }
 });
 
-const expirationString = computed({
+/*const expirationString = computed({
   get: () => formatDate(localTodo.value.expiration),
   set: (val: string) => {
     localTodo.value.expiration = parseStringToDate(val);
@@ -143,9 +145,7 @@ const notifyDateString = computed({
     localTodo.value.notifyDate = parseStringToDate(val);
     emit('update', localTodo.value);
   }
-});
-
-
+});*/
 
 function onCompletedChange() {
   if (localTodo.value.completed) {
@@ -176,6 +176,7 @@ function deleteToDo() {
 }
 
 function updateToDo() {
+  console.log("emit update by to do item with local to do:\n",localTodo.value)
   emit("update", localTodo.value);
   editing.value = false
 }

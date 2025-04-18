@@ -1,25 +1,17 @@
 <template>
   <div class="custom-datepicker">
-    <!-- Input gestito da Flatpickr -->
-    <input
-      ref="dateInput"
-      type="text"
-      :value="formattedDate"
-      placeholder="gg/mm/yyyy hh:mm"
-      @input="onInput"
-    />
+    <input ref="dateInput" type="text" :value="formattedDate" placeholder="gg/mm/yyyy hh:mm" @input="onInput" />
   </div>
 </template>
 
 <script>
-import { onMounted, watch } from "vue";
 import flatpickr from "flatpickr";
 import "flatpickr/dist/themes/dark.css";
 
 export default {
   name: "CustomDatePicker",
   props: {
-    value: {
+    modelValue: {
       type: Date,
       default: null
     },
@@ -28,6 +20,7 @@ export default {
       default: false
     }
   },
+  emits: ["update:modelValue"],
   data() {
     return {
       fp: null // Istanza di Flatpickr
@@ -35,8 +28,9 @@ export default {
   },
   computed: {
     formattedDate() {
-      if (!this.value) return "";
-      return this.formatDate(this.value);
+      console.log("value in date picker : ", this.modelValue);
+      if (!this.modelValue) return "";
+      return this.formatDate(this.modelValue);
     }
   },
   mounted() {
@@ -45,7 +39,7 @@ export default {
       enableTime: true,
       time_24hr: true,
       dateFormat: "d/m/Y H:i",
-      defaultDate: this.value,
+      defaultDate: this.modelValue,
       onChange: this.onChange,
       onOpen: this.updateCalendarPosition,  // Aggiungiamo la callback per il posizionamento
     });
@@ -53,18 +47,15 @@ export default {
   },
   methods: {
     onChange(selectedDates) {
-      this.$emit("input", selectedDates[0]);
+      this.$emit("update:modelValue", selectedDates[0]);
     },
     formatDate(date) {
-      const day = ("0" + date.getDate()).slice(-2);
-      const month = ("0" + (date.getMonth() + 1)).slice(-2);
-      const year = date.getFullYear();
-      const hours = ("0" + date.getHours()).slice(-2);
-      const minutes = ("0" + date.getMinutes()).slice(-2);
-      return `${day}/${month}/${year} ${hours}:${minutes}`;
-    },
-    onInput(event) {
-      // Gestione opzionale: Flatpickr si occupa degli aggiornamenti
+      const dd = String(date.getDate()).padStart(2, '0')
+      const mm = String(date.getMonth() + 1).padStart(2, '0')
+      const yyyy = date.getFullYear()
+      const hh = String(date.getHours()).padStart(2, '0')
+      const min = String(date.getMinutes()).padStart(2, '0')
+      return `${dd}/${mm}/${yyyy} ${hh}:${min}`
     },
     updateDarkMode(isDark) {
       if (isDark) {
@@ -98,7 +89,7 @@ export default {
     }
   },
   watch: {
-    value(newVal) {
+    modelValue(newVal) {
       if (this.fp && newVal !== null) {
         this.fp.setDate(newVal, false);
       }

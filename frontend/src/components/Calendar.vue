@@ -81,7 +81,8 @@
                 <h3>{{ isEditEvent ? "Edit" : "Add New" }} Event</h3>
                 <div class="form-group">
                     <label for="eventDate">Event Date:</label>
-                    <input class="baseInputField" id="eventDate" type="datetime-local" v-model="eventDateInput" />
+                    <DatePicker :isDarkMode=isDarkMode v-model="eventDateInput" />
+                   <!-- <input class="baseInputField" id="eventDate" type="datetime-local" v-model="eventDateInput" /> -->
                 </div>
                 <div class="form-group">
                     <label for="title">Title:</label>
@@ -127,6 +128,7 @@ import { userDBentry } from '../types/userTypes';
 import { UserHandler } from '../engine/userHandler';
 import { useRouter } from 'vue-router';
 import { delay } from '../utils/generalUtils';
+import DatePicker from './DatePicker.vue';
 
 const api_gestor = API_gestor.getInstance()
 const userHandler = UserHandler.getInstance(api_gestor)
@@ -156,6 +158,7 @@ const currentDate = ref(new Date());
 const events = ref<CalendarEventClass[]>([]);
 const showEventForm = ref(false);
 const isEditEvent = ref(false)
+const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
 const currentEvent = ref<CalendarObj>({
     id: '',
     eventDate: new Date(),
