@@ -178,7 +178,7 @@ async function addNewRule() {
         sendNotify("error", errors[0])
         return;
     }
-    const id = "Rule " + Date.now().toString(); // to do (get by backend)
+    const id = timeTrackerRuleHandler.getNextTimeTrackerRuleId()
     const newRule = new TimeTrackerRule(id, currentRule.value.site_or_app_name, hours.value * 60 + minutes.value, currentRule.value.rule, currentRule.value.category);
     const addRuleRes = await timeTrackerRuleHandler.addOrUpdateRule(licenseKey, newRule)
     if (!addRuleRes.success) {
@@ -192,7 +192,7 @@ async function addNewRule() {
 }
 
 
-async function editRule() { // to do : backend comunication
+async function editRule() { 
     let errors = [];
     if (ruleToEdit.value.category == "") {
         errors.push("Missing Category")

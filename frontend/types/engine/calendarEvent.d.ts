@@ -27,6 +27,11 @@ export declare class CalendarEventHandler {
     private events;
     private constructor();
     static getInstance(apiGestor: API_gestor): CalendarEventHandler;
+    /**
+     *
+     * @returns a new id for a calendar event (actual timestamp)
+     */
+    getNextCalendarEventId(): string;
     addOrUpdateEvent(licenseKey: string, event: CalendarEvent): Promise<baseResponse>;
     removeEvent(licenseKey: string, eventId: string): Promise<baseResponse>;
     getEvent(id: string): CalendarEvent | undefined;

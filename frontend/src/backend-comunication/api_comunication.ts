@@ -1084,8 +1084,6 @@ export class API_gestor {
         }
     }
 
-
-
     /**
      * Elimina una ToDoAction data la licenseKey e l'id dell'azione.
      * Utilizza arrayRemove per rimuovere l'azione specifica cercando la stringa corrispondente.

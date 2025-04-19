@@ -304,7 +304,7 @@ async function addOrUpdateEvent() {
             // Imposta l'evento con la data convertita
             currentEvent.value.eventDate = newEventDate;
 
-            let eventID = ".." //get event id to do 
+            let eventID = calendarHandler.getNextCalendarEventId()
 
             const newEvent = new CalendarEventClass(
                 eventID,

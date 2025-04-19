@@ -68,6 +68,14 @@ export class CalendarEventHandler {
         return CalendarEventHandler.instance;
     }
 
+    /**
+     * 
+     * @returns a new id for a calendar event (actual timestamp)
+     */
+    public getNextCalendarEventId():string{
+        return new Date().getTime().toString()
+    }
+
     public async addOrUpdateEvent(licenseKey: string, event: CalendarEvent): Promise<baseResponse> {
         try {
             const response = await this.apiGestor.addOrUpdateCalendarEvent(licenseKey, event);

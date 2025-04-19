@@ -31,7 +31,7 @@ export declare class ToDoAction {
     removeSubToDoAction(subActionId: string): void;
     setAsCompleted(): void;
     setAsNotCompleted(): void;
-    clone(): ToDoAction;
+    clone(id?: string | null): ToDoAction;
 }
 /**
  * Singleton class to handle to do actions con integrazione col backend.
@@ -42,6 +42,11 @@ export declare class ToDoHandler {
     private todos;
     private constructor();
     static getInstance(apiGestor: API_gestor): ToDoHandler;
+    /**
+     *
+     * @returns a new id for a to do (actual timestamp)
+     */
+    getNextToDoId(): string;
     /**
      * add a new ToDoAction:
      * - comunicate with API_gestor (backend)

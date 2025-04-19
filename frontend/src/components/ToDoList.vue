@@ -187,9 +187,9 @@ async function addToDo() {
         if (errors.length > 0) {
             throw new Error(errors[0])
         }
-        //to do : get id by to do handler (api gestor)    
+        const id = todoHandler.getNextToDoId()
         const toDoToAdd = new ToDoAction(
-            "345678",
+            id,
             localTitle.value,
             localPriority.value,
             localDateWithTime.value,

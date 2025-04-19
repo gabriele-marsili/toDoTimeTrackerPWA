@@ -181,9 +181,8 @@ function addSubToDo() {
 
 function copyToDo() {
   const localToDoValue = localTodo.value;
-
-  //to do : get id by to do handler  
-  const copiedToDo = new ToDoAction(localToDoValue.id + "1234567", localToDoValue.title, localToDoValue.priority, localToDoValue.dateWithTime, localToDoValue.expiration, localToDoValue.notifyDate, localToDoValue.category, localToDoValue.description)
+  const id = new Date().getTime().toString() //use actual timestamp as id  
+  const copiedToDo = new ToDoAction(id, localToDoValue.title, localToDoValue.priority, localToDoValue.dateWithTime, localToDoValue.expiration, localToDoValue.notifyDate, localToDoValue.category, localToDoValue.description)
   console.log("copiedToDo:\n", copiedToDo)
   localToDoValue.subActions.forEach(subA => copiedToDo.addOrUpdateSubToDoAction(subA))
   emit("copy", copiedToDo)

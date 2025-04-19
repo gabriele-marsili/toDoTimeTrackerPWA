@@ -52,6 +52,15 @@ export class TimeTrackerHandler {
         this.apiGestor = apiGestor;
     }
 
+    /**
+     * 
+     * @returns a new id for a time tracker rule (actual timestamp)
+     */
+    public getNextTimeTrackerRuleId():string{
+        return new Date().getTime().toString()
+    }
+
+
     public static getInstance(apiGestor: API_gestor): TimeTrackerHandler {
         if (!TimeTrackerHandler.instance) {
             TimeTrackerHandler.instance = new TimeTrackerHandler(apiGestor);

@@ -24,6 +24,11 @@ export declare class TimeTrackerHandler {
     private apiGestor;
     private rules;
     private constructor();
+    /**
+     *
+     * @returns a new id for a time tracker rule (actual timestamp)
+     */
+    getNextTimeTrackerRuleId(): string;
     static getInstance(apiGestor: API_gestor): TimeTrackerHandler;
     addOrUpdateRule(licenseKey: string, rule: TimeTrackerRule): Promise<baseResponse>;
     removeRule(licenseKey: string, id: string): Promise<baseResponse>;

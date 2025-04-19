@@ -84,10 +84,11 @@ export class ToDoAction { //OSS : attributi public per Vue
         this.completed = false;
     }
 
-    public clone(): ToDoAction {
+    public clone(id : string | null = null): ToDoAction {
         // Crea una nuova istanza con le stesse proprietà base.
+        let lastId = id != null ? id : new Date().getTime().toString()
         const cloned = new ToDoAction(
-            this.id,
+            lastId,
             this.title,
             this.priority,
             new Date(this.dateWithTime.getTime()),
@@ -100,7 +101,9 @@ export class ToDoAction { //OSS : attributi public per Vue
 
         // Copia ricorsivamente le sub-actions.
         this.subActions.forEach((subAction) => {
-            cloned.subActions.set(subAction.id, subAction.clone());
+            let possibleId = new Date().getTime().toString()
+            lastId = lastId == possibleId ? possibleId+"0" : possibleId
+            cloned.subActions.set(lastId, subAction.clone(lastId));
         });
         return cloned;
     }
@@ -127,6 +130,15 @@ export class ToDoHandler {
             ToDoHandler.instance = new ToDoHandler(apiGestor);
         }
         return ToDoHandler.instance;
+    }
+
+    
+    /**
+     * 
+     * @returns a new id for a to do (actual timestamp)
+     */
+    public getNextToDoId():string{
+        return new Date().getTime().toString()
     }
 
     /**
