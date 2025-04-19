@@ -1,13 +1,11 @@
 import { API_gestor } from "../backend-comunication/api_comunication.js";
 import { baseResponse } from "../types/utilityTypes.js";
-import { TTT_Notification } from "./notification.js";
 
 export type CalendarObj = {
     id : string
     eventDate: Date;
     title: string;
     description: string;
-    notifications: TTT_Notification[];
     category: string;
     durationInH: number;
 };
@@ -16,7 +14,6 @@ export class CalendarEvent {
     public eventDate: Date;
     public title: string;
     public description: string;
-    public notifications: TTT_Notification[];
     public category: string;
     public durationInH: number;
     public id:string;
@@ -26,7 +23,6 @@ export class CalendarEvent {
         eventDate: Date,
         title: string,
         description: string,
-        notifications: TTT_Notification[] = [],
         category: string = '',
         durationInH: number = 1
     ) {
@@ -34,7 +30,6 @@ export class CalendarEvent {
         this.eventDate = eventDate;
         this.title = title;
         this.description = description;
-        this.notifications = notifications;
         this.category = category;
         this.durationInH = durationInH;
     }
@@ -45,7 +40,6 @@ export class CalendarEvent {
             eventDate: this.eventDate,
             title: this.title,
             description: this.description,
-            notifications: this.notifications,
             category: this.category,
             durationInH: this.durationInH,
         };
@@ -139,7 +133,6 @@ export class CalendarEventHandler {
             obj.eventDate,
             obj.title,
             obj.description,
-            obj.notifications,
             obj.category,
             obj.durationInH
         );

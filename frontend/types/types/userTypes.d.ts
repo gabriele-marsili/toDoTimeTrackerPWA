@@ -55,4 +55,5 @@ export type userDBentry = {
     karmaCoinsBalance: number;
     friends: friend[];
     avatarImagePath: string;
+    fcmToken: string;
 };

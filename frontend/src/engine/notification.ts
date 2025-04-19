@@ -1,10 +1,21 @@
-export class TTT_Notification { //to do | to finish
-    public text : string;
-    public date : Date;
+export type TTT_Notification = {
+    id: string, //the same of the related event/todo/time tracker rule
+    body: string,
+    scheduleAt_timestamp: number,
+    imagePath: string,
+    tag: string, //type 
+    title:string,
+    fcmToken : string
+}
 
-    constructor(text:string, date:Date){
-        this.text = text;
-        this.date = date;
+
+export async function requestNotifyPermission(forceRequest = false): Promise<boolean> {
+    const res = localStorage.getItem("notifyPermission")
+    if (res != null && (!forceRequest || res === "granted")) {
+        return res === "granted"
+    } else {
+        const permission = await Notification.requestPermission()
+        localStorage.setItem("notifyPermission", permission)
+        return permission == "granted"
     }
-
 }

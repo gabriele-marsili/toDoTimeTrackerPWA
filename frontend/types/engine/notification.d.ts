@@ -1,5 +1,9 @@
 export declare class TTT_Notification {
+    id: string;
     text: string;
-    date: Date;
-    constructor(text: string, date: Date);
+    scheduleAt: Date;
+    private imagePath;
+    tag?: string;
+    constructor(id: string, text: string, scheduleAt: Date, imagePath?: string, tag?: string);
 }
+export declare function requestNotifyPermission(forceRequest?: boolean): Promise<boolean>;

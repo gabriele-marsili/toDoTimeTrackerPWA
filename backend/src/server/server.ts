@@ -12,6 +12,7 @@ import { Auth } from 'firebase/auth';
 import { auth, db, initializedFirestonAdmin } from '../firebase/firebase';
 import cors from 'cors';
 import { app } from 'firebase-admin';
+import { NotificationManager } from '../notificationEngine/notificationManager';
 
 
 /**
@@ -32,12 +33,16 @@ export class TTTappServer {
     private db: Firestore
     private firestoneAdmin: app.App
 
+    private notificationManager : NotificationManager
+
     private constructor() {
         dotenv.config({ path: path.join(__dirname, "server.env") });
 
         this.auth = auth;
         this.db = db;
         this.firestoneAdmin = initializedFirestonAdmin;
+
+        this.notificationManager = NotificationManager.getInstance()
 
         this.JWT_KEY = process.env.JWT_KEY || "JWT_KEY not loaded"
         this.JWT_KEY_USERS = process.env.JWT_KEY_USERS || "JWT_KEY_USERS not loaded"
@@ -319,6 +324,9 @@ export class TTTappServer {
         });
 
         this.abilitEndpoints()
+
+        //start check notification every minute
+        this.notificationManager.startCheckNotification()
     }
 
     private abilitEndpoints(): void {

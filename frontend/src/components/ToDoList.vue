@@ -113,6 +113,7 @@ const userInfo = ref<userDBentry>({
     timeTrackerActive: false,
     karmaCoinsBalance: 0,
     friends: [],
+    fcmToken : ""
 });
 const router = useRouter();
 const emit = defineEmits(["subToDoNotify","todoEvent", "subToDoEvent"])

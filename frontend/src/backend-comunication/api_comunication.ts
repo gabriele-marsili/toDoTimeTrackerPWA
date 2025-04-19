@@ -1,7 +1,7 @@
 import { Analytics } from "firebase/analytics";
 import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updatePassword, User, UserCredential, onAuthStateChanged } from "firebase/auth";
 import { arrayRemove, collection, doc, Firestore, query, setDoc, updateDoc, where } from "firebase/firestore";
-import { analytics, auth, db } from "./firebase.js";
+import { analytics, auth, db, messaging } from "./firebase.js";
 import { delay, generateLicenseKey, getDeviceId, hashPassword, parseActionDates } from "../utils/generalUtils.js";
 import { baseResponse, firestoneDate } from "../types/utilityTypes.js";
 import sodium from 'libsodium-wrappers';
@@ -10,6 +10,8 @@ import { ToDoAction, ToDoObj } from "../engine/toDoEngine.js";
 import { CalendarEvent, CalendarObj } from "../engine/calendarEvent.js";
 import { TimeTrackerRule, TimeTrackerRuleObj } from "../engine/timeTracker.js";
 import { FirestoreProxy } from "./firestoneProxy.js";
+import { getToken } from "firebase/messaging";
+import { requestNotifyPermission, TTT_Notification } from "../engine/notification.js";
 
 
 type InitDHresponse = {
@@ -46,7 +48,7 @@ export class API_gestor {
     private licenseKey: string;
     private userEmail: string
     private userByDB!: userDBentry;
-    private firestoreProxy : FirestoreProxy
+    private firestoreProxy: FirestoreProxy
 
     private constructor() {
 
@@ -67,6 +69,7 @@ export class API_gestor {
                 const res = await this.getUserByEmail(this.user.email)
                 if (res.success && res.data) {
                     this.userByDB = res.data;
+                    await this.registerFCMToken()
                 }
             }
         });
@@ -594,6 +597,65 @@ export class API_gestor {
 
     // --- firestone utils :    
 
+    public async registerFCMToken() {
+        try {
+            const licenseKey = this.licenseKey != "" ? this.licenseKey : this.userByDB.licenseKey
+            if (licenseKey == "") {
+                throw new Error("Invalid license key")
+            }
+
+            if (!await requestNotifyPermission(true)) {
+                throw new Error("notify permission not granted")
+            }
+
+            const token = await getToken(messaging, { vapidKey: 'BHkat-qXJDyPh8UIrGjY9DEwfJhYG6WOZWxw0PzPgXRfz2lSUVA6cqHDNP_4WGs6n7FvyKiudBTHR05llvUeVd8' })
+            if (token) {
+                const q = query(collection(this.db, "users"), where("licenseKey", "==", licenseKey))
+                const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
+
+                if (!snapshot.empty) {
+                    const userDoc = snapshot.docs[0].ref;
+                    await updateDoc(userDoc, { fcmToken: token })
+                }
+
+            }
+
+        } catch (error) {
+            console.log("error in register FCMT token:\n", error)
+        }
+    }
+
+    public async scheduleNotification(notification: TTT_Notification):Promise<baseResponse>{
+        try {
+            if (!this.user) {
+                throw new Error("User not initialized yet")
+            }
+
+            await setDoc(doc(collection(db, "notifications"), this.user.uid), {
+                licenseKey: this.licenseKey,
+                uId: this.user.uid,
+                notificationID: notification.id,
+                title: notification.title,
+                body: notification.body,
+                tag: notification.tag,
+                icon: notification.imagePath,
+                when : notification.scheduleAt_timestamp,
+                fcmToken : notification.fcmToken,
+                sent : false,
+            });
+
+            return {
+                success : true,
+                errorMessage : ""
+            }
+        } catch (error:any) {
+            return {
+                success : false,
+                errorMessage : error.message
+            }
+        }
+    }
+
     public async checkUniqueEmailAndUsername(email: string, username: string): Promise<baseResponse> {
         try {
             console.log("Checking email:", email, "and username:", username);
@@ -632,7 +694,7 @@ export class API_gestor {
             if (!this.user) {
                 throw new Error("User not initialized yet")
             }
-            
+
             // save user data in Firestore (local and then on db when user is online)
             await setDoc(doc(collection(db, "users"), this.user.uid), {
                 licenseKey: this.licenseKey,
@@ -692,7 +754,8 @@ export class API_gestor {
                 createdAt: new Date(),
                 licenseIsValid: true,
                 friends: [],
-                karmaCoinsBalance: 0
+                karmaCoinsBalance: 0,
+                fcmToken: ""
             });
 
             this.licenseKey = licenseKey;
@@ -700,6 +763,7 @@ export class API_gestor {
             this.userByDB = userForm;
             const sendRegistrationMailResponse = await this.sendEmail("registration", this.licenseKey, userForm.username, userForm.email)
             console.log("send registration mail res:\n", sendRegistrationMailResponse)
+            await this.registerFCMToken()
             return {
                 success: true,
                 errorMessage: ""
@@ -722,7 +786,7 @@ export class API_gestor {
                 collection(this.db, "users"),
                 where("licenseKey", "==", licenseKey)
             );
-            const userSnapshot = await this.firestoreProxy.getDocsWithNetworkFirst(userQuery)            
+            const userSnapshot = await this.firestoreProxy.getDocsWithNetworkFirst(userQuery)
             if (userSnapshot.empty) {
                 throw new Error("Invalid license key");
             }
@@ -740,6 +804,7 @@ export class API_gestor {
                         this.userByDB = userData as unknown as userDBentry;
                         e_message = "";
                         success = true;
+                        await this.registerFCMToken()
                     } catch (error) {
                         console.log("error during login:\n", error)
                         e_message = "Invalid license key"
@@ -776,7 +841,7 @@ export class API_gestor {
             }
         }
 
-        if(!this.userByDB){ //await to try to get data from onAuthStateChanged :
+        if (!this.userByDB) { //await to try to get data from onAuthStateChanged :
             await delay(1500)
         }
 

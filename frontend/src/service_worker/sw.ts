@@ -5,6 +5,9 @@ import { registerRoute, setCatchHandler } from 'workbox-routing';
 import { NetworkFirst, CacheFirst } from 'workbox-strategies'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { SW_BROADCAST_CHANNEL } from '../utils/generalUtils.js';
+import { onMessage } from 'firebase/messaging';
+import { messaging } from '../backend-comunication/firebase.js';
+import { onBackgroundMessage } from "firebase/messaging/sw";
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -253,6 +256,29 @@ self.addEventListener("fetch", (event) => {
 
 })
 */
+
+// ---- notifications : 
+
+//messaggi in foreground
+onMessage(messaging, payload => {
+    const { title, body, icon } = payload.notification!;
+
+})
+
+onBackgroundMessage(messaging, (payload)=>{
+    console.log('Received background message ', payload);    
+    // Customize notification here
+    const notificationTitle = 'Background Message Title';
+    const notificationOptions = {
+      body: 'Background Message body.',
+      icon: '/firebase-logo.png'
+    };
+  
+    self.registration.showNotification(notificationTitle,
+      notificationOptions);
+  
+})
+
 
 async function showNotification(notificationTitle: string, notificationBody: string, notificationIcon: string, notificationTag: string) {
     self.registration.showNotification(notificationTitle, {

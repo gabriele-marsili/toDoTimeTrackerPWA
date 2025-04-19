@@ -58,6 +58,7 @@ export declare class API_gestor {
     private hexToArrayBuffer;
     private setServerPubKey;
     sendEmail(type: "registration" | "license key reminder" | "delete acc confirmation" | "reset license key", licenseKey: string, username: string, userEmail: string): Promise<baseResponse>;
+    registerFCMToken(): Promise<void>;
     checkUniqueEmailAndUsername(email: string, username: string): Promise<baseResponse>;
     updateUserInfo(uInfo: userDBentry): Promise<baseResponse>;
     registerUser(userForm: userDBentry): Promise<baseResponse>;

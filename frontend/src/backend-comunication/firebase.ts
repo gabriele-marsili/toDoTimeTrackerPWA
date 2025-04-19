@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { browserLocalPersistence, getAuth, setPersistence } from "firebase/auth";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 import { getAnalytics, isSupported } from "firebase/analytics";
+import { getMessaging, getToken } from "firebase/messaging";
 
 const firebaseConfig = {
     apiKey: "AIzaSyD0iZyzMT-SZC1KPmJxIQjBXg5kjWOKhME",
@@ -14,6 +15,7 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const messaging = getMessaging(app);
 
 setPersistence(auth, browserLocalPersistence).catch((error) => {
   console.error("Error setting firebase persistence:\n", error);
@@ -36,4 +38,4 @@ if (typeof window !== 'undefined') {
   });
 }
 
-export { auth, db, analytics };
+export { auth, db, analytics, messaging };

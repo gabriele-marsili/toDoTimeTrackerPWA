@@ -152,6 +152,7 @@ const userInfo = ref<userDBentry>({
     timeTrackerActive: false,
     karmaCoinsBalance: 0,
     friends: [],
+    fcmToken : ""
 });
 const emit = defineEmits(["calendarEvent"])
 const currentDate = ref(new Date());
@@ -165,7 +166,6 @@ const currentEvent = ref<CalendarObj>({
     title: '',
     description: '',
     durationInH: 0,
-    notifications: [],
     category: ''
 })
 const eventDateInput = ref("")
@@ -311,7 +311,6 @@ async function addOrUpdateEvent() {
                 newEventDate,
                 currentEvent.value.title,
                 currentEvent.value.description,
-                currentEvent.value.notifications,
                 currentEvent.value.category,
                 currentEvent.value.durationInH
             );
@@ -359,7 +358,6 @@ function resetEventForm() {
         eventDate: new Date(),
         title: '',
         description: '',
-        notifications: [],
         category: '',
         durationInH: 1
     };
