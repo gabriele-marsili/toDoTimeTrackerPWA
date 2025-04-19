@@ -1,6 +1,6 @@
 import { Analytics } from "firebase/analytics";
 import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updatePassword, User, UserCredential, onAuthStateChanged } from "firebase/auth";
-import { arrayRemove, collection, doc, Firestore, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { arrayRemove, collection, doc, Firestore, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { analytics, auth, db } from "./firebase.js";
 import { delay, generateLicenseKey, getDeviceId, hashPassword, parseActionDates } from "../utils/generalUtils.js";
 import { baseResponse, firestoneDate } from "../types/utilityTypes.js";
@@ -9,6 +9,7 @@ import { userDBentry } from "../types/userTypes.js";
 import { ToDoAction, ToDoObj } from "../engine/toDoEngine.js";
 import { CalendarEvent, CalendarObj } from "../engine/calendarEvent.js";
 import { TimeTrackerRule, TimeTrackerRuleObj } from "../engine/timeTracker.js";
+import { FirestoreProxy } from "./firestoneProxy.js";
 
 
 type InitDHresponse = {
@@ -45,6 +46,7 @@ export class API_gestor {
     private licenseKey: string;
     private userEmail: string
     private userByDB!: userDBentry;
+    private firestoreProxy : FirestoreProxy
 
     private constructor() {
 
@@ -54,6 +56,7 @@ export class API_gestor {
         this.licenseKey = ""
         this.userEmail = ""
         this.initialized = false;
+        this.firestoreProxy = FirestoreProxy.getInstance()
 
         // Iscriviti al listener di stato di autenticazione
         onAuthStateChanged(auth, async (user: User | null) => {
@@ -600,7 +603,9 @@ export class API_gestor {
                 collection(this.db, "users"),
                 where("email", "==", email)
             );
-            const emailSnapshot = await getDocs(emailQuery);
+
+
+            const emailSnapshot = await this.firestoreProxy.getDocsWithNetworkFirst(emailQuery)
             if (!emailSnapshot.empty) {
                 throw new Error("Email already in use");
             }
@@ -610,7 +615,7 @@ export class API_gestor {
                 collection(this.db, "users"),
                 where("username", "==", username)
             );
-            const usernameSnapshot = await getDocs(usernameQuery);
+            const usernameSnapshot = await this.firestoreProxy.getDocsWithNetworkFirst(usernameQuery)
             if (!usernameSnapshot.empty) {
                 throw new Error("Username already in use");
             }
@@ -623,10 +628,12 @@ export class API_gestor {
 
     public async updateUserInfo(uInfo: userDBentry): Promise<baseResponse> {
         try {
+            console.log("updating uInfo with info:\n",)
             if (!this.user) {
                 throw new Error("User not initialized yet")
             }
-            // Salva i dati utente in Firestore
+            
+            // save user data in Firestore (local and then on db when user is online)
             await setDoc(doc(collection(db, "users"), this.user.uid), {
                 licenseKey: this.licenseKey,
                 email: uInfo.email,
@@ -669,7 +676,7 @@ export class API_gestor {
             this.user = user;
             this.userCredentials = userCredential;
             console.log("registered user:\n", user)
-            // Salva i dati utente in Firestore
+            // save user data in Firestore (local and then on db when user is online)
             await setDoc(doc(collection(db, "users"), user.uid), {
                 licenseKey: licenseKey,
                 email: userForm.email,
@@ -715,8 +722,7 @@ export class API_gestor {
                 collection(this.db, "users"),
                 where("licenseKey", "==", licenseKey)
             );
-            const userSnapshot = await getDocs(userQuery);
-            //console.log("userSnapshot:\n", userSnapshot)
+            const userSnapshot = await this.firestoreProxy.getDocsWithNetworkFirst(userQuery)            
             if (userSnapshot.empty) {
                 throw new Error("Invalid license key");
             }
@@ -803,7 +809,7 @@ export class API_gestor {
 
     private async checkIfUserExist(licenseKey: string): Promise<boolean> {
         const docRef = doc(collection(this.db, "users"), licenseKey);
-        const docSnap = await getDoc(docRef)
+        const docSnap = await this.firestoreProxy.getDocWithNetworkFirst(docRef)
         return docSnap.exists()
     }
 
@@ -818,7 +824,7 @@ export class API_gestor {
                 collection(this.db, "users"),
                 where("email", "==", email)
             );
-            const emailSnapshot = await getDocs(emailQuery);
+            const emailSnapshot = await this.firestoreProxy.getDocsWithNetworkFirst(emailQuery);
             if (emailSnapshot.empty) {
                 throw new Error("No users found with email " + email);
             }
@@ -922,7 +928,7 @@ export class API_gestor {
 
                 //update in firestone DB:
                 const q = query(collection(this.db, "users"), where("email", "==", email))
-                const snapshot = await getDocs(q);
+                const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
 
                 if (snapshot.empty) {
                     throw new Error("No user found with email " + email);
@@ -1034,7 +1040,7 @@ export class API_gestor {
 
         try {
             const q = query(collection(this.db, "toDoActions"), where("licenseKey", "==", licenseKey))
-            const snapshot = await getDocs(q);
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
 
             if (!snapshot.empty) {
                 const userDoc = snapshot.docs[0].ref;
@@ -1095,7 +1101,7 @@ export class API_gestor {
             }
             console.log("this.user.uid:\n", this.user.uid)
             const q = query(collection(this.db, "toDoActions"), where("licenseKey", "==", licenseKey))
-            const snapshot = await getDocs(q);
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
 
             if (snapshot.empty) {
                 throw new Error("no to do found for license key : " + licenseKey);
@@ -1152,7 +1158,7 @@ export class API_gestor {
 
         try {
             const q = query(collection(this.db, "toDoActions"), where("licenseKey", "==", licenseKey))
-            const snapshot = await getDocs(q);
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
 
             if (snapshot.empty) {
                 throw new Error("no to do found for license key : " + licenseKey);
@@ -1184,7 +1190,7 @@ export class API_gestor {
     public async addOrUpdateCalendarEvent(licenseKey: string, event: CalendarEvent): Promise<baseResponse> {
         try {
             const q = query(collection(this.db, "calendarEvents"), where("licenseKey", "==", licenseKey))
-            const snapshot = await getDocs(q);
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
 
             if (!snapshot.empty) {
                 const userDoc = snapshot.docs[0].ref;
@@ -1230,7 +1236,7 @@ export class API_gestor {
                 throw new Error("user not logged")
             }
             const docRef = doc(this.db, "calendarEvents", this.user.uid);
-            const docSnap = await getDoc(docRef);
+            const docSnap = await this.firestoreProxy.getDocWithNetworkFirst(docRef);
             if (!docSnap.exists()) {
                 throw new Error(`No calendar events found for licenseKey ${licenseKey}`);
             }
@@ -1276,7 +1282,7 @@ export class API_gestor {
 
         try {
             const q = query(collection(this.db, "calendarEvents"), where("licenseKey", "==", licenseKey))
-            const snapshot = await getDocs(q);
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
 
             if (snapshot.empty) {
                 throw new Error("no calendar events found for license key : " + licenseKey);
@@ -1308,7 +1314,7 @@ export class API_gestor {
     public async addOrUpdateTimeTrackerRule(licenseKey: string, rule: TimeTrackerRule): Promise<baseResponse> {
         try {
             const q = query(collection(this.db, "timeTrackerRules"), where("licenseKey", "==", licenseKey));
-            const snapshot = await getDocs(q);
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
 
             if (!snapshot.empty) {
                 const userDoc = snapshot.docs[0].ref;
@@ -1345,7 +1351,7 @@ export class API_gestor {
             if (!this.user) throw new Error("user not logged");
 
             const docRef = doc(this.db, "timeTrackerRules", this.user.uid);
-            const docSnap = await getDoc(docRef);
+            const docSnap = await this.firestoreProxy.getDocWithNetworkFirst(docRef);
 
             if (!docSnap.exists()) {
                 throw new Error(`No time tracker rules found for licenseKey ${licenseKey}`);
@@ -1377,7 +1383,7 @@ export class API_gestor {
     }> {
         try {
             const q = query(collection(this.db, "timeTrackerRules"), where("licenseKey", "==", licenseKey));
-            const snapshot = await getDocs(q);
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
 
             if (snapshot.empty) {
                 throw new Error("No time tracker rules found for license key: " + licenseKey);

@@ -19,7 +19,7 @@ setPersistence(auth, browserLocalPersistence).catch((error) => {
   console.error("Error setting firebase persistence:\n", error);
 });
 
-const db = initializeFirestore(app, {
+const db = initializeFirestore(app, { //uso di persistenza multi tab
     localCache : persistentLocalCache(
         {tabManager : persistentMultipleTabManager()}
     )

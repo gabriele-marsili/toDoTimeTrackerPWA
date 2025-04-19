@@ -6,8 +6,9 @@
         </button>
         -->
         <div v-for="todo in filteredTodos" :key="todo.id" class="todo-item-wrapper">
-            <ToDoItem :viewMode="viewMode" :todo="todo" @todoEvent="passToDoEvent" @update="onItemUpdate"
-                @delete="onItemDelete" @copy="onItemCopy" @addSubToDo="onItemAddSubToDo" @click.stop />
+            <ToDoItem :user-categories="userInfo.categories" :viewMode="viewMode" :todo="todo"
+                @todoEvent="passToDoEvent" @update="onItemUpdate" @delete="onItemDelete" @copy="onItemCopy"
+                @addSubToDo="onItemAddSubToDo" @send-notify="handleSendNotifyByToDoItem" @click.stop />
         </div>
 
         <!-- add to do box -->
@@ -79,7 +80,7 @@ import { UserHandler } from '../engine/userHandler';
 import { userDBentry } from '../types/userTypes';
 import NotificationManager from '../gestors/NotificationManager.vue';
 import { useRouter } from 'vue-router';
-import { delay, parseStringToDate } from '../utils/generalUtils';
+import { delay } from '../utils/generalUtils';
 import DatePicker from './DatePicker.vue';
 
 export interface Props {
@@ -114,7 +115,7 @@ const userInfo = ref<userDBentry>({
     friends: [],
 });
 const router = useRouter();
-const emit = defineEmits(["todoEvent", "subToDoEvent"])
+const emit = defineEmits(["subToDoNotify","todoEvent", "subToDoEvent"])
 const viewMode = ref<'list' | 'grid'>('list');
 //const toggleViewMode = () => viewMode.value = viewMode.value === 'list' ? 'grid' : 'list';
 
@@ -284,12 +285,16 @@ async function onItemCopy(todo: ToDoAction) {
     }
 }
 
-async function onItemUpdate(updated: ToDoAction) {
+async function onItemUpdate(content: { updated: ToDoAction, karmaCoinsChange: 0 }) {
     try {
+        const updated = content.updated
+        const karmaCoinsChange = content.karmaCoinsChange
         console.log("is sub list ? ", props.isSubList)
         console.log("updating to do:\n", updated)
+        console.log("karmaCoinsChange = ", karmaCoinsChange)
+
         if (props.isSubList) { //pass the event to to-do item
-            emit("subToDoEvent", { type: "update", todo: updated })
+            emit("subToDoEvent", { type: "update", todo: updated, karmaCoinsChange })
             return;
         }
 
@@ -303,9 +308,23 @@ async function onItemUpdate(updated: ToDoAction) {
         if (index != -1) {
             props.todos[index] = updated
         }
-        sendNotify("success", `Successfully updated to do : ${updated.title}`);
+
+        if (karmaCoinsChange == 0) { //updated (non settata come completata / non completata)
+            sendNotify("success", `Successfully updated to do : ${updated.title}`);
+        } else { //emit ad home per cambiamento karma coins balance (locale e su db)
+            emit("todoEvent", { type: "todo completed or not completed", newToDoQuantity: -1, karmaCoinsChange })
+        }
+
     } catch (error: any) {
         sendNotify("error", "Error updating to do : " + error.message)
+    }
+}
+
+function handleSendNotifyByToDoItem(notifyContent:{type:"success"|"info"|"warning"|"error",text:string}){
+    if(props.isSubList){ //pass to parent component (to do item)
+        emit("subToDoNotify", notifyContent)
+    }else{ //to do list = root component => send notify 
+        sendNotify(notifyContent.type,notifyContent.text);
     }
 }
 

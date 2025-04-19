@@ -28,6 +28,7 @@ export declare class API_gestor {
     private licenseKey;
     private userEmail;
     private userByDB;
+    private firestoreProxy;
     private constructor();
     /**
      * singleton method to get the instance

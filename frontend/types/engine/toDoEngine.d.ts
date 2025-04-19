@@ -31,6 +31,7 @@ export declare class ToDoAction {
     removeSubToDoAction(subActionId: string): void;
     setAsCompleted(): void;
     setAsNotCompleted(): void;
+    clone(): ToDoAction;
 }
 /**
  * Singleton class to handle to do actions con integrazione col backend.

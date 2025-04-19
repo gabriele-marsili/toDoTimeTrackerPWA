@@ -12,12 +12,14 @@
                 <!-- Colonna 1: Today To Do -->
                 <div class="box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center">
                     <h3>Today To Do</h3>
-                    <ToDoList :is-sub-list="false" :todos=todayToDoActions @todoEvent = handleToDoEvent viewMode="grid"></ToDoList>
+                    <ToDoList :is-sub-list="false" :todos=todayToDoActions @todoEvent=handleToDoEvent viewMode="grid">
+                    </ToDoList>
                 </div>
                 <!-- Colonna 2: Generic To Do -->
                 <div class="box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center">
                     <h3>Generic To Do</h3>
-                    <ToDoList :is-sub-list="false" @todoEvent = handleToDoEvent :todos=genericToDoActions viewMode="grid"></ToDoList>
+                    <ToDoList :is-sub-list="false" @todoEvent=handleToDoEvent :todos=genericToDoActions viewMode="grid">
+                    </ToDoList>
 
                 </div>
                 <!-- Colonna 3: Info Utente + Time Tracker -->
@@ -38,7 +40,7 @@
                                         </div>
                                         <div class="karma-coins">
                                             <span class="material-symbols-outlined karma-coins-icon">paid</span>
-                                            <span>{{ userInfo.karmaCoinsBalance }} Karma Coins</span>
+                                            <span>{{ userInfo.karmaCoinsBalance.toString() }} Karma Coins</span>
                                         </div>
                                     </div>
                                     <div class="info-right">
@@ -85,12 +87,12 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, toRaw } from 'vue';
 import Sidebar from '../components/Sidebar.vue';
 import NotificationManager from '../gestors/NotificationManager.vue';
 import ConnectionStatus from '../components/ConnectionStatus.vue';
 import ToDoList from '../components/ToDoList.vue'
-import { ToDoAction, ToDoHandler, ToDoPriority } from '../engine/toDoEngine';
+import { ToDoAction, ToDoHandler, ToDoObj, ToDoPriority } from '../engine/toDoEngine';
 import Calendar from '../components/Calendar.vue';
 import TimeTrackerRuleList from '../components/TimeTrackerRuleList.vue';
 import { API_gestor } from '../backend-comunication/api_comunication';
@@ -157,7 +159,20 @@ export default {
                 if (toDOres.success) {
                     const todoList = toDOres.toDos
                     console.log("todoList:\n", todoList)
-                    totalToDoQuantity.value = todoList.length
+                    const countToDoQuantity = (todo_list: ToDoObj[]): number => {
+                        let q = 0;
+                        for (let to_do of todo_list.filter(t => !t.completed)) { //scorro to do non completate 
+                            q += 1 //incremento quantity q
+                            if (to_do.subActions.length > 0) { //se to do ha sub actions 
+                                //incremento q sfruttando ricorsione su sub actions 
+                                q += countToDoQuantity(to_do.subActions)
+                            }
+                        }
+                        return q;
+                    }
+
+                    totalToDoQuantity.value = countToDoQuantity(toDOres.toDos);
+
                     todayToDoActions.value = []
                     todoCompletedQuantity.value = 0
                     for (let to_do of todoList) {
@@ -179,14 +194,45 @@ export default {
             }
         }
 
+        async function askUserInfo() {
+            const userInfoRes = await userHandler.getUserInfo(true)
+            console.log("userInfoRes (home):\n", userInfoRes)
+            if (!userInfoRes.userInfo_DB) { // => user not logged 
+                sendNotify("warning", "Not logged, please log in")
+                await delay(1500)
+                //redirect to welcome
+                router.push("/welcome")
+            }
+
+            userInfo.value = userInfoRes.userInfo_DB
+            if (userInfo.value.avatarImagePath == "") {
+                userInfo.value.avatarImagePath = defaultImagePath
+            }
+        }
+
         function handleCalendarEvent(eventContent: { type: string, newEventsQuantity: number }) {
-            console.log("new calendar event : ",eventContent)
+            console.log("new calendar event : ", eventContent)
             totalEventsQuantity.value = eventContent.newEventsQuantity
         }
 
-        function handleToDoEvent(eventContent: { type: string, newToDoQuantity: number }) {
-            console.log("new to do event : ",eventContent)
-            totalToDoQuantity.value = eventContent.newToDoQuantity
+        async function handleToDoEvent(eventContent: { type: string, newToDoQuantity: number, karmaCoinsChange: undefined | number }) {
+            if (eventContent.newToDoQuantity > -1) {
+                console.log("new to do event : ", eventContent)
+                totalToDoQuantity.value = eventContent.newToDoQuantity
+            }
+
+            if (eventContent.type == "todo completed or not completed" && eventContent.karmaCoinsChange) {
+                //update karma coins balance
+                userInfo.value.karmaCoinsBalance += eventContent.karmaCoinsChange
+                if (eventContent.karmaCoinsChange > 0) {
+                    totalToDoQuantity.value--
+                } else {
+                    totalToDoQuantity.value++
+                }
+                const newUinfo = toRaw(userInfo.value)
+                await userHandler.updateUserInfo(newUinfo)
+                await askUserInfo()
+            }
         }
 
         onMounted(async () => {
@@ -209,19 +255,8 @@ export default {
 
 
             console.log("userHandler:\n", userHandler)
-            const userInfoRes = await userHandler.getUserInfo(true)
-            console.log("userInfoRes (home):\n", userInfoRes)
-            if (!userInfoRes.userInfo_DB) { // => user not logged 
-                sendNotify("warning", "Not logged, please log in")
-                await delay(1500)
-                //redirect to welcome
-                router.push("/welcome")
-            }
 
-            userInfo.value = userInfoRes.userInfo_DB
-            if (userInfo.value.avatarImagePath == "") {
-                userInfo.value.avatarImagePath = defaultImagePath
-            }
+            await askUserInfo()
             await askToDo()
         });
 
@@ -229,6 +264,7 @@ export default {
             handleCalendarEvent,
             handleToDoEvent,
             askToDo,
+            askUserInfo,
             userInfo,
             isDarkMode,
             handleSectionChange,

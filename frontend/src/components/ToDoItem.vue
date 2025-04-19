@@ -1,9 +1,9 @@
 <template>
+
   <div class="todo-item" :class="{ completed: localTodo.completed, [viewMode]: true }">
     <!-- Header: checkbox + titolo + pulsanti -->
     <div class="todo-header">
-      <input class="baseCheckbox" type="checkbox" v-model="localTodo.completed" @change="onCompletedChange"
-        :disabled="localTodo.completed" />
+      <input class="baseCheckbox" type="checkbox" v-model="localTodo.completed" @change="onCompletedChange" />
       <div class="title-meta-wrapper">
         <span class="todo-title" :class="{ strikethrough: localTodo.completed }">
           {{ localTodo.title }}
@@ -33,9 +33,23 @@
       <div class="content">
         <h3>Edit To Do Action : {{ localTodo.title }}</h3>
         <div class="form-group">
+          <label for="todo_title">Title:</label>
+          <input id="todo_title" class="baseInputField" type="text" v-model="localTodo.title" placeholder="Title" />
+        </div>
+
+        <div class="form-group">
           <label for="todo_description">Description:</label>
           <input id="todo_description" class="baseInputField" type="text" v-model="localTodo.description"
             placeholder="Description" />
+        </div>
+
+        <div class="form-group">
+          <label for="todo_category">Category:</label>
+          <select class="selettore" id="todo_category" v-model="localTodo.category">
+            <option v-for="category in props.userCategories" :key="category.name" :value="category.name">{{
+              category.name }} ({{ category.points }} points)</option>
+          </select>
+
         </div>
 
         <div class="form-group">
@@ -47,7 +61,7 @@
 
         <div class="form-group">
           <label for="todo_date">Date:</label>
-          <DatePicker :isDarkMode=isDarkMode v-model="localTodo.dateWithTime"  />
+          <DatePicker :isDarkMode=isDarkMode v-model="localTodo.dateWithTime" />
         </div>
 
         <div class="form-group">
@@ -63,12 +77,9 @@
         <!-- SubActions List -->
         <div class="form-group">
           <label>Sub Actions:</label>
-
-          <ToDoList isSubList @subToDoEvent="handleSubToDoEvent" @todoEvent=passToDoEvent
-            :todos=Array.from(localTodo.subActions.values()) viewMode="grid">
+          <ToDoList isSubList @sub-to-do-notify="handleSubToDoNotify" @subToDoEvent="handleSubToDoEvent" @todoEvent=passToDoEvent
+            :todos=Array.from(localTodo.subActions.values()) viewMode="list">
           </ToDoList>
-
-
         </div>
 
 
@@ -78,7 +89,7 @@
             <span class="material-symbols-outlined g-icon">add</span>
           </button>
 
-          <button class="baseButton" @click="updateToDo">Confirm Edit
+          <button class="baseButton" @click="updateToDo()">Confirm Edit
             <span class="material-symbols-outlined g-icon">check_circle</span>
           </button>
           <button class="baseButton" @click="() => {
@@ -107,13 +118,18 @@ import ToDoList from './ToDoList.vue';
 
 interface Props {
   todo: ToDoAction,
-  viewMode: 'list' | 'grid'
+  viewMode: 'list' | 'grid',
+  userCategories: {
+    name: string;
+    points: number;
+  }[]
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(["update", "delete", "copy", "todoEvent", "addSubToDo"]);
+const emit = defineEmits(["sendNotify", "update", "delete", "copy", "todoEvent", "addSubToDo"]);
 const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
 const localTodo = ref<ToDoAction>(props.todo);
+
 //const localToDoObj = ref<ToDoObj>(props.todo.getAsObj());
 const editing = ref(false);
 const originalToDoCopy = ref<ToDoAction | null>(null);
@@ -127,34 +143,36 @@ const dateWithTimeString = computed({
   get: () => formatDate(localTodo.value.dateWithTime),
   set: (val: string) => {
     localTodo.value.dateWithTime = parseStringToDate(val);
-    emit('update', localTodo.value);
+    emit('update', { updated: localTodo.value, karmaCoinsChange: 0 });
   }
 });
 
-/*const expirationString = computed({
-  get: () => formatDate(localTodo.value.expiration),
-  set: (val: string) => {
-    localTodo.value.expiration = parseStringToDate(val);
-    emit('update', localTodo.value);
-  }
-});
 
-const notifyDateString = computed({
-  get: () => formatDate(localTodo.value.notifyDate),
-  set: (val: string) => {
-    localTodo.value.notifyDate = parseStringToDate(val);
-    emit('update', localTodo.value);
-  }
-});*/
 
-function onCompletedChange() {
-  if (localTodo.value.completed) {
+async function onCompletedChange() {
+  const completed = localTodo.value.completed
+  if (completed) {
     localTodo.value.setAsCompleted();
   } else {
     localTodo.value.setAsNotCompleted();
   }
+
+  let karmaCoinsChange = 0
+  const relatedCategory = props.userCategories.find(c => c.name == localTodo.value.category)
+  if (relatedCategory) {
+    if (completed) {
+      karmaCoinsChange = relatedCategory.points
+      emit("sendNotify", { type: "success", text: `Completed to do ${localTodo.value.title}, +${karmaCoinsChange} karma coins` })
+    } else { // => user ha settato to do come non completata      
+      karmaCoinsChange = -relatedCategory.points
+      emit("sendNotify", { type: "warning", text: `Un-completed to do ${localTodo.value.title}, ${karmaCoinsChange} karma coins` })
+    }
+  }
+
+
   editing.value = false;
-  emit('update', localTodo.value);
+  emit('update', { updated: localTodo.value, karmaCoinsChange });
+
 }
 
 function addSubToDo() {
@@ -175,9 +193,9 @@ function deleteToDo() {
   emit("delete", localTodo.value)
 }
 
-function updateToDo() {
-  console.log("emit update by to do item with local to do:\n",localTodo.value)
-  emit("update", localTodo.value);
+function updateToDo(karmaCoinsChange: number = 0) {
+  console.log("emit update by to do item with local to do:\n", localTodo.value)
+  emit("update", { updated: localTodo.value, karmaCoinsChange });
   editing.value = false
 }
 
@@ -196,7 +214,11 @@ function passToDoEvent(eventContent: { type: string, newToDoQuantity: number }) 
   emit("todoEvent", eventContent)
 }
 
-function handleSubToDoEvent(eventContent: { type: "delete" | "copy" | "update", todo: ToDoAction }) {
+function handleSubToDoNotify(notifyContent:{type:"success"|"info"|"warning"|"error",text:string}){
+  emit("sendNotify",notifyContent) //pass to parent component (to do list)
+}
+
+function handleSubToDoEvent(eventContent: { type: "delete" | "copy" | "update", todo: ToDoAction, karmaCoinsChange: number }) {
   try {
     const toDo = toRaw(eventContent.todo)
     console.log("handleSubToDoEvent event:\n", eventContent)
@@ -217,7 +239,7 @@ function handleSubToDoEvent(eventContent: { type: "delete" | "copy" | "update", 
         throw new Error("unsupported type : " + eventContent.type)
     }
 
-    updateToDo() //propagate update event to parent component (main list) that will update db 
+    updateToDo(eventContent.karmaCoinsChange) //propagate update event to parent component (main list) that will update db 
   } catch (error) {
     console.log("error in handleSubToDoEvent:\n", error)
   }
