@@ -82,7 +82,7 @@
                 <div class="form-group">
                     <label for="eventDate">Event Date:</label>
                     <DatePicker :isDarkMode=isDarkMode v-model="eventDateInput" />
-                   <!-- <input class="baseInputField" id="eventDate" type="datetime-local" v-model="eventDateInput" /> -->
+                    <!-- <input class="baseInputField" id="eventDate" type="datetime-local" v-model="eventDateInput" /> -->
                 </div>
                 <div class="form-group">
                     <label for="title">Title:</label>
@@ -105,16 +105,86 @@
                         v-model.number="currentEvent.durationInH" />
                 </div>
 
+                <div class="form-group">
+                    <label for="Notices">Notices:</label>
+                    <div v-if="currentEvent.notices.length > 0">
+                        <div v-for="(notice, idx) in currentEvent.notices" :key="notice.id"
+                            class="flex items-end space-x-2 mb-2">
+                            <!-- Schedule At -->
+                            <div class="flex-1">
+                                <label class="block text-xs font-medium mb-1">When:</label>
+                                <DatePicker :isDarkMode=isDarkMode v-model="notice.scheduleAt_timestamp" />
+                            </div>
+                            <!-- Title -->
+                            <div class="flex-1">
+                                <label class="block text-xs font-medium mb-1">Notice Title</label>
+                                <input class="baseInput" type="text" v-model="notice.title" />
+                            </div>
+                            <!-- Body -->
+                            <div class="flex-1">
+                                <label class="block text-xs font-medium mb-1">Notice Description</label>
+                                <input class="baseInput" type="text" v-model="notice.body" />
+                            </div>
+                            <!-- Remove Button -->
+                            <button @click="removeNotice(idx)" class="baseButton">
+                                <span class="material-symbols-outlined g-icon">delete</span>
+                            </button>
+
+                        </div>
+                    </div>
+                    <div v-else class="mb-2 text-sm text-gray-500">
+                        No notices setted yet.
+                    </div>
+
+                    <p v-if="!canAddNotice" class="mt-1 text-xs text-red-500">
+                        You've reched the limit of 5 notices for this event.
+                    </p>
+
+                </div>
+
                 <div class="add-event-actions">
+                    <button @click="addNoticeBoxOpen = true" v-if="canAddNotice" :disabled="!canAddNotice"
+                        class="baseButton">
+                        Add Notice
+                        <span class="material-symbols-outlined g-icon">add_circle</span>
+                    </button>
+
                     <button class="baseButton" @click="addOrUpdateEvent">Apply
+
                         <span class="material-symbols-outlined g-icon">check_circle</span>
                     </button>
+
                     <button class="baseButton" @click="canceladdOrUpdateEvent">Cancel
                         <span class="material-symbols-outlined g-icon">cancel</span>
                     </button>
                 </div>
             </div>
         </div>
+
+        <div v-if="addNoticeBoxOpen" class="modal">
+            <div class="add-event-content">
+                <h3>Add New Notice for event {{ currentEvent.title }}</h3>
+                <div class="form-group">
+                    <label for="eventDate">Notice Date:</label>
+                    <DatePicker :isDarkMode=isDarkMode v-model="currentNoticeDateInput" />
+                </div>
+                <div class="form-group">
+                    <label for="description">Notice Description:</label>
+                    <textarea class="baseInputField" id="description" v-model="currentNotice.body"
+                        placeholder="Notice Description"></textarea>
+                </div>
+
+                <div class="add-event-actions">
+                    <button class="baseButton" @click="addNotice">Add Notice
+                        <span class="material-symbols-outlined g-icon">check_circle</span>
+                    </button>
+                    <button class="baseButton" @click="canceladdNotice">Cancel
+                        <span class="material-symbols-outlined g-icon">cancel</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 </template>
 
@@ -129,6 +199,7 @@ import { UserHandler } from '../engine/userHandler';
 import { useRouter } from 'vue-router';
 import { delay } from '../utils/generalUtils';
 import DatePicker from './DatePicker.vue';
+import { TTT_Notification } from '../engine/notification';
 
 const api_gestor = API_gestor.getInstance()
 const userHandler = UserHandler.getInstance(api_gestor)
@@ -152,8 +223,9 @@ const userInfo = ref<userDBentry>({
     timeTrackerActive: false,
     karmaCoinsBalance: 0,
     friends: [],
-    fcmToken : ""
+    fcmToken: ""
 });
+const addNoticeBoxOpen = ref(false);
 const emit = defineEmits(["calendarEvent"])
 const currentDate = ref(new Date());
 const events = ref<CalendarEventClass[]>([]);
@@ -166,9 +238,20 @@ const currentEvent = ref<CalendarObj>({
     title: '',
     description: '',
     durationInH: 0,
-    category: ''
+    category: '',
+    notices: []
 })
 const eventDateInput = ref("")
+const currentNotice = ref<TTT_Notification>({
+    title: "",
+    scheduleAt_timestamp: -1,
+    body: "",
+    id: "",
+    imagePath: "",
+    fcmToken: "",
+    tag: ""
+})
+const currentNoticeDateInput = ref("")
 const notificationManager = ref(null);
 // Stato per il selettore personalizzato
 const showMonthPicker = ref(false);
@@ -189,7 +272,7 @@ const yearRange = computed(() => {
 });
 const selectedYear = ref(currentYear);
 const hoveredDay = ref<number | null>(null);
-
+const canAddNotice = computed(() => currentEvent.value.notices.length < 5);
 const currentMonthYear = computed(() => {
     return currentDate.value.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 });
@@ -248,19 +331,62 @@ function editEvent(event: CalendarEventClass) {
 
 async function deleteEvent(event: CalendarEventClass) {
     try {
-        const deleteRes = await calendarHandler.removeEvent(userInfo.value.licenseKey, event.id)
+        const deleteRes = await calendarHandler.removeEvent(userInfo.value.licenseKey, event)
         if (!deleteRes.success) {
             throw new Error(deleteRes.errorMessage)
         } else {
             events.value = events.value.filter(e => e.id !== event.id);
             sendNotify("success", "Event " + currentEvent.value.title + " deleted successfully")
-            emit("calendarEvent",{type : "delete event", newEventsQuantity : events.value.length})
+            emit("calendarEvent", { type: "delete event", newEventsQuantity: events.value.length })
         }
     } catch (error: any) {
         sendNotify("error", "Error deleting event : " + error.message);
     }
 }
 
+function canceladdNotice() {
+    currentNotice.value = {
+        title: "",
+        scheduleAt_timestamp: -1,
+        body: "",
+        id: "",
+        imagePath: "",
+        fcmToken: "",
+        tag: ""
+    }
+    addNoticeBoxOpen.value = false;
+}
+
+function addNotice() {
+    if (!canAddNotice.value) return;
+    const idx = currentEvent.value.notices.length + 1;
+    const notice: TTT_Notification = {
+        id: `${currentEvent.value.id}_notices_${idx}_${Date.now()}`,
+        body: currentNotice.value.body,
+        scheduleAt_timestamp: new Date(currentNoticeDateInput.value).getTime(),
+        imagePath: 'default logo',
+        tag: 'event notice',
+        title: currentEvent.value.title,
+        fcmToken: '',
+    };
+    currentEvent.value.notices.push(notice);
+    sendNotify("success", "Successfully addedd notice for event " + currentEvent.value.title)
+    canceladdNotice()//close add notice box & reset current notice 
+}
+
+async function removeNotice(index: number) {
+    const deletedNotices = currentEvent.value.notices.splice(index, 1);
+    if (deletedNotices.length > 0) {
+        const r = await api_gestor.deleteNotification(deletedNotices[0].id)
+        if (r.success) {
+            sendNotify("success", "Successfully deleted notice for event " + currentEvent.value.title)
+        } else {
+            sendNotify("error", "Error deleting notice: " + r.errorMessage)
+        }
+        return;
+    }
+    sendNotify("warning", "Notice not deleted correctly");
+}
 
 function sendNotify(type: "info" | "warning" | "error" | "success", text: string) {
     if (notificationManager.value) {
@@ -334,7 +460,7 @@ async function addOrUpdateEvent() {
                     }
                 } else {
                     events.value.push(newEvent);
-                    emit("calendarEvent",{type : "add event", newEventsQuantity : events.value.length})
+                    emit("calendarEvent", { type: "add event", newEventsQuantity: events.value.length })
                 }
                 sendNotify("success", "Event " + currentEvent.value.title + " " + action + " successfully")
                 await askCalendarEvents()
@@ -359,7 +485,8 @@ function resetEventForm() {
         title: '',
         description: '',
         category: '',
-        durationInH: 1
+        durationInH: 1,
+        notices: []
     };
     eventDateInput.value = ""
 }
@@ -380,7 +507,7 @@ async function askCalendarEvents() {
             for (let event of calendarEvents) {
                 events.value.push(calendarHandler.fromCalendarObj(event))
             }
-            emit("calendarEvent",{type : "load events", newEventsQuantity : events.value.length})
+            emit("calendarEvent", { type: "load events", newEventsQuantity: events.value.length })
         } else {
             throw new Error(calendarHandlerRes.errorMessage);
         }
@@ -393,7 +520,7 @@ onMounted(async () => {
     const userInfoRes = await userHandler.getUserInfo(true)
     console.log("userInfoRes (calendar):\n", userInfoRes)
     if (!userInfoRes.userInfo_DB) { // => user not logged 
-        
+
         //redirect to welcome
         await delay(2000)
         //redirect to welcome

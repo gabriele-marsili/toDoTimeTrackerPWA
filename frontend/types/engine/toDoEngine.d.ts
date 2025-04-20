@@ -39,6 +39,7 @@ export declare class ToDoAction {
 export declare class ToDoHandler {
     private static instance;
     private apiGestor;
+    private fcmToken;
     private todos;
     private constructor();
     static getInstance(apiGestor: API_gestor): ToDoHandler;
@@ -47,6 +48,7 @@ export declare class ToDoHandler {
      * @returns a new id for a to do (actual timestamp)
      */
     getNextToDoId(): string;
+    private checkFcmToken;
     /**
      * add a new ToDoAction:
      * - comunicate with API_gestor (backend)

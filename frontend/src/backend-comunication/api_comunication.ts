@@ -11,7 +11,7 @@ import { CalendarEvent, CalendarObj } from "../engine/calendarEvent.js";
 import { TimeTrackerRule, TimeTrackerRuleObj } from "../engine/timeTracker.js";
 import { FirestoreProxy } from "./firestoneProxy.js";
 import { getToken } from "firebase/messaging";
-import { requestNotifyPermission, TTT_Notification } from "../engine/notification.js";
+import { notificationDocData, requestNotifyPermission, TTT_Notification } from "../engine/notification.js";
 
 
 type InitDHresponse = {
@@ -618,40 +618,103 @@ export class API_gestor {
                     await updateDoc(userDoc, { fcmToken: token })
                 }
 
+                return token
             }
 
-        } catch (error) {
+            return ""
+
+        } catch (error:any) {
             console.log("error in register FCMT token:\n", error)
+            return "error : "+error.message
         }
     }
 
-    public async scheduleNotification(notification: TTT_Notification):Promise<baseResponse>{
+    /**
+     * Add / update a notification in firestore db
+     * @param notification TTT notification to add/update
+     * @returns 
+     */
+    public async scheduleNotification(notification: TTT_Notification): Promise<baseResponse> {
         try {
-            if (!this.user) {
-                throw new Error("User not initialized yet")
+            const q = query(collection(this.db, "notifications"), where("notificationID", "==", notification.id))
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
+            if (!snapshot.empty) {
+                const userDoc = snapshot.docs[0].ref;
+                const docData = snapshot.docs[0].data()
+                console.log("doc data (schedule notifications):\n", docData);
+                
+                let updatedNotification: notificationDocData = docData as notificationDocData
+                updatedNotification.body = notification.body
+                updatedNotification.fcmToken = notification.fcmToken
+                updatedNotification.title = notification.title
+                updatedNotification.icon = notification.imagePath
+                updatedNotification.when = notification.scheduleAt_timestamp
+                updatedNotification.tag = notification.tag
+                updatedNotification.sent = false
+
+                console.log("updated notification\n", updatedNotification)
+                
+
+                await updateDoc(userDoc, updatedNotification);
+
+            } else {
+                if (!this.user) {
+                    throw new Error("User not initialized yet")
+                }
+
+                await setDoc(doc(collection(db, "notifications"), this.user.uid), {
+                    licenseKey: this.licenseKey,
+                    uId: this.user.uid,
+                    notificationID: notification.id,
+                    title: notification.title,
+                    body: notification.body,
+                    tag: notification.tag,
+                    icon: notification.imagePath,
+                    when: notification.scheduleAt_timestamp,
+                    fcmToken: notification.fcmToken,
+                    sent: false,
+                });
             }
 
-            await setDoc(doc(collection(db, "notifications"), this.user.uid), {
-                licenseKey: this.licenseKey,
-                uId: this.user.uid,
-                notificationID: notification.id,
-                title: notification.title,
-                body: notification.body,
-                tag: notification.tag,
-                icon: notification.imagePath,
-                when : notification.scheduleAt_timestamp,
-                fcmToken : notification.fcmToken,
-                sent : false,
-            });
 
             return {
-                success : true,
-                errorMessage : ""
+                success: true,
+                errorMessage: ""
+            }
+        } catch (error: any) {
+            return {
+                success: false,
+                errorMessage: error.message
+            }
+        }
+    }
+
+    public async deleteNotification(notification_id:string){
+        try {
+            if (!this.user) {
+                throw new Error("user not logged")
+            }            
+            const q = query(collection(this.db, "notifications"), where("notificationID", "==", notification_id))
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
+
+            if (snapshot.empty) {
+                throw new Error("not found any notification with id : " + notification_id);
+            }
+            const docData = snapshot.docs[0].data()
+            const docRef = snapshot.docs[0].ref;
+            let notificationData = docData as notificationDocData
+            
+            await updateDoc(docRef, {
+                notifications: arrayRemove(notificationData)
+            });
+            return {
+                success: true,
+                errorMessage: ""
             }
         } catch (error:any) {
             return {
-                success : false,
-                errorMessage : error.message
+                success: false,
+                errorMessage: error.message
             }
         }
     }

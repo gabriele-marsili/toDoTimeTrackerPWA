@@ -4,6 +4,7 @@ import { userDBentry } from "../types/userTypes.js";
 import { ToDoAction, ToDoObj } from "../engine/toDoEngine.js";
 import { CalendarEvent, CalendarObj } from "../engine/calendarEvent.js";
 import { TimeTrackerRule, TimeTrackerRuleObj } from "../engine/timeTracker.js";
+import { TTT_Notification } from "../engine/notification.js";
 /**
  * singleton class to interact with the backend via API
  */
@@ -58,7 +59,17 @@ export declare class API_gestor {
     private hexToArrayBuffer;
     private setServerPubKey;
     sendEmail(type: "registration" | "license key reminder" | "delete acc confirmation" | "reset license key", licenseKey: string, username: string, userEmail: string): Promise<baseResponse>;
-    registerFCMToken(): Promise<void>;
+    registerFCMToken(): Promise<string>;
+    /**
+     * Add / update a notification in firestore db
+     * @param notification TTT notification to add/update
+     * @returns
+     */
+    scheduleNotification(notification: TTT_Notification): Promise<baseResponse>;
+    deleteNotification(notification_id: string): Promise<{
+        success: boolean;
+        errorMessage: any;
+    }>;
     checkUniqueEmailAndUsername(email: string, username: string): Promise<baseResponse>;
     updateUserInfo(uInfo: userDBentry): Promise<baseResponse>;
     registerUser(userForm: userDBentry): Promise<baseResponse>;

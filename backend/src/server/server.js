@@ -39,6 +39,7 @@ const crypto_2 = __importDefault(require("crypto"));
 const firestore_1 = require("firebase/firestore");
 const firebase_1 = require("../firebase/firebase");
 const cors_1 = __importDefault(require("cors"));
+const notificationManager_1 = require("../notificationEngine/notificationManager");
 /**
  * Singleton class to handle the server services
  */
@@ -55,11 +56,13 @@ class TTTappServer {
     auth;
     db;
     firestoneAdmin;
+    notificationManager;
     constructor() {
         dotenv.config({ path: path_1.default.join(__dirname, "server.env") });
         this.auth = firebase_1.auth;
         this.db = firebase_1.db;
         this.firestoneAdmin = firebase_1.initializedFirestonAdmin;
+        this.notificationManager = notificationManager_1.NotificationManager.getInstance();
         this.JWT_KEY = process.env.JWT_KEY || "JWT_KEY not loaded";
         this.JWT_KEY_USERS = process.env.JWT_KEY_USERS || "JWT_KEY_USERS not loaded";
         console.log("this.JWT_KEY_USERS = ", this.JWT_KEY_USERS);
@@ -266,6 +269,8 @@ class TTTappServer {
             }
         });
         this.abilitEndpoints();
+        //start check notification every minute
+        this.notificationManager.startCheckNotification();
     }
     abilitEndpoints() {
         //DH protocol

@@ -1,11 +1,24 @@
+export type notificationDocData = {
+    licenseKey: string,
+    uId: string,
+    notificationID: string,
+    title: string,
+    body: string,
+    tag: string,
+    icon: string,
+    when: number,
+    fcmToken: string,
+    sent: boolean
+}
+
 export type TTT_Notification = {
     id: string, //the same of the related event/todo/time tracker rule
     body: string,
     scheduleAt_timestamp: number,
     imagePath: string,
     tag: string, //type 
-    title:string,
-    fcmToken : string
+    title: string,
+    fcmToken: string
 }
 
 

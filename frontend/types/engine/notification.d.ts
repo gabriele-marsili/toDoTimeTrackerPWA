@@ -1,9 +1,22 @@
-export declare class TTT_Notification {
+export type notificationDocData = {
+    licenseKey: string;
+    uId: string;
+    notificationID: string;
+    title: string;
+    body: string;
+    tag: string;
+    icon: string;
+    when: number;
+    fcmToken: string;
+    sent: boolean;
+};
+export type TTT_Notification = {
     id: string;
-    text: string;
-    scheduleAt: Date;
-    private imagePath;
-    tag?: string;
-    constructor(id: string, text: string, scheduleAt: Date, imagePath?: string, tag?: string);
-}
+    body: string;
+    scheduleAt_timestamp: number;
+    imagePath: string;
+    tag: string;
+    title: string;
+    fcmToken: string;
+};
 export declare function requestNotifyPermission(forceRequest?: boolean): Promise<boolean>;

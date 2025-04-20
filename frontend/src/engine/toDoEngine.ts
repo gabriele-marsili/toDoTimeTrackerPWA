@@ -1,5 +1,6 @@
 import { API_gestor } from "../backend-comunication/api_comunication.js";
 import { baseResponse } from "../types/utilityTypes.js";
+import { TTT_Notification } from "./notification.js";
 
 export type ToDoPriority = 1 | 2 | 3 | 4 | 5
 
@@ -84,7 +85,7 @@ export class ToDoAction { //OSS : attributi public per Vue
         this.completed = false;
     }
 
-    public clone(id : string | null = null): ToDoAction {
+    public clone(id: string | null = null): ToDoAction {
         // Crea una nuova istanza con le stesse proprietà base.
         let lastId = id != null ? id : new Date().getTime().toString()
         const cloned = new ToDoAction(
@@ -102,7 +103,7 @@ export class ToDoAction { //OSS : attributi public per Vue
         // Copia ricorsivamente le sub-actions.
         this.subActions.forEach((subAction) => {
             let possibleId = new Date().getTime().toString()
-            lastId = lastId == possibleId ? possibleId+"0" : possibleId
+            lastId = lastId == possibleId ? possibleId + "0" : possibleId
             cloned.subActions.set(lastId, subAction.clone(lastId));
         });
         return cloned;
@@ -117,12 +118,14 @@ export class ToDoAction { //OSS : attributi public per Vue
 export class ToDoHandler {
     private static instance: ToDoHandler;
     private apiGestor: API_gestor;
+    private fcmToken: string;
 
     // Mappa locale per memorizzare le ToDoAction indicizzate per ID
     private todos: Map<string, ToDoAction> = new Map<string, ToDoAction>();
 
     private constructor(apiGestor: API_gestor) {
         this.apiGestor = apiGestor;
+        this.fcmToken = ""
     }
 
     public static getInstance(apiGestor: API_gestor): ToDoHandler {
@@ -132,13 +135,24 @@ export class ToDoHandler {
         return ToDoHandler.instance;
     }
 
-    
+
     /**
      * 
      * @returns a new id for a to do (actual timestamp)
      */
-    public getNextToDoId():string{
+    public getNextToDoId(): string {
         return new Date().getTime().toString()
+    }
+
+    private async checkFcmToken() {
+        if (this.fcmToken == "") {
+            const tk = await this.apiGestor.registerFCMToken()
+            if (tk == "") throw new Error("FCM Token not setted")
+            if (tk.includes("error")) throw new Error(tk)
+
+            this.fcmToken = tk
+        }
+        return this.fcmToken
     }
 
     /**
@@ -156,10 +170,34 @@ export class ToDoHandler {
                 throw new Error(response.errorMessage);
             }
             this.todos.set(todo.id, todo); // add / update local
-            return {
-                success: true,
-                errorMessage: ""
+
+            //add / update notification : 
+            const tk = await this.checkFcmToken()
+            const expirationNotification: TTT_Notification = {
+                id: todo.id + "_expiration",
+                body: "Let's complete " + todo.title,
+                scheduleAt_timestamp: todo.expiration.getTime(),
+                imagePath: "../assets/mainLogo.png",
+                tag: "to do expiration",
+                title: todo.title,
+                fcmToken: tk
             }
+            const reminderNotification: TTT_Notification = {
+                id: todo.id + "_reminder",
+                body: "Pss, don't forget to complete " + todo.title,
+                scheduleAt_timestamp: todo.notifyDate.getTime(),
+                imagePath: "../assets/mainLogo.png",
+                tag: "to do reminder",
+                title: todo.title,
+                fcmToken: tk
+            }
+
+            let res = await this.apiGestor.scheduleNotification(expirationNotification);
+            if(!res.success) return res;
+            res = await this.apiGestor.scheduleNotification(reminderNotification);
+
+
+            return res;
         } catch (error: any) {
             console.log("error in add to do:\n", error)
             return {
@@ -187,6 +225,11 @@ export class ToDoHandler {
                 throw new Error(response.errorMessage);
             }
             this.todos.delete(id);
+            
+            //delete expiration & reminder notifications:
+            await this.apiGestor.deleteNotification(id+"_expiration")
+            await this.apiGestor.deleteNotification(id+"_reminder")
+            
             return {
                 success: true,
                 errorMessage: ""
