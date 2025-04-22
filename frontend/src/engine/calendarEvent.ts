@@ -97,11 +97,13 @@ export class CalendarEventHandler {
             this.events.set(event.id, event);
 
             //add / update notification :
+            console.log("event date : ", event.eventDate)
+            console.log("event notices :\n", event.notices)
             const tk = await this.checkFcmToken();
             const eventNotification: TTT_Notification = {
                 id: event.id + "_notification",
                 body: "Don't forger the event " + event.title,
-                scheduleAt_timestamp: event.eventDate.getTime(),
+                scheduleAt_timestamp: event.eventDate,
                 imagePath: "../assets/mainLogo.png",
                 tag: "event notification",
                 title: event.title,
@@ -109,12 +111,13 @@ export class CalendarEventHandler {
             }
 
             //schedule event notices 
-            event.notices.forEach(async (notice) => {
+            for (let notice of event.notices) {
                 notice.fcmToken = tk; //update fcm tk
-                await this.apiGestor.scheduleNotification(notice)
-            })
+                let r = await this.apiGestor.scheduleNotification(notice, licenseKey)
+                console.log(`notice ${notice.id} r:`,r);
+            }
 
-            return await this.apiGestor.scheduleNotification(eventNotification)
+            return await this.apiGestor.scheduleNotification(eventNotification, licenseKey)
 
         } catch (err: any) {
             console.error("Error adding/updating calendar event:", err);
@@ -133,10 +136,11 @@ export class CalendarEventHandler {
             this.events.delete(eventId);
 
             //delete notification:
-            await this.apiGestor.deleteNotification(eventId + "_notification")
+            let deleteR = await this.apiGestor.deleteNotification(eventId + "_notification", licenseKey)
+            console.log("deleteR (event notification):\n", deleteR)
 
             //de-schedule (delete) event notices 
-            event.notices.forEach(async (notice) => await this.apiGestor.deleteNotification(notice.id))
+            event.notices.forEach(async (notice) => await this.apiGestor.deleteNotification(notice.id, licenseKey))
 
             return { success: true, errorMessage: "" };
         } catch (err: any) {

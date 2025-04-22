@@ -132,6 +132,7 @@ export default {
             timeTrackerActive: false,
             karmaCoinsBalance: 0,
             friends: [],
+            fcmToken : ""
         });
 
         const router = useRouter();

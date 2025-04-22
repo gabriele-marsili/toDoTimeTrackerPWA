@@ -118,12 +118,12 @@
                             <!-- Title -->
                             <div class="flex-1">
                                 <label class="block text-xs font-medium mb-1">Notice Title</label>
-                                <input class="baseInput" type="text" v-model="notice.title" />
+                                <input class="baseInputField" v-model="notice.title" />
                             </div>
                             <!-- Body -->
                             <div class="flex-1">
                                 <label class="block text-xs font-medium mb-1">Notice Description</label>
-                                <input class="baseInput" type="text" v-model="notice.body" />
+                                <input class="baseInputField" v-model="notice.body" />
                             </div>
                             <!-- Remove Button -->
                             <button @click="removeNotice(idx)" class="baseButton">
@@ -150,7 +150,6 @@
                     </button>
 
                     <button class="baseButton" @click="addOrUpdateEvent">Apply
-
                         <span class="material-symbols-outlined g-icon">check_circle</span>
                     </button>
 
@@ -244,14 +243,14 @@ const currentEvent = ref<CalendarObj>({
 const eventDateInput = ref("")
 const currentNotice = ref<TTT_Notification>({
     title: "",
-    scheduleAt_timestamp: -1,
+    scheduleAt_timestamp: new Date(),
     body: "",
     id: "",
     imagePath: "",
     fcmToken: "",
     tag: ""
 })
-const currentNoticeDateInput = ref("")
+const currentNoticeDateInput = ref<Date>(new Date())
 const notificationManager = ref(null);
 // Stato per il selettore personalizzato
 const showMonthPicker = ref(false);
@@ -347,7 +346,7 @@ async function deleteEvent(event: CalendarEventClass) {
 function canceladdNotice() {
     currentNotice.value = {
         title: "",
-        scheduleAt_timestamp: -1,
+        scheduleAt_timestamp: new Date(),
         body: "",
         id: "",
         imagePath: "",
@@ -360,10 +359,11 @@ function canceladdNotice() {
 function addNotice() {
     if (!canAddNotice.value) return;
     const idx = currentEvent.value.notices.length + 1;
+    console.log("adding notice (calendar.vue) with scheduled at: ",currentNoticeDateInput.value);
     const notice: TTT_Notification = {
         id: `${currentEvent.value.id}_notices_${idx}_${Date.now()}`,
         body: currentNotice.value.body,
-        scheduleAt_timestamp: new Date(currentNoticeDateInput.value).getTime(),
+        scheduleAt_timestamp: currentNoticeDateInput.value,
         imagePath: 'default logo',
         tag: 'event notice',
         title: currentEvent.value.title,
@@ -377,11 +377,19 @@ function addNotice() {
 async function removeNotice(index: number) {
     const deletedNotices = currentEvent.value.notices.splice(index, 1);
     if (deletedNotices.length > 0) {
-        const r = await api_gestor.deleteNotification(deletedNotices[0].id)
-        if (r.success) {
-            sendNotify("success", "Successfully deleted notice for event " + currentEvent.value.title)
+        const deletedNoticeID = deletedNotices[0].id
+        //check that the notice is related to an event already saved in db (otherwhise trying to delete a notice for an event not saved will throw an error)
+        const index = events.value.findIndex(x => x.notices.findIndex(n => n.id == deletedNoticeID))
+        if (index != -1) {
+
+            const r = await api_gestor.deleteNotification(deletedNoticeID, userInfo.value.licenseKey)
+            if (r.success) {
+                sendNotify("success", "Successfully deleted notice for event " + currentEvent.value.title)
+            } else {
+                sendNotify("error", "Error deleting notice: " + r.errorMessage)
+            }
         } else {
-            sendNotify("error", "Error deleting notice: " + r.errorMessage)
+            sendNotify("success", "Successfully deleted notice for event " + currentEvent.value.title)
         }
         return;
     }
@@ -440,6 +448,11 @@ async function addOrUpdateEvent() {
                 currentEvent.value.category,
                 currentEvent.value.durationInH
             );
+            
+            //set notices for new event
+            currentEvent.value.notices.forEach(x => newEvent.notices.push(x))
+            
+            
 
             const index = events.value.findIndex(e => e.id == eventID)
             if (index != -1 && !isEditEvent.value) {

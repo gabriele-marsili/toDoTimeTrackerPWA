@@ -1,6 +1,9 @@
 import { ToDoObj } from "../engine/toDoEngine";
 import { firestoneDate } from "../types/utilityTypes";
 
+export const VAPID_PUB_KEY = 'BFeFiK9dB7L-JJqRrql83EdAIQ3MOlaHaQYKlM_AZ3m4dSIGNxQy5_Wdthd7_IP-U8wZEyJl4e5gheTsR4ys78o'
+export const MAIN_LOGO_URL = "https://i.imgur.com/ROIfwjw.png"
+
 export function generateLicenseKey(): string {
     return Array.from({ length: 4 }, () =>
         Math.random().toString(36).substring(2, 6).toUpperCase()

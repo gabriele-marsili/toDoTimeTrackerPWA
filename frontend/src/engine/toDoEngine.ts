@@ -176,7 +176,7 @@ export class ToDoHandler {
             const expirationNotification: TTT_Notification = {
                 id: todo.id + "_expiration",
                 body: "Let's complete " + todo.title,
-                scheduleAt_timestamp: todo.expiration.getTime(),
+                scheduleAt_timestamp: todo.expiration,
                 imagePath: "../assets/mainLogo.png",
                 tag: "to do expiration",
                 title: todo.title,
@@ -185,16 +185,16 @@ export class ToDoHandler {
             const reminderNotification: TTT_Notification = {
                 id: todo.id + "_reminder",
                 body: "Pss, don't forget to complete " + todo.title,
-                scheduleAt_timestamp: todo.notifyDate.getTime(),
+                scheduleAt_timestamp: todo.notifyDate,
                 imagePath: "../assets/mainLogo.png",
                 tag: "to do reminder",
                 title: todo.title,
                 fcmToken: tk
             }
 
-            let res = await this.apiGestor.scheduleNotification(expirationNotification);
+            let res = await this.apiGestor.scheduleNotification(expirationNotification, licenseKey);
             if(!res.success) return res;
-            res = await this.apiGestor.scheduleNotification(reminderNotification);
+            res = await this.apiGestor.scheduleNotification(reminderNotification, licenseKey);
 
 
             return res;
@@ -227,8 +227,8 @@ export class ToDoHandler {
             this.todos.delete(id);
             
             //delete expiration & reminder notifications:
-            await this.apiGestor.deleteNotification(id+"_expiration")
-            await this.apiGestor.deleteNotification(id+"_reminder")
+            await this.apiGestor.deleteNotification(id+"_expiration", licenseKey)
+            await this.apiGestor.deleteNotification(id+"_reminder", licenseKey)
             
             return {
                 success: true,

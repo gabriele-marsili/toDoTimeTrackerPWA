@@ -1,4 +1,4 @@
-import { ToDoAction, ToDoPriority } from '../engine/toDoEngine';
+import { ToDoAction, ToDoObj, ToDoPriority } from '../engine/toDoEngine';
 import { UserHandler } from '../engine/userHandler';
 import { userDBentry } from '../types/userTypes';
 declare const _default: import("vue").DefineComponent<{}, {
@@ -9,8 +9,10 @@ declare const _default: import("vue").DefineComponent<{}, {
     handleToDoEvent: (eventContent: {
         type: string;
         newToDoQuantity: number;
-    }) => void;
+        karmaCoinsChange: undefined | number;
+    }) => Promise<void>;
     askToDo: () => Promise<void>;
+    askUserInfo: () => Promise<void>;
     userInfo: import("vue").Ref<{
         age: number;
         categories: {
@@ -34,6 +36,7 @@ declare const _default: import("vue").DefineComponent<{}, {
             email: string;
         }[];
         avatarImagePath: string;
+        fcmToken: string;
     }, userDBentry | {
         age: number;
         categories: {
@@ -57,6 +60,7 @@ declare const _default: import("vue").DefineComponent<{}, {
             email: string;
         }[];
         avatarImagePath: string;
+        fcmToken: string;
     }>;
     isDarkMode: import("vue").Ref<boolean, boolean>;
     handleSectionChange: (newSection: any) => void;
@@ -73,12 +77,13 @@ declare const _default: import("vue").DefineComponent<{}, {
         completed: boolean;
         id: string;
         category: string;
-        getAsObj: () => import("../engine/toDoEngine").ToDoObj;
+        getAsObj: () => ToDoObj;
         isCompleted: () => boolean;
         addOrUpdateSubToDoAction: (SubToDoAction: ToDoAction) => void;
         removeSubToDoAction: (subActionId: string) => void;
         setAsCompleted: () => void;
         setAsNotCompleted: () => void;
+        clone: (id?: string | null) => ToDoAction;
     }[], ToDoAction[] | {
         title: string;
         description: string;
@@ -90,12 +95,13 @@ declare const _default: import("vue").DefineComponent<{}, {
         completed: boolean;
         id: string;
         category: string;
-        getAsObj: () => import("../engine/toDoEngine").ToDoObj;
+        getAsObj: () => ToDoObj;
         isCompleted: () => boolean;
         addOrUpdateSubToDoAction: (SubToDoAction: ToDoAction) => void;
         removeSubToDoAction: (subActionId: string) => void;
         setAsCompleted: () => void;
         setAsNotCompleted: () => void;
+        clone: (id?: string | null) => ToDoAction;
     }[]>;
     genericToDoActions: import("vue").Ref<{
         title: string;
@@ -108,12 +114,13 @@ declare const _default: import("vue").DefineComponent<{}, {
         completed: boolean;
         id: string;
         category: string;
-        getAsObj: () => import("../engine/toDoEngine").ToDoObj;
+        getAsObj: () => ToDoObj;
         isCompleted: () => boolean;
         addOrUpdateSubToDoAction: (SubToDoAction: ToDoAction) => void;
         removeSubToDoAction: (subActionId: string) => void;
         setAsCompleted: () => void;
         setAsNotCompleted: () => void;
+        clone: (id?: string | null) => ToDoAction;
     }[], ToDoAction[] | {
         title: string;
         description: string;
@@ -125,12 +132,13 @@ declare const _default: import("vue").DefineComponent<{}, {
         completed: boolean;
         id: string;
         category: string;
-        getAsObj: () => import("../engine/toDoEngine").ToDoObj;
+        getAsObj: () => ToDoObj;
         isCompleted: () => boolean;
         addOrUpdateSubToDoAction: (SubToDoAction: ToDoAction) => void;
         removeSubToDoAction: (subActionId: string) => void;
         setAsCompleted: () => void;
         setAsNotCompleted: () => void;
+        clone: (id?: string | null) => ToDoAction;
     }[]>;
     userHandler: UserHandler;
     todoCompletedQuantity: import("vue").Ref<number, number>;
@@ -165,9 +173,11 @@ declare const _default: import("vue").DefineComponent<{}, {
     }, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
     ToDoList: import("vue").DefineComponent<import("../components/ToDoList.vue").Props, {}, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {
         todoEvent: (...args: any[]) => void;
+        subToDoNotify: (...args: any[]) => void;
         subToDoEvent: (...args: any[]) => void;
     }, string, import("vue").PublicProps, Readonly<import("../components/ToDoList.vue").Props> & Readonly<{
         onTodoEvent?: ((...args: any[]) => any) | undefined;
+        onSubToDoNotify?: ((...args: any[]) => any) | undefined;
         onSubToDoEvent?: ((...args: any[]) => any) | undefined;
     }>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, false, {
         notificationManager: import("vue").CreateComponentPublicInstanceWithMixins<Readonly<{}>, {}, {

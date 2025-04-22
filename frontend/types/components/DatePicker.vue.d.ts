@@ -1,5 +1,5 @@
 declare const _default: import("vue").DefineComponent<import("vue").ExtractPropTypes<{
-    value: {
+    modelValue: {
         type: DateConstructor;
         default: null;
     };
@@ -14,11 +14,10 @@ declare const _default: import("vue").DefineComponent<import("vue").ExtractPropT
 }, {
     onChange(selectedDates: any): void;
     formatDate(date: any): string;
-    onInput(event: any): void;
     updateDarkMode(isDark: any): void;
     updateCalendarPosition(selectedDates: any, dateStr: any, instance: any): void;
-}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<import("vue").ExtractPropTypes<{
-    value: {
+}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, "update:modelValue"[], "update:modelValue", import("vue").PublicProps, Readonly<import("vue").ExtractPropTypes<{
+    modelValue: {
         type: DateConstructor;
         default: null;
     };
@@ -26,8 +25,10 @@ declare const _default: import("vue").DefineComponent<import("vue").ExtractPropT
         type: BooleanConstructor;
         default: boolean;
     };
-}>> & Readonly<{}>, {
+}>> & Readonly<{
+    "onUpdate:modelValue"?: ((...args: any[]) => any) | undefined;
+}>, {
     isDarkMode: boolean;
-    value: Date;
+    modelValue: Date;
 }, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
 export default _default;

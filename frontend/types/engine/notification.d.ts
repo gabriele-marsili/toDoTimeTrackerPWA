@@ -6,14 +6,14 @@ export type notificationDocData = {
     body: string;
     tag: string;
     icon: string;
-    when: number;
+    when: Date;
     fcmToken: string;
     sent: boolean;
 };
 export type TTT_Notification = {
     id: string;
     body: string;
-    scheduleAt_timestamp: number;
+    scheduleAt_timestamp: Date;
     imagePath: string;
     tag: string;
     title: string;

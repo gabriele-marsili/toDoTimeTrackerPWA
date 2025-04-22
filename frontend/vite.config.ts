@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from "vite-plugin-pwa";
 import { resolve } from 'path'
+import mkcert from 'vite-plugin-mkcert' // Importa il plugin
 
 
 export default defineConfig({
@@ -10,6 +11,7 @@ export default defineConfig({
   plugins: [
     vue(),
     tailwindcss(),
+    mkcert(),
     VitePWA({
       strategies: 'injectManifest',
       srcDir: 'src/service_worker',
@@ -55,6 +57,9 @@ export default defineConfig({
       }
     }),
   ],
+  server: {
+    https: {}
+  },
   build: {
     rollupOptions: {
       input: {

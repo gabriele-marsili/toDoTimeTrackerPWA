@@ -2,7 +2,7 @@ import { Analytics } from "firebase/analytics";
 import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updatePassword, User, UserCredential, onAuthStateChanged } from "firebase/auth";
 import { arrayRemove, collection, doc, Firestore, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { analytics, auth, db, messaging } from "./firebase.js";
-import { delay, generateLicenseKey, getDeviceId, hashPassword, parseActionDates } from "../utils/generalUtils.js";
+import { delay, generateLicenseKey, getDeviceId, hashPassword, MAIN_LOGO_URL, parseActionDates, VAPID_PUB_KEY } from "../utils/generalUtils.js";
 import { baseResponse, firestoneDate } from "../types/utilityTypes.js";
 import sodium from 'libsodium-wrappers';
 import { userDBentry } from "../types/userTypes.js";
@@ -597,18 +597,31 @@ export class API_gestor {
 
     // --- firestone utils :    
 
+    private async ensureSW() {
+        if (!('serviceWorker' in navigator)) return;
+        return await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    }
+
     public async registerFCMToken() {
         try {
+            const swReg = await this.ensureSW();
+            console.log("\nsw (firebase):\n",swReg);
             const licenseKey = this.licenseKey != "" ? this.licenseKey : this.userByDB.licenseKey
             if (licenseKey == "") {
                 throw new Error("Invalid license key")
             }
 
-            if (!await requestNotifyPermission(true)) {
+            const permissionGranted = await requestNotifyPermission(true)
+            console.log("permission granted :\n",permissionGranted);
+            if (!permissionGranted) {
                 throw new Error("notify permission not granted")
             }
 
-            const token = await getToken(messaging, { vapidKey: 'BHkat-qXJDyPh8UIrGjY9DEwfJhYG6WOZWxw0PzPgXRfz2lSUVA6cqHDNP_4WGs6n7FvyKiudBTHR05llvUeVd8' })
+            const token = await getToken(
+                messaging, { 
+                    vapidKey: VAPID_PUB_KEY
+                })
+            console.log("token in get tk :\n",token);
             if (token) {
                 const q = query(collection(this.db, "users"), where("licenseKey", "==", licenseKey))
                 const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
@@ -623,9 +636,9 @@ export class API_gestor {
 
             return ""
 
-        } catch (error:any) {
+        } catch (error: any) {
             console.log("error in register FCMT token:\n", error)
-            return "error : "+error.message
+            return "error : " + error.message
         }
     }
 
@@ -634,46 +647,47 @@ export class API_gestor {
      * @param notification TTT notification to add/update
      * @returns 
      */
-    public async scheduleNotification(notification: TTT_Notification): Promise<baseResponse> {
-        try {
-            const q = query(collection(this.db, "notifications"), where("notificationID", "==", notification.id))
+    public async scheduleNotification(notification: TTT_Notification,licenseKey:string): Promise<baseResponse> {
+        try {            
+            if (!this.user) {
+                throw new Error("User not initialized yet")
+            }
+
+            const notificationForDB : notificationDocData = {
+                body : notification.body,
+                fcmToken : notification.fcmToken,
+                title : notification.title,
+                icon : MAIN_LOGO_URL,
+                when : notification.scheduleAt_timestamp,
+                tag : notification.tag,
+                sent : false,
+                notificationID : notification.id,
+                licenseKey : licenseKey,
+                uId:this.user.uid
+            }
+            console.log("scheduling notification for timestamp: ",notification.scheduleAt_timestamp)
+            const q = query(collection(this.db, "notifications"), where("licenseKey", "==", licenseKey))
             const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
             if (!snapshot.empty) {
                 const userDoc = snapshot.docs[0].ref;
                 const docData = snapshot.docs[0].data()
                 console.log("doc data (schedule notifications):\n", docData);
+
+                let updatedNotifications: notificationDocData[] = docData.notifications || []
+                let index = updatedNotifications.findIndex(x => x.notificationID == notification.id)
                 
-                let updatedNotification: notificationDocData = docData as notificationDocData
-                updatedNotification.body = notification.body
-                updatedNotification.fcmToken = notification.fcmToken
-                updatedNotification.title = notification.title
-                updatedNotification.icon = notification.imagePath
-                updatedNotification.when = notification.scheduleAt_timestamp
-                updatedNotification.tag = notification.tag
-                updatedNotification.sent = false
-
-                console.log("updated notification\n", updatedNotification)
-                
-
-                await updateDoc(userDoc, updatedNotification);
-
-            } else {
-                if (!this.user) {
-                    throw new Error("User not initialized yet")
+                if (index != -1) {
+                    updatedNotifications[index] = notificationForDB
+                } else {
+                    updatedNotifications.push(notificationForDB)
                 }
+                console.log("updated notification\n", updatedNotifications)
 
-                await setDoc(doc(collection(db, "notifications"), this.user.uid), {
-                    licenseKey: this.licenseKey,
-                    uId: this.user.uid,
-                    notificationID: notification.id,
-                    title: notification.title,
-                    body: notification.body,
-                    tag: notification.tag,
-                    icon: notification.imagePath,
-                    when: notification.scheduleAt_timestamp,
-                    fcmToken: notification.fcmToken,
-                    sent: false,
-                });
+
+                await updateDoc(userDoc, { licenseKey: licenseKey, notifications: updatedNotifications });
+
+            } else {                
+                await setDoc(doc(collection(db, "notifications"), this.user.uid), {licenseKey : licenseKey, notifications : [notificationForDB]});
             }
 
 
@@ -689,12 +703,12 @@ export class API_gestor {
         }
     }
 
-    public async deleteNotification(notification_id:string){
+    public async deleteNotification(notification_id: string, licenseKey:string) {
         try {
             if (!this.user) {
                 throw new Error("user not logged")
-            }            
-            const q = query(collection(this.db, "notifications"), where("notificationID", "==", notification_id))
+            }
+            const q = query(collection(this.db, "notifications"), where("licenseKey", "==", licenseKey))
             const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
 
             if (snapshot.empty) {
@@ -702,16 +716,31 @@ export class API_gestor {
             }
             const docData = snapshot.docs[0].data()
             const docRef = snapshot.docs[0].ref;
-            let notificationData = docData as notificationDocData
-            
+            let notifications = docData.notifications as notificationDocData[] || []
+
+            let notificationToRemove: notificationDocData | null = null;
+            for (const notification of notifications) {
+                try {
+                    if (notification.notificationID === notification_id) {
+                        notificationToRemove = notification;
+                        break;
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+            if (!notificationToRemove) {
+                throw new Error(`Notification with id ${notification_id} not found for licenseKey ${licenseKey}`);
+            }
             await updateDoc(docRef, {
-                notifications: arrayRemove(notificationData)
+                events: arrayRemove(notificationToRemove)
             });
+
             return {
                 success: true,
                 errorMessage: ""
             }
-        } catch (error:any) {
+        } catch (error: any) {
             return {
                 success: false,
                 errorMessage: error.message

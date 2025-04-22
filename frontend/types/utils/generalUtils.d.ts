@@ -1,4 +1,5 @@
 import { ToDoObj } from "../engine/toDoEngine";
+export declare const VAPID_PUB_KEY = "BFeFiK9dB7L-JJqRrql83EdAIQ3MOlaHaQYKlM_AZ3m4dSIGNxQy5_Wdthd7_IP-U8wZEyJl4e5gheTsR4ys78o";
 export declare function generateLicenseKey(): string;
 export declare function delay(ms: number): Promise<void>;
 export declare function getDeviceId(): Promise<string>;

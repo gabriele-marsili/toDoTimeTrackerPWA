@@ -59,14 +59,15 @@ export declare class API_gestor {
     private hexToArrayBuffer;
     private setServerPubKey;
     sendEmail(type: "registration" | "license key reminder" | "delete acc confirmation" | "reset license key", licenseKey: string, username: string, userEmail: string): Promise<baseResponse>;
+    private ensureSW;
     registerFCMToken(): Promise<string>;
     /**
      * Add / update a notification in firestore db
      * @param notification TTT notification to add/update
      * @returns
      */
-    scheduleNotification(notification: TTT_Notification): Promise<baseResponse>;
-    deleteNotification(notification_id: string): Promise<{
+    scheduleNotification(notification: TTT_Notification, licenseKey: string): Promise<baseResponse>;
+    deleteNotification(notification_id: string, licenseKey: string): Promise<{
         success: boolean;
         errorMessage: any;
     }>;
