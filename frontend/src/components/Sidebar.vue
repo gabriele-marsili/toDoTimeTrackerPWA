@@ -1,4 +1,5 @@
 <template>
+    <NotificationManager ref="notificationManager" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 
@@ -26,10 +27,16 @@
 </template>
 
 
-<script>
+<script lang="ts">
 import { ref } from 'vue';
+import { API_gestor } from '../backend-comunication/api_comunication';
+import { useRouter } from 'vue-router';
+import NotificationManager from '../gestors/NotificationManager.vue';
+import { delay } from '../utils/generalUtils';
+import { UserHandler } from '../engine/userHandler';
 
 export default {
+    components: { NotificationManager },
     name: 'Sidebar',
     props: {
         activeSection: {
@@ -39,23 +46,38 @@ export default {
     },
     setup(props, { emit }) {
         const isHovered = ref(false);
-
+        const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
+        const api_gestor = API_gestor.getInstance()
+        const userHandler = UserHandler.getInstance(api_gestor)
+        const router = useRouter()
+        const notificationManager = ref(null)
         const sections = [
             { name: 'home', label: 'Home', icon: 'home' },
-            { name: 'calendar', label: 'Calendar', icon: 'calendar_month' },
+            { name: 'calendar_and_todo', label: 'Calendar & ToDo', icon: 'calendar_month' },
             { name: 'time_tracker', label: 'Time Tracker', icon: 'schedule' },
             { name: 'stats', label: 'Stats', icon: 'analytics' },
             { name: 'shop', label: 'Shop', icon: 'store' },
-            { name: 'profile', label: 'Profile', icon: 'account_circle' },
+            { name: 'profile_page', label: 'Profile', icon: 'account_circle' },
             { name: 'settings', label: 'Settings', icon: 'settings' },
         ];
 
-        const navigateTo = async (section) => {
+        function sendNotify(type: "info" | "warning" | "error" | "success", text: string) {
+            if (notificationManager.value) {
+                (notificationManager.value as any).showNotification({
+                    type: type,
+                    message: text,
+                })
+            } else {
+                console.log("notification manager not found")
+            }
+        }
 
-            console.log("going to navigate to ", section)
+        const navigateTo = async (sectionName: string) => {
+
+            console.log("going to navigate to ", sectionName)
             try {
-                //to do
-                
+                router.push(sectionName);
+
             } catch (error) {
                 console.error('Errore nella navigazione:', error);
             }
@@ -63,11 +85,25 @@ export default {
         };
 
         const logout = async () => {
-            // to do
-            console.log("logout res = ", r)
+            const logout_res = await api_gestor.logOut()
+            userHandler.logout() //update values in user handler istance
+            console.log("logout res = ", logout_res)
+            if (logout_res.success) {
+                sendNotify("success", "Logged out successfully")
+                await delay(1500);
+                router.push("welcome")
+            } else {
+                sendNotify("error", "Error during logout: " + logout_res.errorMessage)
+            }
+
         };
 
         return {
+            notificationManager,
+            sendNotify,
+            isDarkMode,
+            router,
+            api_gestor,
             isHovered,
             sections,
             navigateTo,
@@ -102,7 +138,7 @@ export default {
     height: 100vh;
     background-color: #131212;
     border-right: 2px solid #1e1e1e;
-    
+
     color: #ffffff;
     display: flex;
     flex-direction: column;
@@ -114,7 +150,7 @@ export default {
 }
 
 .sidebar.expanded {
-    width: 180px;
+    width: 220px;
 }
 
 .menu {
@@ -183,9 +219,9 @@ export default {
 .logout {
     margin-bottom: 20px;
     padding-top: 10px;
-    
+
     display: flex;
-    
+
     align-items: center;
     align-self: center;
     align-content: center;

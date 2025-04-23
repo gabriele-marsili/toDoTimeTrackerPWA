@@ -1,4 +1,5 @@
 import { ToDoAction, ToDoObj, ToDoPriority } from '../engine/toDoEngine';
+import { API_gestor } from '../backend-comunication/api_comunication';
 import { UserHandler } from '../engine/userHandler';
 import { userDBentry } from '../types/userTypes';
 declare const _default: import("vue").DefineComponent<{}, {
@@ -145,7 +146,40 @@ declare const _default: import("vue").DefineComponent<{}, {
     totalToDoQuantity: import("vue").Ref<number, number>;
     totalEventsQuantity: import("vue").Ref<number, number>;
 }, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<{}> & Readonly<{}>, {}, {}, {
-    Sidebar: import("vue").DefineComponent<{}, {}, any>;
+    Sidebar: import("vue").DefineComponent<import("vue").ExtractPropTypes<{
+        activeSection: {
+            type: StringConstructor;
+            required: true;
+        };
+    }>, {
+        notificationManager: import("vue").Ref<null, null>;
+        sendNotify: (type: "info" | "warning" | "error" | "success", text: string) => void;
+        isDarkMode: import("vue").Ref<boolean, boolean>;
+        router: import("vue-router").Router;
+        api_gestor: API_gestor;
+        isHovered: import("vue").Ref<boolean, boolean>;
+        sections: {
+            name: string;
+            label: string;
+            icon: string;
+        }[];
+        navigateTo: (sectionName: string) => Promise<void>;
+        logout: () => Promise<void>;
+    }, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<import("vue").ExtractPropTypes<{
+        activeSection: {
+            type: StringConstructor;
+            required: true;
+        };
+    }>> & Readonly<{}>, {}, {}, {
+        NotificationManager: import("vue").DefineComponent<{}, {}, {
+            currentNotification: null;
+        }, {}, {
+            showNotification(notification: any): void;
+            dismissNotification(): void;
+        }, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<{}>, {}, {}, {
+            Notification: import("vue").DefineComponent<{}, {}, any>;
+        }, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
+    }, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
     NotificationManager: import("vue").DefineComponent<{}, {}, {
         currentNotification: null;
     }, {}, {
@@ -175,10 +209,12 @@ declare const _default: import("vue").DefineComponent<{}, {
         todoEvent: (...args: any[]) => void;
         subToDoNotify: (...args: any[]) => void;
         subToDoEvent: (...args: any[]) => void;
+        todoAdded: (...args: any[]) => void;
     }, string, import("vue").PublicProps, Readonly<import("../components/ToDoList.vue").Props> & Readonly<{
         onTodoEvent?: ((...args: any[]) => any) | undefined;
         onSubToDoNotify?: ((...args: any[]) => any) | undefined;
         onSubToDoEvent?: ((...args: any[]) => any) | undefined;
+        onTodoAdded?: ((...args: any[]) => any) | undefined;
     }>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, false, {
         notificationManager: import("vue").CreateComponentPublicInstanceWithMixins<Readonly<{}>, {}, {
             currentNotification: null;

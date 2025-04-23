@@ -145,5 +145,50 @@ class NotificationManager {
             }
         });
     }
+    // Nuovo cron job per la pulizia delle notifiche inviate
+    // Ogni 8 ore
+    startCleanupNotifications() {
+        console.log("\nstart scheduling notification cleanup...");
+        const db = firebase_1.initializedFirestonAdmin.firestore();
+        node_cron_1.default.schedule("0 */8 * * *", async () => {
+            try {
+                const now = Date.now();
+                console.log("\n[Cron - Cleanup] Starting notification cleanup at ", new Date(now), " | ", now);
+                // Ottieni tutti i documenti nella collezione 'notifications'
+                const snaps = await db
+                    .collection("notifications")
+                    .get();
+                const cleanupBatch = db.batch();
+                let documentsToUpdateCount = 0;
+                for (let doc of snaps.docs) {
+                    const data = doc.data();
+                    const userNotifications = data.notifications || [];
+                    //filtra notifiche non ancora inviate (da mantenere)
+                    const notificationsToKeep = userNotifications.filter(n => !n.sent);
+                    // Controlla se ci sono state notifiche rimosse
+                    if (notificationsToKeep.length < userNotifications.length) {
+                        // Aggiungi l'operazione di update al batch
+                        // Aggiorna il documento con l'array filtrato (solo le notifiche da mantenere)
+                        cleanupBatch.update(doc.ref, { notifications: notificationsToKeep });
+                        documentsToUpdateCount++;
+                        console.log(`[Cron - Cleanup] Document ${doc.id} requires cleanup. Keeping ${notificationsToKeep.length}/${userNotifications.length} notifications.`);
+                    }
+                }
+                console.log(`[Cron - Cleanup] Preparing batch update for ${documentsToUpdateCount} documents.`);
+                // Esegui il commit del batch solo se ci sono documenti da aggiornare
+                if (documentsToUpdateCount > 0) {
+                    console.log("[Cron - Cleanup] Committing cleanup batch update...");
+                    await cleanupBatch.commit();
+                    console.log("[Cron - Cleanup] Cleanup batch committed : ");
+                }
+                else {
+                    console.log("[Cron - Cleanup] No documents needed cleanup.");
+                }
+            }
+            catch (error) {
+                console.log(`[Cron - Cleanup] Error in cleanup cron:\n`, error);
+            }
+        });
+    }
 }
 exports.NotificationManager = NotificationManager;

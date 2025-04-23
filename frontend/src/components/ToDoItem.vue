@@ -77,7 +77,7 @@
         <!-- SubActions List -->
         <div class="form-group">
           <label>Sub Actions:</label>
-          <ToDoList isSubList @sub-to-do-notify="handleSubToDoNotify" @subToDoEvent="handleSubToDoEvent" @todoEvent=passToDoEvent
+          <ToDoList :trigger-add-to-do="false" isSubList @sub-to-do-notify="handleSubToDoNotify" @subToDoEvent="handleSubToDoEvent" @todoEvent=passToDoEvent
             :todos=Array.from(localTodo.subActions.values()) viewMode="list">
           </ToDoList>
         </div>

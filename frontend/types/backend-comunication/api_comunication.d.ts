@@ -82,7 +82,7 @@ export declare class API_gestor {
             userCredentials: UserCredential | null;
             userEmail: string;
         };
-        userInfo_DB: userDBentry;
+        userInfo_DB: userDBentry | null;
     }>;
     logOut(): Promise<baseResponse>;
     private checkIfUserExist;

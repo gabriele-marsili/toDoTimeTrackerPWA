@@ -15,7 +15,7 @@ export class UserHandler {
     private userCredentials: UserCredential | null = null;
     private licenseKey: string;
     private userEmail: string
-    private userByDB!: userDBentry;
+    private userByDB: userDBentry | null;
 
 
     private constructor(apiGestor: API_gestor) {
@@ -23,6 +23,7 @@ export class UserHandler {
         this.licenseKey = "";
         this.userEmail = ""
         this.updateLocalUserInfo()
+        this.userByDB = null;
     }
 
 
@@ -48,12 +49,33 @@ export class UserHandler {
         return await this.apiGestor.updateUserInfo(uInfo);
     }
 
+    public logout(): baseResponse {
+        try {
+
+            this.user = null;
+            this.licenseKey = ""
+            this.userEmail = ""
+            this.userByDB = null;
+            return {
+                success: true,
+                errorMessage: ""
+            }
+        } catch (error:any) {
+            return {
+                success: false,
+                errorMessage: error.message
+            }
+        }
+    }
+
     private async updateLocalUserInfo() {
         const info = await this.apiGestor.getUserInfo()
 
         console.log("info in update local user info (user handler):\n", info)
         const uInfo = info.userInfo;
-        this.userByDB = info.userInfo_DB
+        if (info.userInfo_DB) {
+            this.userByDB = info.userInfo_DB
+        }
         this.user = uInfo.user
         this.licenseKey = uInfo.licenseKey
         this.userEmail = uInfo.userEmail

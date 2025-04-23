@@ -24,24 +24,21 @@ messaging.onBackgroundMessage(function (payload) {
     // payload.notification contiene titolo e corpo che possono essere mostrati
     // direttamente dal browser in alcuni casi, ma usiamo payload.data per
     // garantire coerenza e accesso nel click handler.
-    const notificationTitle = payload.data.title || payload.notification?.title || 'Nuova Notifica';
-    const notificationBody = payload.data.body || payload.notification?.body || 'Contenuto notifica';
-    const notificationIcon = payload.data.icon || payload.notification?.icon || self.registration.scope + 'path/to/default/icon.png'; // Assicurati un'icona di default
-    const notificationTag = payload.data.tag || 'default_tag'; // Usiamo il tag dal data payload
-    const notificationId = payload.data.notificationID; // ID notifica dal data payload
-    const customData = payload.data; // Passiamo tutto il payload.data per il click handler
+    const notificationTitle = payload.data.title || payload.notification?.title || 'New Notification';
+    const notificationBody = payload.data.body || payload.notification?.body || '';
+    const notificationIcon = payload.notification?.image || self.registration.scope + '../mainLogo.png'; 
+    const notificationTag = payload.data.tag || 'default_tag';
+    const notificationId = payload.data.notificationID;
+    const customData = payload.data;
 
 
-    // Costruisci le opzioni per la notifica nativa del browser
+    
     const options = {
         body: notificationBody,
         icon: notificationIcon,
-        // 'tag' per raggruppare le notifiche (ad esempio, per non mostrare più notifiche per lo stesso ID)
-        // Usiamo notificationId come tag per raggruppare notifiche con lo stesso ID
-        tag: notificationId || notificationTag, // Usa notificationId se disponibile, altrimenti il tag generico
-        renotify: true, // Riproduci audio/vibrazione anche se una notifica con lo stesso tag è già visibile
-        requireInteraction: true, // La notifica rimane visibile finché non viene cliccata o chiusa dall'utente
-        // Passa i dati custom qui. Saranno disponibili nell'evento notificationclick
+        tag: notificationId || notificationTag,
+        renotify: true, 
+        requireInteraction: true,        
         data: customData
     };
 
@@ -71,7 +68,7 @@ self.addEventListener('notificationclick', function (event) {
 
     if (targetUrl) {
         let url = String(targetUrl)
-        if(url.includes("event")){
+        if(url.includes("event")||url.includes("to do")){
             url = "home"
         }
         // Previene l'azione di default del browser

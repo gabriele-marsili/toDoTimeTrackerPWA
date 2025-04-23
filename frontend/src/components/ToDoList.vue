@@ -61,7 +61,7 @@
                         <span class="material-symbols-outlined g-icon">add</span>
                     </button>
 
-                    <button class="baseButton" @click="resetLocalValues">Cancel
+                    <button class="baseButton" @click="resetLocalValues('user cancelled the add request')">Cancel
                         <span class="material-symbols-outlined g-icon">cancel</span>
                     </button>
 
@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps, ref, onMounted } from 'vue';
+import { computed, defineProps, ref, onMounted, watch } from 'vue';
 import ToDoItem from './ToDoItem.vue';
 import { ToDoAction, ToDoHandler, ToDoPriority } from '../engine/toDoEngine';
 import { API_gestor } from '../backend-comunication/api_comunication';
@@ -88,7 +88,8 @@ export interface Props {
     // viewMode: 'list' mostra ogni item in una riga,
     // viewMode: 'grid' mostra ogni item in un piccolo box
     viewMode: 'list' | 'grid';
-    isSubList: boolean
+    isSubList: boolean;
+    triggerAddToDo: boolean;
 }
 const notificationManager = ref(null); // Riferimento per NotificationManager
 const api_gestor = API_gestor.getInstance()
@@ -113,10 +114,10 @@ const userInfo = ref<userDBentry>({
     timeTrackerActive: false,
     karmaCoinsBalance: 0,
     friends: [],
-    fcmToken : ""
+    fcmToken: ""
 });
 const router = useRouter();
-const emit = defineEmits(["subToDoNotify","todoEvent", "subToDoEvent"])
+const emit = defineEmits(["subToDoNotify", "todoEvent", "subToDoEvent", "todoAdded"])
 const viewMode = ref<'list' | 'grid'>('list');
 //const toggleViewMode = () => viewMode.value = viewMode.value === 'list' ? 'grid' : 'list';
 
@@ -133,6 +134,12 @@ const localDateWithTime = ref(new Date())
 
 
 const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
+
+watch(() => props.triggerAddToDo, (newValue) => { //watch for parent change of triggerAddToDo
+    if (newValue && !props.isSubList) {
+        isAddToDoBoxOpened.value = true;
+    }
+})
 
 // Filtra i todo che non sono completati
 const filteredTodos = computed(() => {
@@ -158,7 +165,7 @@ function passToDoEvent(eventContent: { type: string, newToDoQuantity: number }) 
     emit("todoEvent", eventContent)
 }
 
-function resetLocalValues() {
+function resetLocalValues(errMsg = "") {
     localPriority.value = 1
     localDateWithTime.value = new Date()
     localDescription.value = ""
@@ -168,6 +175,9 @@ function resetLocalValues() {
     localNotifyDate.value = new Date()
     parentToDoId.value = ""
     isAddToDoBoxOpened.value = false;
+    if (!props.isSubList && errMsg != "") {
+        emit("todoAdded", { success: false, error: errMsg })
+    }
 }
 
 function onItemAddSubToDo(todo_id: string) {
@@ -176,6 +186,7 @@ function onItemAddSubToDo(todo_id: string) {
 }
 
 async function addToDo() {
+    let errMsg = ""
     try {
         let errors: string[] = []
         if (localTitle.value == "") {
@@ -223,12 +234,17 @@ async function addToDo() {
             //add local : 
             props.todos.push(toDoToAdd)
             sendNotify("success", `Successfully addedd to do : ${toDoToAdd.title}`);
+
+            if (!props.isSubList) {
+                emit("todoAdded", { success: true, error: "" })
+            }
         }
 
     } catch (error: any) {
         sendNotify("error", "Error adding to do : " + error.message)
+        errMsg = error.message
     } finally {
-        resetLocalValues()
+        resetLocalValues(errMsg)
     }
 }
 
@@ -321,11 +337,11 @@ async function onItemUpdate(content: { updated: ToDoAction, karmaCoinsChange: 0 
     }
 }
 
-function handleSendNotifyByToDoItem(notifyContent:{type:"success"|"info"|"warning"|"error",text:string}){
-    if(props.isSubList){ //pass to parent component (to do item)
+function handleSendNotifyByToDoItem(notifyContent: { type: "success" | "info" | "warning" | "error", text: string }) {
+    if (props.isSubList) { //pass to parent component (to do item)
         emit("subToDoNotify", notifyContent)
-    }else{ //to do list = root component => send notify 
-        sendNotify(notifyContent.type,notifyContent.text);
+    } else { //to do list = root component => send notify 
+        sendNotify(notifyContent.type, notifyContent.text);
     }
 }
 
@@ -337,6 +353,7 @@ onMounted(async () => {
         await delay(2000)
         //redirect to welcome
         router.push("/welcome")
+        return;
     }
 
     userInfo.value = userInfoRes.userInfo_DB

@@ -315,6 +315,7 @@ onMounted(async () => {
         await delay(2000)
         //redirect to welcome
         router.push("/welcome")
+        return;
     }
     licenseKey = userInfoRes.userInfo_DB.licenseKey
     await askTimeTrackerRules()

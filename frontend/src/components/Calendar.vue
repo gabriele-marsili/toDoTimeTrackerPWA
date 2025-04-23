@@ -538,6 +538,7 @@ onMounted(async () => {
         await delay(2000)
         //redirect to welcome
         router.push("/welcome")
+        return;
     }
 
     userInfo.value = userInfoRes.userInfo_DB

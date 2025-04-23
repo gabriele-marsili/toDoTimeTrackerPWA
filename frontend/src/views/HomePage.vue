@@ -12,13 +12,13 @@
                 <!-- Colonna 1: Today To Do -->
                 <div class="box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center">
                     <h3>Today To Do</h3>
-                    <ToDoList :is-sub-list="false" :todos=todayToDoActions @todoEvent=handleToDoEvent viewMode="grid">
+                    <ToDoList :trigger-add-to-do="false" :is-sub-list="false" :todos=todayToDoActions @todoEvent=handleToDoEvent viewMode="grid">
                     </ToDoList>
                 </div>
                 <!-- Colonna 2: Generic To Do -->
                 <div class="box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center">
                     <h3>Generic To Do</h3>
-                    <ToDoList :is-sub-list="false" @todoEvent=handleToDoEvent :todos=genericToDoActions viewMode="grid">
+                    <ToDoList :trigger-add-to-do="triggerAddToDo" :is-sub-list="false" @todoEvent=handleToDoEvent :todos=genericToDoActions viewMode="grid">
                     </ToDoList>
 
                 </div>
@@ -104,6 +104,7 @@ import { useRouter } from 'vue-router';
 export default {
     components: { Sidebar, NotificationManager, ConnectionStatus, ToDoList, Calendar, TimeTrackerRuleList },
     setup() {
+        const triggerAddToDo = ref(false)
         const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
         const todayToDoActions = ref<ToDoAction[]>([]);
         const genericToDoActions = ref<ToDoAction[]>([]);
@@ -203,6 +204,7 @@ export default {
                 await delay(1500)
                 //redirect to welcome
                 router.push("/welcome")
+                return;
             }
 
             userInfo.value = userInfoRes.userInfo_DB
@@ -233,6 +235,7 @@ export default {
                 const newUinfo = toRaw(userInfo.value)
                 await userHandler.updateUserInfo(newUinfo)
                 await askUserInfo()
+                await askToDo()
             }
         }
 
@@ -276,7 +279,8 @@ export default {
             userHandler,
             todoCompletedQuantity,
             totalToDoQuantity,
-            totalEventsQuantity
+            totalEventsQuantity,
+            triggerAddToDo
         };
     },
 };

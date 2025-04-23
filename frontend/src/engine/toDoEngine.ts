@@ -172,32 +172,40 @@ export class ToDoHandler {
             this.todos.set(todo.id, todo); // add / update local
 
             //add / update notification : 
-            const tk = await this.checkFcmToken()
-            const expirationNotification: TTT_Notification = {
-                id: todo.id + "_expiration",
-                body: "Let's complete " + todo.title,
-                scheduleAt_timestamp: todo.expiration,
-                imagePath: "../assets/mainLogo.png",
-                tag: "to do expiration",
-                title: todo.title,
-                fcmToken: tk
+            if (!todo.isCompleted()) {
+                const tk = await this.checkFcmToken()
+                const expirationNotification: TTT_Notification = {
+                    id: todo.id + "_expiration",
+                    body: "Let's complete " + todo.title,
+                    scheduleAt_timestamp: todo.expiration,
+                    imagePath: "../assets/mainLogo.png",
+                    tag: "to do expiration",
+                    title: todo.title,
+                    fcmToken: tk
+                }
+                const reminderNotification: TTT_Notification = {
+                    id: todo.id + "_reminder",
+                    body: "Pss, don't forget to complete " + todo.title,
+                    scheduleAt_timestamp: todo.notifyDate,
+                    imagePath: "../assets/mainLogo.png",
+                    tag: "to do reminder",
+                    title: todo.title,
+                    fcmToken: tk
+                }
+
+                let res = await this.apiGestor.scheduleNotification(expirationNotification, licenseKey);
+                if (!res.success) return res;
+                res = await this.apiGestor.scheduleNotification(reminderNotification, licenseKey);
+                return res;
+            }else{ //to do completed => try to delete notifications
+                await this.apiGestor.deleteNotification(todo.id+"_expiration",licenseKey)
+                await this.apiGestor.deleteNotification(todo.id+"_reminder",licenseKey)
             }
-            const reminderNotification: TTT_Notification = {
-                id: todo.id + "_reminder",
-                body: "Pss, don't forget to complete " + todo.title,
-                scheduleAt_timestamp: todo.notifyDate,
-                imagePath: "../assets/mainLogo.png",
-                tag: "to do reminder",
-                title: todo.title,
-                fcmToken: tk
+
+            return {
+                success : true,
+                errorMessage : ""
             }
-
-            let res = await this.apiGestor.scheduleNotification(expirationNotification, licenseKey);
-            if(!res.success) return res;
-            res = await this.apiGestor.scheduleNotification(reminderNotification, licenseKey);
-
-
-            return res;
         } catch (error: any) {
             console.log("error in add to do:\n", error)
             return {
@@ -225,11 +233,11 @@ export class ToDoHandler {
                 throw new Error(response.errorMessage);
             }
             this.todos.delete(id);
-            
+
             //delete expiration & reminder notifications:
-            await this.apiGestor.deleteNotification(id+"_expiration", licenseKey)
-            await this.apiGestor.deleteNotification(id+"_reminder", licenseKey)
-            
+            await this.apiGestor.deleteNotification(id + "_expiration", licenseKey)
+            await this.apiGestor.deleteNotification(id + "_reminder", licenseKey)
+
             return {
                 success: true,
                 errorMessage: ""

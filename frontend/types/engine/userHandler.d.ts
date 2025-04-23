@@ -21,9 +21,10 @@ export declare class UserHandler {
             userCredentials: UserCredential | null;
             userEmail: string;
         };
-        userInfo_DB: userDBentry;
+        userInfo_DB: userDBentry | null;
     }>;
     updateUserInfo(uInfo: userDBentry): Promise<baseResponse>;
+    logout(): baseResponse;
     private updateLocalUserInfo;
     /**
      * singleton method to get the instance

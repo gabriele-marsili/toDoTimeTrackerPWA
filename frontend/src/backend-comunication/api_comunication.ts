@@ -47,7 +47,7 @@ export class API_gestor {
     private userCredentials: UserCredential | null = null;
     private licenseKey: string;
     private userEmail: string
-    private userByDB!: userDBentry;
+    private userByDB!: userDBentry | null;
     private firestoreProxy: FirestoreProxy
 
     private constructor() {
@@ -59,6 +59,7 @@ export class API_gestor {
         this.userEmail = ""
         this.initialized = false;
         this.firestoreProxy = FirestoreProxy.getInstance()
+        this.userByDB = null;
 
         // Iscriviti al listener di stato di autenticazione
         onAuthStateChanged(auth, async (user: User | null) => {
@@ -605,23 +606,23 @@ export class API_gestor {
     public async registerFCMToken() {
         try {
             const swReg = await this.ensureSW();
-            console.log("\nsw (firebase):\n",swReg);
-            const licenseKey = this.licenseKey != "" ? this.licenseKey : this.userByDB.licenseKey
+            console.log("\nsw (firebase):\n", swReg);
+            const licenseKey = this.licenseKey != "" ? this.licenseKey : this.userByDB ? this.userByDB.licenseKey : ""
             if (licenseKey == "") {
                 throw new Error("Invalid license key")
             }
 
             const permissionGranted = await requestNotifyPermission(true)
-            console.log("permission granted :\n",permissionGranted);
+            console.log("permission granted :\n", permissionGranted);
             if (!permissionGranted) {
                 throw new Error("notify permission not granted")
             }
 
             const token = await getToken(
-                messaging, { 
-                    vapidKey: VAPID_PUB_KEY
-                })
-            console.log("token in get tk :\n",token);
+                messaging, {
+                vapidKey: VAPID_PUB_KEY
+            })
+            console.log("token in get tk :\n", token);
             if (token) {
                 const q = query(collection(this.db, "users"), where("licenseKey", "==", licenseKey))
                 const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
@@ -647,25 +648,25 @@ export class API_gestor {
      * @param notification TTT notification to add/update
      * @returns 
      */
-    public async scheduleNotification(notification: TTT_Notification,licenseKey:string): Promise<baseResponse> {
-        try {            
+    public async scheduleNotification(notification: TTT_Notification, licenseKey: string): Promise<baseResponse> {
+        try {
             if (!this.user) {
                 throw new Error("User not initialized yet")
             }
 
-            const notificationForDB : notificationDocData = {
-                body : notification.body,
-                fcmToken : notification.fcmToken,
-                title : notification.title,
-                icon : MAIN_LOGO_URL,
-                when : notification.scheduleAt_timestamp,
-                tag : notification.tag,
-                sent : false,
-                notificationID : notification.id,
-                licenseKey : licenseKey,
-                uId:this.user.uid
+            const notificationForDB: notificationDocData = {
+                body: notification.body,
+                fcmToken: notification.fcmToken,
+                title: notification.title,
+                icon: MAIN_LOGO_URL,
+                when: notification.scheduleAt_timestamp,
+                tag: notification.tag,
+                sent: false,
+                notificationID: notification.id,
+                licenseKey: licenseKey,
+                uId: this.user.uid
             }
-            console.log("scheduling notification for timestamp: ",notification.scheduleAt_timestamp)
+            console.log("scheduling notification for timestamp: ", notification.scheduleAt_timestamp)
             const q = query(collection(this.db, "notifications"), where("licenseKey", "==", licenseKey))
             const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
             if (!snapshot.empty) {
@@ -675,7 +676,7 @@ export class API_gestor {
 
                 let updatedNotifications: notificationDocData[] = docData.notifications || []
                 let index = updatedNotifications.findIndex(x => x.notificationID == notification.id)
-                
+
                 if (index != -1) {
                     updatedNotifications[index] = notificationForDB
                 } else {
@@ -686,8 +687,8 @@ export class API_gestor {
 
                 await updateDoc(userDoc, { licenseKey: licenseKey, notifications: updatedNotifications });
 
-            } else {                
-                await setDoc(doc(collection(db, "notifications"), this.user.uid), {licenseKey : licenseKey, notifications : [notificationForDB]});
+            } else {
+                await setDoc(doc(collection(db, "notifications"), this.user.uid), { licenseKey: licenseKey, notifications: [notificationForDB] });
             }
 
 
@@ -703,7 +704,7 @@ export class API_gestor {
         }
     }
 
-    public async deleteNotification(notification_id: string, licenseKey:string) {
+    public async deleteNotification(notification_id: string, licenseKey: string) {
         try {
             if (!this.user) {
                 throw new Error("user not logged")
@@ -951,6 +952,9 @@ export class API_gestor {
     public async logOut(): Promise<baseResponse> {
         try {
             await signOut(this.auth);
+            this.licenseKey = "";
+            this.userByDB = null;
+            this.userEmail = ""
             return {
                 success: true,
                 errorMessage: ""
