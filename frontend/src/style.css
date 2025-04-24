@@ -93,6 +93,7 @@ body {
 }
 
 .baseButton:hover,
+.selettore:hover,
 .baseButtonHigher:hover {
   background-color: rgba(16, 185, 129, 0.305);
 }
