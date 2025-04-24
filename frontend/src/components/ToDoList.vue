@@ -23,8 +23,10 @@
 
                 <div class="form-group">
                     <label for="todo_category">Category:</label>
-                    <input id="todo_category" class="baseInputField" type="text" v-model="localCategory"
-                        placeholder="Category" />
+                    <select class="selettore" name="catgory" id="todo_category" v-model="localCategory">
+                        <option v-for="category in userInfo.categories" :key="category.name" :value="category.name">{{
+                            category.name }} ({{ category.points }} points)</option>
+                    </select>
                 </div>
 
                 <div class="form-group">

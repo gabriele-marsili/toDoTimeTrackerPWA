@@ -40,20 +40,64 @@
                     Add New To Do
                 </button>
 
+
+                <div class="custom-select">
+                    <span class="material-symbols-outlined menu-icon select-icon">visibility</span>
+                    <select class="selettore" name="todo-view-mode" id="todo_view_mode" v-model="todo_view_mode">
+                        <option :key="'list'" :value="'list'">List</option>
+                        <option :key="'grid'" :value="'grid'">Grid</option>
+                    </select>
+                </div>
+
+
+
+
             </header>
 
-            <div class="content-row">
+            <div class="content-row" v-if="todo_view_mode == 'list'">
                 <!-- Colonna 1: Today To Do -->
                 <div class="box max-w-lg w-full rounded-2xl elevated shadow-lg text-center">
                     <h3>Today To Do</h3>
-                    <ToDoList :triggerAddToDo="false" :is-sub-list="false" :todos=todayToDoActions @todoEvent=handleToDoEvent viewMode="grid">
+                    <ToDoList :triggerAddToDo="false" :is-sub-list="false" :todos=todayToDoActions
+                        @todoEvent=handleToDoEvent :viewMode="'list'">
                     </ToDoList>
                 </div>
                 <!-- Colonna 2: Generic To Do -->
                 <div class="box max-w-lg w-full rounded-2xl elevated shadow-lg text-center">
                     <h3>Generic To Do</h3>
-                    <ToDoList @todoAdded="handleAddToDo" :triggerAddToDo="addToDoTrigger" :is-sub-list="false" @todoEvent=handleToDoEvent :todos=genericToDoActions viewMode="grid">
+                    <ToDoList @todoAdded="handleAddToDo" :triggerAddToDo="addToDoTrigger" :is-sub-list="false"
+                        @todoEvent=handleToDoEvent :todos=genericToDoActions :viewMode="'list'">
                     </ToDoList>
+                </div>
+            </div>
+
+            <!-- box con to do grid (settimana, divise per giorno) -->
+            <div v-if="todo_view_mode === 'grid'" class="todo-grid-box rounded-2xl elevated shadow-lg text-center">
+                <!-- Navigation for weeks -->
+                <div class="grid-todo-header week-nav flex justify-between items-center mb-4">
+                    <button @click="prevWeek" class="baseButton">«</button>
+                    <h3 class="text-lg font-medium">
+                        {{ format(currentWeekStart, 'MMM dd, yyyy') }} -
+                        {{ format(endOfWeek(currentWeekStart, { weekStartsOn: 1 }), 'MMM dd, yyyy') }}
+                    </h3>
+                    <button @click="nextWeek" class="baseButton">»</button>
+                </div>
+
+                <!-- Grid of days -->
+                <div class="todo-grid-container hide-scrollbar">
+                    <div v-for="day in weekDays" :key="day" class="day-column flex flex-col">
+                        <div class="day-header text-sm font-semibold mb-2">
+                            {{ format(day, 'EEEE') }}
+                        </div>
+
+                        <div class="todos-wrapper flex-1 overflow-y-auto hide-scrollbar ">
+                            <ToDoList @todoAdded="handleAddToDo"
+                                :triggerAddToDo="day.getDay() === 1 ? addToDoTrigger : false" :is-sub-list="false"
+                                @todoEvent=handleToDoEvent :todos=todosForDay(day) :viewMode="'list'">
+                            </ToDoList>
+                        </div>
+
+                    </div>
                 </div>
             </div>
 
@@ -68,7 +112,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { startOfWeek, addDays, endOfWeek, format } from 'date-fns';
+import { computed, onMounted, ref } from 'vue';
 import ConnectionStatus from '../components/ConnectionStatus.vue';
 import NotificationManager from '../gestors/NotificationManager.vue';
 import Calendar from '../components/Calendar.vue';
@@ -93,6 +138,14 @@ const totalToDoQuantity = ref(0);
 const totalEventsQuantity = ref(0);
 const todayEventsQuantity = ref(0);
 const addToDoTrigger = ref(false);
+const todo_view_mode = ref<"grid" | "list">("list");
+const currentWeekStart = ref(startOfWeek(new Date(), { weekStartsOn: 1 }))
+
+const weekDays = computed(() =>
+    Array.from({ length: 7 }).map((_, i) =>
+        addDays(currentWeekStart.value, i)
+    )
+);
 
 const userInfo = ref<userDBentry>({
     username: "",
@@ -115,6 +168,23 @@ const userInfo = ref<userDBentry>({
 });
 
 const router = useRouter();
+
+
+function prevWeek() {
+    currentWeekStart.value = addDays(currentWeekStart.value, -7);
+}
+
+function nextWeek() {
+    currentWeekStart.value = addDays(currentWeekStart.value, 7);
+}
+
+function todosForDay(day: Date) {
+    // Filter this.todos by matching date strings; assumes each todo has a dueDate field
+    return (genericToDoActions.value || []).filter(todo => {
+        const todoDate = new Date(todo.dateWithTime);
+        return todoDate.toDateString() === day.toDateString();
+    });
+}
 
 function sendNotify(type: "info" | "warning" | "error" | "success", text: string) {
     if (notificationManager.value) {
@@ -191,8 +261,21 @@ const handleSectionChange = (newSection: any) => {
     console.log(`Navigating to section: ${newSection}`);
 };
 
-function handleCalendarEvent(eventContent: { type: string, newEventsQuantity: number }) {
+function handleCalendarEvent(eventContent: { type: string, newEventsQuantity: number, todayEventsQuantity?: number, isToday?: boolean }) {
     console.log("new calendar event : ", eventContent)
+    totalEventsQuantity.value = eventContent.newEventsQuantity
+    if (eventContent.isToday) {
+        if (eventContent.type == "delete") {
+            todayEventsQuantity.value--
+        } else {
+            todayEventsQuantity.value++
+        }
+
+    }
+
+    if (eventContent.todayEventsQuantity) {
+        todayEventsQuantity.value = eventContent.todayEventsQuantity
+    }
 }
 
 async function handleToDoEvent(eventContent: { type: string, newToDoQuantity: number, karmaCoinsChange: undefined | number }) {
@@ -203,14 +286,14 @@ async function handleToDoEvent(eventContent: { type: string, newToDoQuantity: nu
     await askToDo()
 }
 
-async function handleAddToDo(result:{success:boolean, error:string}) {  
-  addToDoTrigger.value = false;
+async function handleAddToDo(result: { success: boolean, error: string }) {
+    addToDoTrigger.value = false;
 
-  if (result.success) {
-    await askToDo()
-  } else {
-    console.log("add to do failer or aborted, err: ", result.error);
-  }
+    if (result.success) {
+        await askToDo()
+    } else {
+        console.log("add to do failer or aborted, err: ", result.error);
+    }
 }
 
 onMounted(async () => {
@@ -304,7 +387,7 @@ onMounted(async () => {
     background-color: var(--background-dark);
     color: var(--text-color);
     flex-wrap: wrap;
-    gap: 5%;
+    gap: 2%;
     margin-left: 2%;
     margin-bottom: 1%;
 }
@@ -345,5 +428,84 @@ onMounted(async () => {
     display: none;
 }
 
+.todo-grid-box {
+    height: 40%;
+    min-height: 0;
+    margin-left: 2%;
+    width: 97%;
+    margin-bottom: 1%;
+    display: flex;
+    flex-direction: column;
+}
 
+.todo-grid-container {
+    width: 100%;
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(7, 23%);
+    gap: 1rem;
+    min-height: 0;
+    overflow-x: auto;
+}
+
+
+
+.custom-select {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.menu-icon {
+    font-size: 18px;
+    display: inline-flex;
+}
+
+.select-icon {
+    position: absolute;
+    right: 10px;
+    pointer-events: none;
+}
+
+.grid-todo-header {
+    /* di default non è flexibile */
+    flex: 0 0 auto;
+}
+
+.grid-todo-header button {
+    margin-top: 1%;
+    margin-left: 1%;
+    margin-right: 1%;
+}
+
+.day-column {
+    margin-left: 1%;
+    margin-right: 1%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.todo-grid-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.todos-wrapper {
+    flex: 1 1 auto;
+    /* occupa tutto lo spazio sotto la testata */
+    overflow-y: auto;
+    /* abilita scroll verticale */
+    min-height: 0;
+    /* importantissimo */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
 </style>

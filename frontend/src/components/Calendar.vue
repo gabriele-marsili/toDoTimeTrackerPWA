@@ -196,7 +196,7 @@ import { API_gestor } from '../backend-comunication/api_comunication';
 import { userDBentry } from '../types/userTypes';
 import { UserHandler } from '../engine/userHandler';
 import { useRouter } from 'vue-router';
-import { delay } from '../utils/generalUtils';
+import { delay, isToday } from '../utils/generalUtils';
 import DatePicker from './DatePicker.vue';
 import { TTT_Notification } from '../engine/notification';
 
@@ -336,7 +336,7 @@ async function deleteEvent(event: CalendarEventClass) {
         } else {
             events.value = events.value.filter(e => e.id !== event.id);
             sendNotify("success", "Event " + currentEvent.value.title + " deleted successfully")
-            emit("calendarEvent", { type: "delete event", newEventsQuantity: events.value.length })
+            emit("calendarEvent", { type: "delete event", newEventsQuantity: events.value.length, isToday : isToday(event.eventDate) })
         }
     } catch (error: any) {
         sendNotify("error", "Error deleting event : " + error.message);
@@ -473,7 +473,7 @@ async function addOrUpdateEvent() {
                     }
                 } else {
                     events.value.push(newEvent);
-                    emit("calendarEvent", { type: "add event", newEventsQuantity: events.value.length })
+                    emit("calendarEvent", { type: "add event", newEventsQuantity: events.value.length, isToday : isToday(newEvent.eventDate)})
                 }
                 sendNotify("success", "Event " + currentEvent.value.title + " " + action + " successfully")
                 await askCalendarEvents()
@@ -520,7 +520,8 @@ async function askCalendarEvents() {
             for (let event of calendarEvents) {
                 events.value.push(calendarHandler.fromCalendarObj(event))
             }
-            emit("calendarEvent", { type: "load events", newEventsQuantity: events.value.length })
+            const todayEventsQuantity = events.value.filter(e => isToday(e.eventDate)).length
+            emit("calendarEvent", { type: "load events", newEventsQuantity: events.value.length, todayEventsQuantity : todayEventsQuantity })
         } else {
             throw new Error(calendarHandlerRes.errorMessage);
         }
