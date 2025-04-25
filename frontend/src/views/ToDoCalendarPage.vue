@@ -23,7 +23,7 @@
                 <div class="header-item">
                     <span class="material-symbols-outlined icon">task</span>
                     <span>Today To-Dos : </span>
-                    <span class="value"> {{ todayToDoActions.length }}</span>
+                    <span class="value"> {{ todayToDoActionsComputed.length }}</span>
                 </div>
                 <div class="header-item">
                     <span class="material-symbols-outlined icon">event</span>
@@ -74,7 +74,7 @@
                 <div class="box max-w-lg w-full rounded-2xl elevated shadow-lg text-center">
                     <h3>Generic To Do</h3>
                     <ToDoList @todoAdded="handleAddToDo" :triggerAddToDo="addToDoTrigger" :is-sub-list="false"
-                        @todoEvent=handleToDoEvent :todos=genericToDoActionsComputed :viewMode="'list'">
+                        @todoEvent=handleToDoEvent :todos=sortedFilteredToDosComputed :viewMode="'list'">
                     </ToDoList>
                 </div>
             </div>
@@ -120,7 +120,7 @@
                     <h2 class="sorting_title">Sorting Options</h2>
 
                     <!-- Opzioni di ordinamento -->
-                    <div class="sorting_options">
+                    <div class="sorting_options custom-scrollbar">
                         <div v-for="(option, index) in tempSortOptions" :key="option.key" class="sorting_option">
                             <label>{{ option.label }}</label>
                             <select v-model="tempSortOptions[index].order" class="sort_selector">
@@ -154,56 +154,80 @@
                 <div class="content">
                     <h2 class="filter_title">Filtering Options</h2>
 
-                    <div class="filtering_options">
+                    <div class="filtering_options custom-scrollbar">
                         <div class="filtering_option">
                             <label>Title/Description Text:</label>
-                            <input type="text" v-model="tempFilterOptions.textSearch" placeholder="Search text..."
-                                class="filter_input" />
-                            <div></div>
-                            <div></div>
+                            <div class="input-group">
+                                <input type="text" v-model="tempFilterOptions.textSearch" placeholder="Search text..."
+                                    class="filter_input text-input-grow" />
+                            </div>
                         </div>
 
                         <div class="filtering_option">
                             <label>Category:</label>
-                            <select v-model="tempFilterOptions.category" class="filter_selector">
-                                <option :value="null">All Categories</option>
-                                <option v-for="cat in availableCategories" :key="cat" :value="cat">{{ cat }}</option>
-                            </select>
-                            <div></div>
-                            <div></div>
+                            <div class="input-group">
+                                <select v-model="tempFilterOptions.category" class="filter_selector">
+                                    <option :value="null">All Categories</option>
+                                    <option v-for="cat in userInfo.categories" :key="cat.name" :value="cat.name">{{
+                                        cat.name }}
+                                    </option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="filtering_option">
                             <label>Minimum Priority:</label>
-                            <select v-model="tempFilterOptions.priorityOperator" class="filter_selector">
-                                <option value=">=">Greater than or equal to</option>
-                                <option value=">">Greater than</option>
-                                <option value="==">Equal to</option>
-                                <option value="<">Less than</option>
-                                <option value="<=">Less than or equal to</option>
-                                <option value="!=">Not equal to</option>
-                            </select>
-                            <input type="number" v-model.number="tempFilterOptions.priorityValue" min="0"
-                                placeholder="Priority level" class="filter_input" />
-                            <div></div>
+                            <div class="input-group">
+                                <select v-model="tempFilterOptions.priorityOperator"
+                                    class="filter_selector priority-selector">
+                                    <option value=">=">Greater than or equal to</option>
+                                    <option value=">">Greater than</option>
+                                    <option value="==">Equal to</option>
+                                    <option value="<">Less than</option>
+                                    <option value="<=">Less than or equal to</option>
+                                    <option value="!=">Not equal to</option>
+                                </select>
+                                <input type="number" v-model.number="tempFilterOptions.priorityValue" min="0" max="5"
+                                    placeholder="Priority" class="filter_input priority-input" />
+                            </div>
                         </div>
 
                         <div class="filtering_option">
                             <label>Completion Status:</label>
-                            <select v-model="tempFilterOptions.completed" class="filter_selector">
-                                <option :value="null">All Statuses</option>
-                                <option :value="true">Completed</option>
-                                <option :value="false">Not Completed</option>
-                            </select>
-                            <div></div>
-                            <div></div>
+                            <div class="input-group">
+                                <select v-model="tempFilterOptions.completed" class="filter_selector">
+                                    <option :value="null">All Statuses</option>
+                                    <option :value="true">Completed</option>
+                                    <option :value="false">Not Completed</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="filtering_option">
                             <label>Expiration Date Range:</label>
-                            <input type="date" v-model="tempFilterOptions.expirationDateStart" class="filter_input_date" />
-                            <input type="date" v-model="tempFilterOptions.expirationDateEnd" class="filter_input_date" />
-                            <div></div>
+                            <div class="input-group date-range-group">
+                                <DatePicker :isDarkMode=isDarkMode v-model="tempFilterOptions.expirationDateStart" />
+                                <span>to</span>
+                                <DatePicker :isDarkMode=isDarkMode v-model="tempFilterOptions.expirationDateEnd" />
+                            </div>
+                        </div>
+
+                        <div class="filtering_option">
+                            <label>Date Range:</label>
+                            <div class="input-group date-range-group">
+                                <DatePicker :isDarkMode=isDarkMode v-model="tempFilterOptions.dateStart" />
+                                <span>to</span>
+                                <DatePicker :isDarkMode=isDarkMode v-model="tempFilterOptions.dateEnd" />
+                            </div>
+                        </div>
+
+                        <div class="filtering_option">
+                            <label>Notification Date Range:</label>
+                            <div class="input-group date-range-group">
+                                <DatePicker :isDarkMode=isDarkMode v-model="tempFilterOptions.notifyDateStart" />
+                                <span>to</span>
+                                <DatePicker :isDarkMode=isDarkMode v-model="tempFilterOptions.notifyDateEnd" />
+                            </div>
                         </div>
 
                     </div>
@@ -232,8 +256,8 @@
 </template>
 
 <script setup lang="ts">
-import { startOfWeek, addDays, endOfWeek, format } from 'date-fns';
-import { computed, onMounted, ref } from 'vue';
+import { startOfWeek, addDays, endOfWeek, format, startOfDay, endOfDay } from 'date-fns';
+import { computed, onMounted, ref, toRaw } from 'vue';
 import ConnectionStatus from '../components/ConnectionStatus.vue';
 import NotificationManager from '../gestors/NotificationManager.vue';
 import Calendar from '../components/Calendar.vue';
@@ -247,6 +271,8 @@ import { delay, isToday } from '../utils/generalUtils';
 import ToDoList from '../components/ToDoList.vue';
 import { parseISO } from 'date-fns';
 import { isSameDay } from 'date-fns';
+import DatePicker from '../components/DatePicker.vue';
+
 
 interface SortOption {
     key: keyof ToDoAction | 'dateWithTime'; // Use 'dateWithTime' for creation date
@@ -263,13 +289,15 @@ interface FilterOptions {
     completed: boolean | null;
     expirationDateStart: string | null; // Using string for date inputs
     expirationDateEnd: string | null; // Using string for date inputs
-    // Add other date/numeric filters as needed
+    dateStart: string | null;
+    dateEnd: string | null;
+    notifyDateStart: string | null;
+    notifyDateEnd: string | null;
+
 }
 
 const notificationManager = ref(null);
 const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
-const todayToDoActions = ref<ToDoAction[]>([]);
-const genericToDoActions = ref<ToDoAction[]>([]);
 const api_gestor = API_gestor.getInstance()
 const todoHandler = ToDoHandler.getInstance(api_gestor)
 const userHandler = UserHandler.getInstance(api_gestor)
@@ -287,13 +315,13 @@ const rawToDos = ref<ToDoAction[]>([]); // Mantiene la lista completa non filtra
 
 // Opzioni di sort correnti (usate nel modal)
 const tempSortOptions = ref<SortOption[]>([
-    { key: 'dateWithTime', label: 'Creation Date', order: 'asc', priority: 1 },
-    { key: 'priority', label: 'Priority', order: 'asc', priority: 2 },
-    { key: 'expiration', label: 'Expiration Date', order: 'asc', priority: 3 },
-    { key: 'title', label: 'Title', order: 'asc', priority: 4 },
-    { key: 'category', label: 'Category', order: 'asc', priority: 5 },
-    { key: 'notifyDate', label: 'Notify Date', order: 'asc', priority: 6 },
-    { key: 'completed', label: 'Completion Status', order: 'asc', priority: 7 },
+    { key: 'dateWithTime', label: 'Creation Date', order: 'asc', priority: 0 },
+    { key: 'priority', label: 'Priority', order: 'asc', priority: 0 },
+    { key: 'expiration', label: 'Expiration Date', order: 'asc', priority: 0 },
+    { key: 'title', label: 'Title', order: 'asc', priority: 0 },
+    { key: 'category', label: 'Category', order: 'asc', priority: 0 },
+    { key: 'notifyDate', label: 'Notify Date', order: 'asc', priority: 0 },
+    { key: 'completed', label: 'Completion Status', order: 'asc', priority: 0 },
 ]);
 
 // Opzioni di sort applicate (usate per l'ordinamento effettivo)
@@ -311,7 +339,11 @@ const tempFilterOptions = ref<FilterOptions>({
     completed: null,
     expirationDateStart: null,
     expirationDateEnd: null,
-    // Aggiungi qui gli altri filtri
+    dateStart: null,
+    dateEnd: null,
+    notifyDateStart: null,
+    notifyDateEnd: null,
+
 });
 
 // Opzioni di filter applicate (usate per il filtraggio effettivo)
@@ -320,25 +352,16 @@ const appliedFilterOptions = ref<FilterOptions>(JSON.parse(JSON.stringify(tempFi
 // Stato temporaneo per le opzioni di filter nel modal (per il cancel)
 const backFilterOptions = ref<FilterOptions | null>(null);
 
-// Categorie disponibili per il filtro (puoi popolarle dalla lista raw o fetcharle separatamente)
-const availableCategories = computed(() => {
-    const categories = new Set<string>();
-    rawToDos.value.forEach(todo => {
-        if (todo.category) {
-            categories.add(todo.category);
-        }
-    });
-    return Array.from(categories);
-});
-
 // Computed properties per il filtraggio e l'ordinamento
 const filteredToDosComputed = computed(() => {
     let filtered = rawToDos.value;
-
-    const filters = appliedFilterOptions.value;
+    console.log("rawToDos quantity (in filter to do): ", rawToDos.value.length)
+    const filters = toRaw(appliedFilterOptions.value);
+    console.log("filters:\n", filters)
 
     // Filtro per testo (Titolo/Descrizione)
     if (filters.textSearch) {
+        console.log("filtering for text")
         const searchTerm = filters.textSearch.toLowerCase();
         filtered = filtered.filter(todo =>
             (todo.title?.toLowerCase().includes(searchTerm)) ||
@@ -348,11 +371,13 @@ const filteredToDosComputed = computed(() => {
 
     // Filtro per Categoria
     if (filters.category !== null) {
+        console.log("filtering for category")
         filtered = filtered.filter(todo => todo.category === filters.category);
     }
 
     // Filtro per Priorità
     if (filters.priorityValue !== null && filters.priorityOperator) {
+        console.log("filtering for priority value")
         filtered = filtered.filter(todo => {
             const todoPriority = todo.priority || 0; // Assume 0 if priority is null/undefined
             switch (filters.priorityOperator) {
@@ -369,11 +394,13 @@ const filteredToDosComputed = computed(() => {
 
     // Filtro per Stato di completamento
     if (filters.completed !== null) {
+        console.log("filtering for completed status")
         filtered = filtered.filter(todo => !!todo.completed === filters.completed); // Ensure boolean comparison
     }
 
     // Filtro per Data di Scadenza
     if (filters.expirationDateStart || filters.expirationDateEnd) {
+        console.log("filtering for expiration date")
         filtered = filtered.filter(todo => {
             if (!todo.expiration) return false; // Exclude items without a expiration date if date filter is active
             const expirationDate = todo.expiration
@@ -395,45 +422,101 @@ const filteredToDosComputed = computed(() => {
         });
     }
 
+    if (filters.dateStart || filters.dateEnd) {
+        console.log("filtering for date")
+        filtered = filtered.filter(todo => {
+            if (!todo.dateWithTime) return false; // Assuming dateWithTime is creation date
+            try {
+                const creationDate = todo.dateWithTime;
+                if (isNaN(creationDate.getTime())) return false;
+
+                let isInRange = true;
+                if (filters.dateStart) {
+                    const startDate = startOfDay(parseISO(filters.dateStart));
+                    isInRange = isInRange && (creationDate >= startDate);
+                }
+                if (filters.dateEnd) {
+                    const endDate = endOfDay(parseISO(filters.dateEnd));
+                    isInRange = isInRange && (creationDate <= endDate);
+                }
+                return isInRange;
+            } catch (e) {
+                console.error("Error parsing creationDate for filter:", todo.dateWithTime, e);
+                return false;
+            }
+        });
+    }
+
+    // Filtro per Data di Notifica
+    if (filters.notifyDateStart || filters.notifyDateEnd) {
+        console.log("filtering for notify date")
+        filtered = filtered.filter(todo => {
+            if (!todo.notifyDate) return false;
+            try {
+                const notifyDate = todo.notifyDate;
+                if (isNaN(notifyDate.getTime())) return false;
+
+                let isInRange = true;
+                if (filters.notifyDateStart) {
+                    const startDate = startOfDay(parseISO(filters.notifyDateStart));
+                    isInRange = isInRange && (notifyDate >= startDate);
+                }
+                if (filters.notifyDateEnd) {
+                    const endDate = endOfDay(parseISO(filters.notifyDateEnd));
+                    isInRange = isInRange && (notifyDate <= endDate);
+                }
+                return isInRange;
+            } catch (e) {
+                console.error("Error parsing notifyDate for filter:", todo.notifyDate, e);
+                return false;
+            }
+        });
+    }
+
+
 
     // Aggiungi qui la logica per gli altri filtri
-
+    console.log("Filtered ToDos count:", filtered.length); // Debugging line
     return filtered;
 });
 
 const sortedFilteredToDosComputed = computed(() => {
     const sorted = [...filteredToDosComputed.value]; // Crea una copia per non modificare l'originale
 
-    // Ordina le opzioni di sort per priorità (crescente)
-    const sortedSortOptions = [...appliedSortOptions.value].sort((a, b) => a.priority - b.priority);
-
+    // Ordina le opzioni di sort per priorità (decrescente) (7 ha più priorità di 1)
+    const sortedSortOptions = [...appliedSortOptions.value].sort((a, b) => b.priority - a.priority);
+    console.log("sortedSortOptions:\n", sortedSortOptions)
     // Funzione di comparazione personalizzata che considera le priorità
     sorted.sort((a, b) => {
         for (const option of sortedSortOptions) {
             const key = option.key as keyof ToDoAction; // Type assertion
-            const valA = a[key];
-            const valB = b[key];
+            let valA = a[key] || null;
+            let valB = b[key] || null;
 
-            // Gestione speciale per i valori null/undefined o date non valide
-            if (valA == null && valB == null) continue; // Entrambi null, passa al criterio successivo
+            // Gestione specifica per i valori null/undefined o date non valide PRIMA della comparazione
+            const isDateKey = ['dateWithTime', 'expiration', 'notifyDate'].includes(option.key as string);
+
+            if (isDateKey) {
+                // Prova a parsare le date. Se non valide o null, trattale come null.
+                try {
+                    valA = valA ? (valA instanceof Date ? valA : parseISO(valA as string)) : null;
+                    if (valA && isNaN(valA.getTime())) valA = null;
+                } catch { valA = null; } // In caso di errore di parsing, considera null
+                try {
+                    valB = valB ? (valB instanceof Date ? valB : parseISO(valB as string)) : null;
+                    if (valB && isNaN(valB.getTime())) valB = null;
+                } catch { valB = null; }
+            }
+
+
+            if (valA == null && valB == null) continue; // Entrambi null (o date non valide), passa al criterio successivo
             if (valA == null) return option.order === 'asc' ? 1 : -1; // a è null, va dopo in asc, prima in desc
             if (valB == null) return option.order === 'asc' ? -1 : 1; // b è null, va prima in asc, dopo in desc
 
-            // Gestione specifica per le date (assicurati siano oggetti Date)
-            if (['dateWithTime', 'expiration', 'notifyDate'].includes(option.key as string)) {
-                const dateA = valA ? (valA instanceof Date ? valA : parseISO(valA as string)) : null;
-                const dateB = valB ? (valB instanceof Date ? valB : parseISO(valB as string)) : null;
-
-                if (dateA && dateB) {
-                    if (dateA.getTime() === dateB.getTime()) continue;
-                    return option.order === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
-                } else if (dateA) {
-                    return option.order === 'asc' ? -1 : 1; // dateA valido, dateB no
-                } else if (dateB) {
-                    return option.order === 'asc' ? 1 : -1; // dateB valido, dateA no
-                } else {
-                    continue; // Entrambe non valide, passa al criterio successivo
-                }
+            // Comparazione per date valide
+            if (isDateKey && valA instanceof Date && valB instanceof Date) {
+                if (valA.getTime() === valB.getTime()) continue;
+                return option.order === 'asc' ? valA.getTime() - valB.getTime() : valB.getTime() - valA.getTime();
             }
 
 
@@ -446,21 +529,17 @@ const sortedFilteredToDosComputed = computed(() => {
             }
             // Se sono uguali per questo criterio, passa al criterio successivo
         }
+        console.log("tutti i criteri uguali")
         return 0; // Se tutti i criteri sono uguali, l'ordine non cambia (stabile)
     });
 
+    console.log("Sorted (Filtered) ToDos:\n", sorted); // Debugging line
     return sorted;
 });
-
 const todayToDoActionsComputed = computed(() => {
-    // Filtra dalla lista ordinata e filtrata globale quelle di oggi
-    return sortedFilteredToDosComputed.value.filter(todo => isToday(todo.dateWithTime));
-});
-
-const genericToDoActionsComputed = computed(() => {
-    // Filtra dalla lista ordinata e filtrata globale quelle NON di oggi
-    // Assumiamo che "Generic" siano tutte quelle non "Today"
-    return sortedFilteredToDosComputed.value.filter(todo => !isToday(todo.dateWithTime));
+    const res = sortedFilteredToDosComputed.value.filter(todo => isToday(todo.dateWithTime))
+    console.log("sortedFilteredToDosComputed:\n", res)
+    return res;
 });
 
 const weekDays = computed(() =>
@@ -524,14 +603,19 @@ function closeFilterBox() {
 function resetSortOptions() {
     // Ripristina le opzioni di sort ai valori di default
     tempSortOptions.value = [
-        { key: 'dateWithTime', label: 'Creation Date', order: 'asc', priority: 1 },
-        { key: 'priority', label: 'Priority', order: 'asc', priority: 2 },
-        { key: 'expiration', label: 'Expiration Date', order: 'asc', priority: 3 },
-        { key: 'title', label: 'Title', order: 'asc', priority: 4 },
-        { key: 'category', label: 'Category', order: 'asc', priority: 5 },
-        { key: 'notifyDate', label: 'Notify Date', order: 'asc', priority: 6 },
-        { key: 'completed', label: 'Completion Status', order: 'asc', priority: 7 },
+        { key: 'dateWithTime', label: 'Creation Date', order: 'asc', priority: 0 },
+        { key: 'priority', label: 'Priority', order: 'asc', priority: 0 },
+        { key: 'expiration', label: 'Expiration Date', order: 'asc', priority: 0 },
+        { key: 'title', label: 'Title', order: 'asc', priority: 0 },
+        { key: 'category', label: 'Category', order: 'asc', priority: 0 },
+        { key: 'notifyDate', label: 'Notify Date', order: 'asc', priority: 0 },
+        { key: 'completed', label: 'Completion Status', order: 'asc', priority: 0 },
     ];
+    appliedSortOptions.value = JSON.parse(JSON.stringify(tempSortOptions.value));
+    sortBoxOpened.value = false;
+    sendNotify("success", "Sorting options resetted");
+    localStorage.setItem("sortOptions", JSON.stringify(appliedSortOptions.value))
+
 }
 
 function applySortOptions() {
@@ -539,7 +623,8 @@ function applySortOptions() {
     // La computed property sortedFilteredToDosComputed si aggiornerà automaticamente
     appliedSortOptions.value = JSON.parse(JSON.stringify(tempSortOptions.value));
     sortBoxOpened.value = false;
-    sendNotify("success", "Sorting options applied.");
+    sendNotify("success", "Sorting options applied");
+    localStorage.setItem("sortOptions", JSON.stringify(appliedSortOptions.value))
 }
 
 function resetFilterOptions() {
@@ -552,8 +637,17 @@ function resetFilterOptions() {
         completed: null,
         expirationDateStart: null,
         expirationDateEnd: null,
-        // Resetta qui gli altri filtri
+        dateStart: null,
+        dateEnd: null,
+        notifyDateStart: null,
+        notifyDateEnd: null,
     };
+    appliedFilterOptions.value = JSON.parse(JSON.stringify(tempFilterOptions.value));
+    filterBoxOpened.value = false;
+    sendNotify("success", "Filtering options resetted");
+    localStorage.setItem("filterOptions", JSON.stringify(appliedFilterOptions.value))
+
+
 }
 
 function applyFilterOptions() {
@@ -561,7 +655,8 @@ function applyFilterOptions() {
     // La computed property filteredToDosComputed (e di conseguenza sortedFilteredToDosComputed) si aggiornerà automaticamente
     appliedFilterOptions.value = JSON.parse(JSON.stringify(tempFilterOptions.value));
     filterBoxOpened.value = false;
-    sendNotify("success", "Filtering options applied.");
+    sendNotify("success", "Filtering options applied");
+    localStorage.setItem("filterOptions", JSON.stringify(appliedFilterOptions.value))
 }
 
 
@@ -576,12 +671,20 @@ function nextWeek() {
 
 // Questa funzione ora filtra dalla lista ordinata e filtrata globale
 const todosForDay = (day: Date) => {
-    return sortedFilteredToDosComputed.value.filter(todo => {
+    const dayList = sortedFilteredToDosComputed.value.filter(todo => {
         // Assumiamo che `dateWithTime` sia la data rilevante per la visualizzazione nella griglia settimanale
-        if (!todo.dateWithTime) return false; // Non mostrare to-do senza data nella griglia
-        const todoDate = new Date(todo.dateWithTime);
-        return isSameDay(todoDate, day);
+        if (!todo.dateWithTime) return false; // Non mostrare to-do senza data nella griglia settimanale
+        try {
+            const todoDate = todo.dateWithTime;
+            if (isNaN(todoDate.getTime())) return false; // Data non valida
+            return isSameDay(todoDate, day);
+        } catch (e) {
+            console.error("Error parsing dateWithTime for todosForDay:", todo.dateWithTime, e);
+            return false; // Esclude To-Do con date malformate
+        }
     });
+    // console.log(`ToDos for ${format(day, 'yyyy-MM-dd')} count:`, dayList.length); // Debugging line
+    return dayList;
 };
 
 function sendNotify(type: "info" | "warning" | "error" | "success", text: string) {
@@ -614,9 +717,7 @@ async function askToDo() {
             }
 
             totalToDoQuantity.value = countToDoQuantity(toDOres.toDos);
-
-            todayToDoActions.value = []
-            genericToDoActions.value = []
+            rawToDos.value = []
             todoCompletedQuantity.value = 0
 
             for (let to_do of todoList) {
@@ -625,10 +726,7 @@ async function askToDo() {
                 }
                 const toDoAction = todoHandler.fromToDoObj(to_do)
                 console.log("toDoAction:\n", toDoAction)
-                if (isToday(toDoAction.dateWithTime)) {
-                    todayToDoActions.value.push(toDoAction)
-                }
-                genericToDoActions.value.push(toDoAction)
+                rawToDos.value.push(toDoAction)
             }
         } else {
             throw new Error(toDOres.errorMessage);
@@ -703,6 +801,15 @@ onMounted(async () => {
         document.body.classList.remove('dark');
     }
 
+    //get sort & filter options by local storage
+    const sortOptionsByLocalStorage = localStorage.getItem("sortOptions")
+    if (sortOptionsByLocalStorage) {
+        appliedSortOptions.value = JSON.parse(sortOptionsByLocalStorage)
+    }
+    const filterOptionsByLocalStorage = localStorage.getItem("filterOptions")
+    if (filterOptionsByLocalStorage) {
+        appliedFilterOptions.value = JSON.parse(filterOptionsByLocalStorage)
+    }
 
     await askUserInfo()
     await askToDo()
@@ -764,7 +871,7 @@ onMounted(async () => {
 }
 
 .header-area {
-    flex: 1;    
+    flex: 1;
     min-width: 100%;
     display: flex;
     flex-direction: row;
@@ -780,7 +887,7 @@ onMounted(async () => {
     flex-direction: column;
     align-items: center;
     margin-top: 2%;
-    width: 97%;    
+    width: 97%;
     background-color: var(--background-dark);
     color: var(--text-color);
     flex-wrap: wrap;
@@ -841,7 +948,7 @@ onMounted(async () => {
     flex: 1;
     display: grid;
     grid-template-columns: repeat(7, 23%);
-    gap: 1rem;
+    gap: 6rem;
     min-height: 0;
     overflow-x: auto;
 }
@@ -884,6 +991,7 @@ onMounted(async () => {
     display: flex;
     flex-direction: column;
     min-height: 0;
+    min-width: 350px;
 }
 
 .todo-grid-box {
@@ -911,53 +1019,34 @@ onMounted(async () => {
 
 /*sort & filter boxes */
 .content {
-    background: #212121;
-    color: #fff;
+    background: var(--background-dark);
+    color: var(--text-color);
     padding: 20px;
     border-radius: 8px;
     width: 90%;
     /* Rendi il modal più responsive */
-    max-width: 520px;
-    /* Larghezza massima */
+    max-width: 650px;
+    /* Larghezza massima aumentata leggermente */
     max-height: 80%;
     /* Altezza massima */
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    overflow-y: auto;
+    overflow: hidden;
+    /* Gestito dalle singole sezioni con custom scrollbar */
     text-align: center;
     border: 1px solid #15b680d4;
     box-sizing: border-box;
 }
 
+
 .content h2 {
-    margin-bottom: 10px;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+    /* Colore primario per i titoli */
 }
 
-.content::-webkit-scrollbar {
-    width: 8px;
-}
-
-.content::-webkit-scrollbar-track {
-    background: #333;
-    border-radius: 4px;
-}
-
-.content::-webkit-scrollbar-thumb {
-    background: #15b680d4;
-    border-radius: 4px;
-}
-
-
-.sorting_title,
-.filter_title {
-    margin-top: 0.5%;
-    font-size: 25px;
-    text-align: center;
-    font-family: sans-serif;
-}
-
-
+/* Stili per le opzioni di sort/filter container */
 .sorting_options,
 .filtering_options {
     display: flex;
@@ -968,39 +1057,73 @@ onMounted(async () => {
     overflow-y: auto;
     /* Aggiunge scroll se necessario */
     padding-right: 10px;
-    /* Spazio per la scrollbar */
+    /* Spazio per la scrollbar custom */
+    margin-bottom: 20px;
+    /* Spazio tra opzioni e azioni */
 }
 
-/* Nasconde la scrollbar nel modal content per Firefox e IE */
-.sorting_options,
-.filtering_options {
+/* Stili per la scrollbar custom */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #333;
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #15b680d4;
+    border-radius: 4px;
+}
+
+.custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: #15b680d4 #333;
 }
 
+
 .sorting_option,
 .filtering_option {
     display: grid;
-    /* Usa repeat per definire le colonne in base al contenuto o una dimensione fissa */
-    grid-template-columns: 1fr auto auto auto;
-    /* Esempio: Label | Select/Input | Input/Select | Icon (se presente) */
-    gap: 10px;
+    /* Definisce due colonne: una per la label (auto) e una per il gruppo di input (1fr) */
+    grid-template-columns: auto 1fr;
+    gap: 15px;
+    /* Spazio tra label e input group */
     align-items: center;
     text-align: left;
     padding: 10px;
-    border-radius: 8px;
-    border-bottom: 1px solid grey;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+.sorting_option {
+    grid-template-columns: 1fr auto auto auto;
 }
 
 .sorting_option label,
 .filtering_option label {
-    font-size: 0.9rem;
+    font-size: 1em;
+    /* Aumenta leggermente la dimensione della label */
     white-space: nowrap;
     /* Evita che la label vada a capo */
+    min-width: 40px;
+    max-width: 80px;
+    /* Larghezza minima per le label per un migliore allineamento */
 }
 
+/* Wrapper per gli input/select per allinearli a destra */
+.input-group {
+    display: flex;
+    gap: 8px;
+    /* Spazio tra gli elementi nel gruppo */
+    align-items: center;
+    justify-content: flex-end;
+    /* Allinea gli elementi a destra */
+    flex-wrap: wrap;
+    /* Permette agli elementi di andare a capo se non c'è spazio */
+}
 
-/* Adatta le larghezze per i controlli nei modal */
+/* Stili per i controlli di input/select */
 .sort_selector,
 .priority_input,
 .filter_selector,
@@ -1011,46 +1134,59 @@ onMounted(async () => {
     -moz-appearance: none;
     background: #ffffff00;
     border: 2px solid #15b680d4;
-    color: white;
-    height: 26px;
-    /* Aggiusta altezza */
-    padding: 0 8px;
-    /* Riduci padding per adattare */
+    color: var(--text-color);
+    height: 32px;
+    /* Aumenta l'altezza */
+    padding: 0 10px;
+    /* Aumenta il padding */
     border-radius: 4px;
-    font-size: 0.85rem;
-    /* Riduci dimensione font */
+    font-size: 0.95rem;
+    /* Aumenta la dimensione del font */
     cursor: pointer;
     outline: none;
     box-sizing: border-box;
-    /* Include border e padding nella dimensione */
 }
 
 .sort_selector {
-    width: 100px;
-    /* Larghezza fissa o auto */
+    width: 120px;
+    /* Larghezza fissa per il selettore order */
 }
 
 .priority_input {
-    width: 60px;
-    /* Larghezza per input numerico */
+    width: 100px;
+    /* Larghezza per input numerico priority */
     text-align: center;
 }
 
 .filter_selector {
-    width: 120px;
-    /* Larghezza per select box */
+    width: 140px;
+    /* Larghezza per i selettori filtro */
 }
 
 .filter_input {
-    width: 100px;
+    width: 120px;
     /* Larghezza per input testo/numero */
 }
 
+/* Permette all'input testo di occupare più spazio */
+.text-input-grow {
+    flex-grow: 1;
+    /* Permette all'input di espandersi */
+    min-width: 100px;
+    max-width: 400px;
+
+}
+
+
 .filter_input_date {
-    width: 120px;
+    width: 130px;
     /* Larghezza per input data */
-    font-size: 0.85rem;
-    /* Assicurati la dimensione del font sia coerente */
+    font-size: 0.95rem;
+}
+
+.date-range-group span {
+    font-size: 0.9em;
+    color: grey;
 }
 
 input[type=number]::-webkit-inner-spin-button,
@@ -1062,41 +1198,44 @@ input[type=number]::-webkit-outer-spin-button {
 /* Stili per i bottoni delle azioni */
 .sorting_actions,
 .filtering_actions {
-    margin-top: 20px;
+    margin-top: 10px;
+    /* Riduci spazio sopra */
     display: flex;
-    justify-content: center;
-    /* Allinea i bottoni a destra */
+    justify-content: flex-end;
     gap: 30px;
-    /* Spazio tra i bottoni */
     padding-top: 10px;
-    border-top: 1px solid grey;
+    border-top: 1px solid rgba(128, 128, 128, 0.3);
+    flex-wrap: wrap;
+    /* Permette ai bottoni di andare a capo su schermi piccoli */
+    justify-content: center;
+    /* Centra i bottoni quando vanno a capo */
 }
 
 
 .reset_button,
 .apply_button,
 .cancel_button {
-    height: 35px;
+    height: 38px;
     /* Aumenta l'altezza dei bottoni */
-    padding: 0 15px;
+    padding: 0 18px;
     /* Aumenta il padding orizzontale */
     display: flex;
     gap: 0.5rem;
-    /* Spazio tra icona e testo */
     color: white;
     background: #ffffff00;
-    border: none;
+    border: 2px solid;
+    /* Definisce lo stile del bordo qui */
     cursor: pointer;
     border-radius: 4px;
     align-items: center;
-    font-size: 0.9rem;
+    font-size: 1rem;
+    /* Aumenta dimensione font bottone */
     transition: background-color 0.3s ease, border-color 0.3s ease;
     box-sizing: border-box;
-    /* Include border e padding nella dimensione */
 }
 
 .reset_button {
-    border: 2px solid #f44336;
+    border-color: #f44336;
 }
 
 .reset_button:hover {
@@ -1104,7 +1243,7 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .apply_button {
-    border: 2px solid #15b680d4;
+    border-color: #15b680d4;
 }
 
 .apply_button:hover,
@@ -1117,10 +1256,27 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .cancel_button {
-    border: 2px solid #9e9e9e;
+    border-color: #9e9e9e;
 }
 
 .cancel_button:hover {
     background-color: #ac98983b;
 }
+
+.priority-selector {
+    min-width: 200px;
+}
+
+
+/* Rimuovi o commenta questi se usi custom-scrollbar */
+/*
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+*/
 </style>
