@@ -1,5 +1,5 @@
 import { ToDoObj } from "../engine/toDoEngine";
-import { firestoneDate } from "../types/utilityTypes";
+import { Timestamp as firestoreTimestamp } from "firebase/firestore";
 
 export const VAPID_PUB_KEY = 'BFeFiK9dB7L-JJqRrql83EdAIQ3MOlaHaQYKlM_AZ3m4dSIGNxQy5_Wdthd7_IP-U8wZEyJl4e5gheTsR4ys78o'
 export const MAIN_LOGO_URL = "https://i.imgur.com/ROIfwjw.png"
@@ -71,14 +71,14 @@ export function isToday(date: Date): boolean {
 
 
 export function parseActionDates(action: ToDoObj) {
-    let firestoneDateWithTime = action.dateWithTime as unknown as firestoneDate
-    action.dateWithTime = new Date(firestoneDateWithTime.seconds * 1000 + Math.floor(firestoneDateWithTime.nanoseconds / 1_000_000));
+    let firestoneDateWithTime = action.dateWithTime as unknown as firestoreTimestamp
+    action.dateWithTime = firestoneDateWithTime.toDate()
 
-    let firestonenotifyDate = action.notifyDate as unknown as firestoneDate
-    action.notifyDate = new Date(firestonenotifyDate.seconds * 1000 + Math.floor(firestonenotifyDate.nanoseconds / 1_000_000));
+    let firestonenotifyDate = action.notifyDate as unknown as firestoreTimestamp
+    action.notifyDate = firestonenotifyDate.toDate()
 
-    let firestone_expiration = action.expiration as unknown as firestoneDate
-    action.expiration = new Date(firestone_expiration.seconds * 1000 + Math.floor(firestone_expiration.nanoseconds / 1_000_000));
+    let firestone_expiration = action.expiration as unknown as firestoreTimestamp
+    action.expiration = firestone_expiration.toDate()
 
     for(let a of action.subActions){
         parseActionDates(a)

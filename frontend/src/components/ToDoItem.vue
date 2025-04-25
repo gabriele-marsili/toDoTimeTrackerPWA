@@ -180,7 +180,7 @@ interface Props {
 const props = defineProps<Props>();
 const emit = defineEmits(["sendNotify", "update", "delete", "copy", "todoEvent", "addSubToDo"]);
 const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
-const localTodo = ref<ToDoAction>(props.todo.clone());
+const localTodo = ref<ToDoAction>(props.todo);
 const editing = ref(false);
 const replanMode = ref(false);
 const originalToDoCopy = ref<ToDoAction | null>(null);

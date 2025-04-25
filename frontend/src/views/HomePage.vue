@@ -70,7 +70,7 @@
 
                     <div class="sub-box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center">
                         <h3>Time Tracker</h3>
-                        <TimeTrackerRuleList></TimeTrackerRuleList>
+                        <TimeTrackerRuleList :view-mode="'list'" ></TimeTrackerRuleList>
                     </div>
 
                 </div>
@@ -467,7 +467,8 @@ grigio : #1e1e1e
     border-radius: 8px;
     color: #ffffff;
     box-sizing: border-box;
-    height: 60%;
+    min-height: 22%;
+    max-height: 22%;
     display: flex;
     flex-direction: column;
 }
@@ -486,10 +487,11 @@ grigio : #1e1e1e
     color: #ffffff;
     box-sizing: border-box;
     display: flex;
-    height: 28%;
+    min-height: 10%;
+    max-height: 10.3%;    
     flex-direction: column;
     overflow-y: auto;
-    max-height: 300px;
+    
 }
 
 .sub-box::-webkit-scrollbar {

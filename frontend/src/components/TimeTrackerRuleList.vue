@@ -1,10 +1,11 @@
 <template>
     <NotificationManager ref="notificationManager" />
-    <div class="rule-list">
+
+    <div class="rule-list" :class="viewMode">
         <div class="add-rule baseButton">
             <button @click="showAddNewRuleBox = true">Add New Rule</button>
         </div>
-        <div class="rule-items">
+        <div class="rule-items" :class="viewMode">
             <TimeTrackerRuleItem v-for="rule in rules" :key="rule.id" :rule="rule" @edit="onRuleEdit"
                 @delete="onRuleDelete" />
         </div>
@@ -27,10 +28,15 @@
                 <input id="Minutes Limit" class="baseInputField" type="number" max="60" min="0" v-model="minutes"
                     placeholder="Minutes Limit" />
             </div>
+
             <div class="form-group">
                 <label for="category">Category:</label>
-                <input id="category" class="baseInputField" type="text" v-model="currentRule.category"
-                    placeholder="Rule Category" />
+
+                <select class="selettore" name="catgory" id="todo_category" v-model="currentRule.category">
+                    <option v-for="category in userInfo.categories" :key="category.name" :value="category.name">{{
+                        category.name }} ({{ category.points }} points)</option>
+                </select>
+
             </div>
 
             <div class="form-group">
@@ -119,7 +125,9 @@ import { API_gestor } from '../backend-comunication/api_comunication';
 import { UserHandler } from '../engine/userHandler';
 import { useRouter } from 'vue-router';
 import { delay } from '../utils/generalUtils';
+import { userDBentry } from '../types/userTypes';
 
+const emit = defineEmits(["ttRuleListEvent"])
 const router = useRouter();
 const currentRule = ref<TimeTrackerRule>(
     new TimeTrackerRule('', '', 1, 'notify & close', '')
@@ -127,6 +135,7 @@ const currentRule = ref<TimeTrackerRule>(
 const ruleToEdit = ref<TimeTrackerRule>(
     new TimeTrackerRule('', '', 1, 'notify & close', '')
 );
+const props = defineProps<{ viewMode: "list" | "grid" }>();
 
 var backupEditValues = {
     id: '',
@@ -146,6 +155,26 @@ const api_gestor = API_gestor.getInstance()
 const timeTrackerRuleHandler = TimeTrackerHandler.getInstance(api_gestor)
 let licenseKey = ""
 const userHandler = UserHandler.getInstance(api_gestor)
+const defaultImagePath = "../../public/user.avif"
+const userInfo = ref<userDBentry>({
+    username: "",
+    avatarImagePath: defaultImagePath,
+    age: 1,
+    categories: [],
+    createdAt: new Date(),
+    email: "",
+    firstName: "",
+    lastName: "",
+    licenseIsValid: false,
+    licenseKey: "",
+    notifications: false,
+    permissions: false,
+    phone: "",
+    timeTrackerActive: false,
+    karmaCoinsBalance: 0,
+    friends: [],
+    fcmToken: ""
+});
 
 function sendNotify(type: "info" | "warning" | "error" | "success", text: string) {
     if (notificationManager.value) {
@@ -187,12 +216,14 @@ async function addNewRule() {
         rules.value.push(newRule);
         sendNotify("success", "Successfully added rule for site " + newRule.site_or_app_name);
         showAddNewRuleBox.value = false;
+        emit("ttRuleListEvent", { action: "add new rule", needUpdate: true })
     }
+
 
 }
 
 
-async function editRule() { 
+async function editRule() {
     let errors = [];
     if (ruleToEdit.value.category == "") {
         errors.push("Missing Category")
@@ -232,6 +263,7 @@ async function editRule() {
         showEditRuleBox.value = false;
         hours.value = 0
         minutes.value = 0
+        emit("ttRuleListEvent", { action: "edit rule " + r.id, needUpdate: true })
     }
 }
 
@@ -283,6 +315,7 @@ async function onRuleDelete(ruleToDelete: TimeTrackerRule) {
         }
         rules.value = rules.value.filter(r => r.id !== ruleToDelete.id);
         sendNotify("success", "Successfully deleted rule for site " + ruleToDelete.site_or_app_name)
+        emit("ttRuleListEvent", { action: "edit rule " + ruleToDelete.id, needUpdate: true })
     } catch (error: any) {
         sendNotify("error", "Error deleting rule : " + error.message)
     }
@@ -306,17 +339,18 @@ async function askTimeTrackerRules() {
     }
 }
 
-onMounted(async () => { 
+onMounted(async () => {
     const userInfoRes = await userHandler.getUserInfo(true)
     console.log("userInfoRes (time tracker rule):\n", userInfoRes)
     if (!userInfoRes.userInfo_DB) { // => user not logged 
-        
+
         //redirect to welcome
         await delay(2000)
         //redirect to welcome
         router.push("/welcome")
         return;
     }
+    userInfo.value = userInfoRes.userInfo_DB
     licenseKey = userInfoRes.userInfo_DB.licenseKey
     await askTimeTrackerRules()
 })
@@ -346,6 +380,17 @@ onMounted(async () => {
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+.rule-list.grid {
+    min-width: 85%;
+}
+
+.rule-items.grid {
+    min-width: 95%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
 }
 
 .add-rule-content {
@@ -378,6 +423,4 @@ onMounted(async () => {
     justify-content: center;
     gap: 10px
 }
-
-
 </style>

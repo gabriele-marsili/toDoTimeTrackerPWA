@@ -3,7 +3,8 @@ import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signO
 import { arrayRemove, collection, doc, Firestore, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { analytics, auth, db, messaging } from "./firebase.js";
 import { delay, generateLicenseKey, getDeviceId, hashPassword, MAIN_LOGO_URL, parseActionDates, VAPID_PUB_KEY } from "../utils/generalUtils.js";
-import { baseResponse, firestoneDate } from "../types/utilityTypes.js";
+import { baseResponse } from "../types/utilityTypes.js";
+import { Timestamp as firestoreTimestamp } from "firebase/firestore";
 import sodium from 'libsodium-wrappers';
 import { userDBentry } from "../types/userTypes.js";
 import { ToDoAction, ToDoObj } from "../engine/toDoEngine.js";
@@ -69,7 +70,11 @@ export class API_gestor {
             if (this.user && this.user.email) {
                 const res = await this.getUserByEmail(this.user.email)
                 if (res.success && res.data) {
-                    this.userByDB = res.data;
+                    this.userByDB = res.data as userDBentry;
+                    if (this.userByDB.licenseKey != "") {
+                        this.licenseKey = this.userByDB.licenseKey;
+                    }
+
                     await this.registerFCMToken()
                 }
             }
@@ -783,14 +788,14 @@ export class API_gestor {
 
     public async updateUserInfo(uInfo: userDBentry): Promise<baseResponse> {
         try {
-            console.log("updating uInfo with info:\n",)
+            console.log("updating uInfo with info:\n", uInfo)
             if (!this.user) {
                 throw new Error("User not initialized yet")
             }
 
             // save user data in Firestore (local and then on db when user is online)
             await setDoc(doc(collection(db, "users"), this.user.uid), {
-                licenseKey: this.licenseKey,
+                licenseKey: uInfo.licenseKey,
                 email: uInfo.email,
                 username: uInfo.username,
                 firstName: uInfo.firstName,
@@ -800,18 +805,19 @@ export class API_gestor {
                 timeTrackerActive: uInfo.timeTrackerActive,
                 phone: uInfo.phone,
                 age: uInfo.age,
-                notification: uInfo.notifications,
+                notifications: uInfo.notifications,
                 createdAt: uInfo.createdAt,
                 licenseIsValid: uInfo.licenseIsValid,
                 friends: uInfo.friends,
-                karmaCoinsBalance: uInfo.karmaCoinsBalance
+                karmaCoinsBalance: uInfo.karmaCoinsBalance,
+                avatarImagePath : uInfo.avatarImagePath
             });
             return {
                 success: true,
                 errorMessage: ""
             }
         } catch (error: any) {
-            console.log("error in update user info:\n", error);
+            console.log("error in update user info (api gestor):\n", error);
             return {
                 success: false,
                 errorMessage: error.message
@@ -843,12 +849,13 @@ export class API_gestor {
                 timeTrackerActive: userForm.timeTrackerActive,
                 phone: userForm.phone,
                 age: userForm.age,
-                notification: userForm.notifications,
+                notifications: userForm.notifications,
                 createdAt: new Date(),
                 licenseIsValid: true,
                 friends: [],
                 karmaCoinsBalance: 0,
-                fcmToken: ""
+                fcmToken: "",
+                avatarImagePath : ""
             });
 
             this.licenseKey = licenseKey;
@@ -938,6 +945,7 @@ export class API_gestor {
             await delay(1500)
         }
 
+        console.log("this.userByDB in get user info api gestor:\n", this.userByDB)
         return {
             userInfo: {
                 licenseKey: this.licenseKey,
@@ -1449,8 +1457,8 @@ export class API_gestor {
             const docData = snapshot.docs[0].data()
             let parsedEvents: CalendarObj[] = docData.events || [];
             for (let event of parsedEvents) {
-                let firestoneDate = event.eventDate as unknown as firestoneDate
-                event.eventDate = new Date(firestoneDate.seconds * 1000 + Math.floor(firestoneDate.nanoseconds / 1_000_000));
+                let firestoneDate = event.eventDate as unknown as firestoreTimestamp
+                event.eventDate = firestoneDate.toDate();
             }
 
             return {
