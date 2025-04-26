@@ -8,9 +8,7 @@ import { registerRoute, setCatchHandler } from 'workbox-routing';
 import { NetworkFirst, CacheFirst } from 'workbox-strategies'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { SW_BROADCAST_CHANNEL } from '../utils/generalUtils.js';
-import { onMessage } from 'firebase/messaging';
-//import { messaging } from '../backend-comunication/firebase.js';
-import { onBackgroundMessage } from "firebase/messaging/sw";
+
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -217,46 +215,3 @@ self.addEventListener('notificationclick', (event) => {
     event.waitUntil(self.clients.openWindow(event.notification.tag));
     event.notification.close();
 });
-
-/*
-self.addEventListener("fetch", (event) => {
-    event.respondWith(
-        caches.match(event.request).then(async (cacheRes) => {
-            if (cacheRes) {
-                return cacheRes
-            } else {
-
-                return fetch(event.request).catch(async () => {
-
-                    console.log("resource NOT found in cache, relative request:\n", event.request)
-                    //return fetch(event.request); //return cache res or fetch req if the resource is not in the cache
-                    let pages = [
-                        "/welcome",
-                        "/login",
-                        "/register"
-                    ]
-
-                    let included = pages.some(p => event.request.url.toLowerCase().includes(p))
-                    console.log("url : ", event.request.url)
-                    console.log("included : ", included)
-                    if (included || event.request.mode === "navigate") {
-                        const fallbackResponse = await caches.match('/offline.html');
-                        console.log("fallbackResponse: ", fallbackResponse)
-                        if (fallbackResponse) {
-                            return fallbackResponse;
-                        } else {
-                            console.log("posting broadcast msg...")
-                            broadcast.postMessage({ type: "offline", content: "load offline-redirect page" });
-                        }
-                    }
-
-                    return fetch(event.request)
-                })
-            }
-
-        })
-    )
-
-})
-*/
-

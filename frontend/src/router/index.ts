@@ -9,7 +9,8 @@ import SettingsPage from "../views/SettingsPage.vue";
 import ShopPage from "../views/ShopPage.vue";
 import TimeTrackerPage from "../views/TimeTrackerPage.vue";
 import ToDoCalendarPage from "../views/ToDoCalendarPage.vue";
-import StatsPage from "../components/StatsPage.vue";
+import StatsPage from "../views/StatsPage.vue";
+
 
 const routes = [    
     { path: "/", redirect: () => {
