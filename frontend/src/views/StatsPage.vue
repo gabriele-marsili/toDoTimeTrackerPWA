@@ -2,7 +2,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
     <ConnectionStatus />
-    <div class="main-app custom-scrollbar">
+    <div class="main-app">
         <Sidebar :activeSection="'stats'" @update:activeSection="handleSectionChange" />
         <NotificationManager ref="notificationManager" />
 
@@ -41,7 +41,7 @@
                 </div>
             </header>
 
-            <div class="content-area">
+            <div class="content-area invisible-scrollbar">
 
                 <h3 class="section-title">To-Do Actions Statistics</h3>
                 <div class="charts-grid">
@@ -69,20 +69,10 @@
                         <h4>Distribution by Priority</h4>
                         <canvas ref="priorityChart"></canvas>
                     </div>
-
-                    <div class="chart-container box elevated rounded-2xl disabled-chart">
-                        <h4>Average Completion Time</h4>
-                        <p>Data not available (requires implementation in StatsHandler)</p>
-                    </div>
-
-                    <div class="chart-container box elevated rounded-2xl disabled-chart">
-                        <h4>Recurring Tasks</h4>
-                        <p>Data not available (requires implementation in StatsHandler)</p>
-                    </div>
                 </div>
 
                 <h3 class="section-title">Calendar Events Statistics</h3>
-                <div class="charts-grid">
+                <div class="charts-grid-2">
                     <div class="chart-container box elevated rounded-2xl">
                         <h4>Time Distribution by Event Category</h4>
                         <canvas ref="calendarCategoryChart"></canvas>
@@ -97,15 +87,10 @@
                         <h4>Events by Hour of the Day</h4>
                         <canvas ref="busyHoursChart"></canvas>
                     </div>
-
-                    <div class="chart-container box elevated rounded-2xl disabled-chart">
-                        <h4>Average Event Duration by Category</h4>
-                        <p>Data not available (requires implementation in StatsHandler)</p>
-                    </div>
                 </div>
 
                 <h3 class="section-title">Time Tracker Rules Statistics</h3>
-                <div class="charts-grid">
+                <div class="charts-grid-3">
                     <div class="chart-container box elevated rounded-2xl">
                         <h4>Time Saved per Rule</h4>
                         <canvas ref="timeSavedChart"></canvas>
@@ -114,11 +99,6 @@
                     <div class="chart-container box elevated rounded-2xl">
                         <h4>Rule Effectiveness</h4>
                         <canvas ref="ruleEffectivenessChart"></canvas>
-                    </div>
-
-                    <div class="chart-container box elevated rounded-2xl disabled-chart">
-                        <h4>Most Limited Categories</h4>
-                        <p>Data not available (requires implementation in StatsHandler)</p>
                     </div>
                 </div>
 
@@ -144,11 +124,11 @@ import { StatsHandler } from '../engine/statsHandler';
 import { TimeTrackerHandler, TimeTrackerRule } from '../engine/timeTracker';
 import { CalendarEvent, CalendarEventHandler } from '../engine/calendarEvent';
 import DatePicker from '../components/DatePicker.vue';
-
-// Import Chart.js components
 import { Chart, LinearScale, BarElement, PointElement, LineElement, ArcElement, Title, Tooltip, Legend, CategoryScale, PieController, DoughnutController, BarController, LineController } from 'chart.js';
+import { parseISO } from 'date-fns'; // Assuming date-fns is used for date parsing
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
-// Register the necessary Chart.js components
+
 Chart.register(
     CategoryScale,
     LinearScale,
@@ -162,12 +142,13 @@ Chart.register(
     PieController,
     DoughnutController,
     BarController,
-    LineController
+    LineController,
+    ChartDataLabels
 );
-
 
 const notificationManager = ref(null);
 const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
+const textColor = isDarkMode.value ? 'white' : 'black';
 const api_gestor = API_gestor.getInstance();
 const userHandler = UserHandler.getInstance(api_gestor)
 const userInfo = ref<userDBentry>({ // State for user info
@@ -306,15 +287,30 @@ const loadStats = async () => {
         }, {} as Record<string, number>);
 
         // Generate statistics using the loaded data and current period
-        completionByCategory.value = statsHandler.value.getCompletionByCategory(todos.value);
+        console.log("stats (load stats):\n")
+        completionByCategory.value = statsHandler.value.getCompletionByCategory(todos.value, userInfo.value.categories.map(c => c.name));
+        console.log("completionByCategory.value", completionByCategory.value)
         karmaPoints.value = statsHandler.value.getKarmaPoints(todos.value, categoryKarmaMap);
-        // Trend data depends on interval, so call updateCompletionTrend separately after loading todos
-        updateCompletionTrend(); // This call should now find the function
+        console.log("karmaPoints.value", karmaPoints.value)
+
+        completionTrend.value = statsHandler.value.getCompletionTrend(
+            todos.value,
+            trendInterval.value
+        );
+        console.log("completionTrend.value", completionTrend.value)
+
+
         punctualityRate.value = statsHandler.value.getPunctualityRate(todos.value);
+        console.log("punctualityRate.value", punctualityRate.value);
+
         priorityDistribution.value = statsHandler.value.getPriorityDistribution(todos.value);
+        console.log("priorityDistribution.value", priorityDistribution.value)
         timeDistribution.value = statsHandler.value.getTimeDistributionByCategory(calendarEvents.value);
+        console.log("timeDistribution.value", timeDistribution.value)
         busyPeriods.value = statsHandler.value.getBusyPeriods(calendarEvents.value);
+        console.log("busyPeriods.value", busyPeriods.value)
         timeSaved.value = statsHandler.value.getTimeSaved(ttRules.value);
+        console.log("timeSaved.value", timeSaved.value)
 
         // Now that stats are calculated, update charts
         updateCharts();
@@ -325,34 +321,22 @@ const loadStats = async () => {
     }
 };
 
-// Update trend based on selected interval and then update charts
-function updateCompletionTrend() { // The missing function definition is added here
-    completionTrend.value = statsHandler.value.getCompletionTrend(
-        todos.value,
-        trendInterval.value
-    );
-    // Call updateCharts after trend data is updated
-    if (todos.value.length > 0) { // Only update if data is available
-        updateCharts();
-    } else {
-        // Clear charts if no data
-        updateCharts(); // Calling updateCharts with empty data will destroy existing charts
-    }
-}
 
-function setTrendInterval(interval: 'day' | 'week' | 'month') { // The missing function definition is added here
+// Define setTrendInterval function here
+function setTrendInterval(interval: 'day' | 'week' | 'month') {
     trendInterval.value = interval;
     // Recalculate trend data for the new interval
     completionTrend.value = statsHandler.value.getCompletionTrend(
         todos.value,
         trendInterval.value
     );
+    console.log("completionTrend.value (in setTrendInterval)", completionTrend.value)
     // Call updateCharts after trend data is updated
-    if (todos.value.length > 0) { // Only update if data is available
+    if (todos.value.length > 0 && completionTrend.value.labels.length > 0) {
         updateCharts();
     } else {
         // Clear charts if no data
-        updateCharts(); // Calling updateCharts with empty data will destroy existing charts
+        updateCharts();
     }
 }
 
@@ -360,13 +344,20 @@ function setTrendInterval(interval: 'day' | 'week' | 'month') { // The missing f
 const applyCustomPeriod = () => {
     if (customStartDate.value && customEndDate.value) {
         selectedPeriod.value = 'custom';
-        const startDate = new Date(customStartDate.value);
-        const endDate = new Date(customEndDate.value);
+        // Use parseISO from date-fns to correctly parse the date strings
+        const startDate = parseISO(customStartDate.value);
+        const endDate = parseISO(customEndDate.value);
         // Validate dates if necessary (e.g., start before end)
         if (startDate > endDate) {
             sendNotify("warning", "Start date cannot be after end date.");
             return;
         }
+        // Check if dates are valid after parsing
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            sendNotify("error", "Invalid date format selected.");
+            return;
+        }
+
         statsHandler.value.setPeriod(startDate, endDate);
         loadStats();
     } else {
@@ -385,36 +376,32 @@ const updateCharts = () => {
     });
     chartInstances.value = []; // Clear the array
 
-
-    // Create new charts only if data is available
-    if (completionByCategory.value.length > 0) createCategoryCompletionChart();
-    // Check if karmaPoints.value.byCategory has items with points > 0
-    if (karmaPoints.value.byCategory.some(cat => cat.points > 0)) createKarmaChart();
-    if (completionTrend.value.labels.length > 0) createCompletionTrendChart();
-    if (punctualityRate.value.onTime + punctualityRate.value.late > 0) createPunctualityChart();
-    // Check if priorityDistribution.value has items with count > 0
-    if (priorityDistribution.value.some(item => item.count > 0)) createPriorityChart();
-    if (timeDistribution.value.length > 0) createCalendarCategoryChart();
+    // Create new charts only if the canvas ref exists AND there is data
+    // Added stricter checks for data presence before attempting to create charts
+    if (categoryCompletionChart.value && completionByCategory.value.length > 0) createCategoryCompletionChart();
+    if (karmaChart.value && karmaPoints.value.byCategory.some(cat => cat.points > 0)) createKarmaChart();
+    if (completionTrendChart.value && completionTrend.value.labels.length > 0) createCompletionTrendChart();
+    if (punctualityChart.value && (punctualityRate.value.onTime > 0 || punctualityRate.value.late > 0)) createPunctualityChart(); // Check if at least one count is > 0
+    if (priorityChart.value && priorityDistribution.value.some(item => item.count > 0)) createPriorityChart();
+    if (calendarCategoryChart.value && timeDistribution.value.length > 0) createCalendarCategoryChart();
     // Check if busyPeriods.byDay and busyPeriods.byHour have actual data points before creating charts
-    if (busyPeriods.value.byDay.some(d => d.count > 0)) createBusyDaysChart();
-    if (busyPeriods.value.byHour.some(h => h.count > 0)) createBusyHoursChart();
-    if (timeSaved.value.length > 0) {
+    if (busyDaysChart.value && busyPeriods.value.byDay.some(d => d.count > 0)) createBusyDaysChart();
+    if (busyHoursChart.value && busyPeriods.value.byHour.some(h => h.count > 0)) createBusyHoursChart();
+    if (timeSavedChart.value && timeSaved.value.length > 0) {
         createTimeSavedChart();
         // Check if there's any time saved before creating effectiveness chart
-        if (timeSaved.value.some(item => item.savedMinutes > 0)) {
+        if (ruleEffectivenessChart.value && timeSaved.value.some(item => item.savedMinutes > 0)) {
             createRuleEffectivenessChart();
         }
     }
-
 };
 
 // --- Chart Creation Functions ---
 
 const createCategoryCompletionChart = () => {
-    if (!categoryCompletionChart.value || completionByCategory.value.length === 0) return;
-
-    const ctx = categoryCompletionChart.value.getContext('2d');
-    if (!ctx) return;
+    // Already checked for ref and data availability in updateCharts
+    const ctx = categoryCompletionChart.value!.getContext('2d'); // Use non-null assertion after check
+    if (!ctx) return; // Explicit check for context
 
     const data = {
         labels: completionByCategory.value.map(stat => stat.category),
@@ -422,13 +409,18 @@ const createCategoryCompletionChart = () => {
             label: 'Completion (%)',
             data: completionByCategory.value.map(stat => stat.percentage),
             backgroundColor: [
-                'rgba(75, 192, 192, 0.7)',
-                'rgba(54, 162, 235, 0.7)',
-                'rgba(255, 206, 86, 0.7)',
-                'rgba(255, 99, 132, 0.7)',
-                'rgba(153, 102, 255, 0.7)',
-                'rgba(255, 159, 64, 0.7)',
-                'rgba(100, 100, 100, 0.7)',
+                'rgba(75, 192, 192, 0.7)', // Teal
+                'rgba(54, 162, 235, 0.7)', // Blue
+                'rgba(255, 206, 86, 0.7)', // Yellow
+                'rgba(255, 99, 132, 0.7)', // Red
+                'rgba(153, 102, 255, 0.7)', // Purple
+                'rgba(255, 159, 64, 0.7)', // Orange
+                'rgba(200, 100, 100, 0.7)', // Example new color 1 (Brownish Red)
+                'rgba(140, 200, 120, 0.7)', // Example new color 2 (Greenish)
+                'rgba(120, 120, 220, 0.7)', // Example new color 3 (Indigo)
+                'rgba(220, 120, 200, 0.7)', // Example new color 4 (Pinkish Purple)
+                'rgba(100, 180, 180, 0.7)', // Example new color 5 (Cyan)
+                'rgba(180, 180, 100, 0.7)', // Example new color 6 (Olive)
             ],
             borderColor: [
                 'rgba(75, 192, 192, 1)',
@@ -437,13 +429,18 @@ const createCategoryCompletionChart = () => {
                 'rgba(255, 99, 132, 1)',
                 'rgba(153, 102, 255, 1)',
                 'rgba(255, 159, 64, 1)',
-                'rgba(100, 100, 100, 1)',
+                'rgba(200, 100, 100, 1)',
+                'rgba(140, 200, 120, 1)',
+                'rgba(120, 120, 220, 1)',
+                'rgba(220, 120, 200, 1)',
+                'rgba(100, 180, 180, 1)',
+                'rgba(180, 180, 100, 1)',
             ],
             borderWidth: 1
         }]
     };
 
-    const chart = new Chart(ctx, {
+    const chart = new Chart(ctx!, { // Use non-null assertion
         type: 'pie',
         data: data,
         options: {
@@ -453,23 +450,46 @@ const createCategoryCompletionChart = () => {
                 legend: {
                     position: 'right',
                     labels: {
-                        color: 'var(--color)'
+                        color: textColor
                     }
-                },
-                title: {
-                    display: false,
-                    text: 'Completion by Category'
                 },
                 tooltip: {
                     callbacks: {
                         label: function (context) {
                             const label = context.label || '';
                             const value = context.raw as number;
-                            return `${label}: ${value.toFixed(1)}%`;
+                            // Only show tooltip if percentage is > 0
+                            if (value > 0) {
+                                return `${label}: ${value.toFixed(1)}%`;
+                            }
+                            // Return an empty string or a specific message for 0% if needed
+                            // return value === 0 ? `${label}: 0%` : '';
+                            return ''; // Hide tooltip for 0% slices
                         }
+                    }
+                },
+                datalabels: { // <-- Add this configuration block for datalabels
+                    color: textColor, // Use theme variable for datalabel text color
+                    formatter: (value: number) => {
+                        // Only show datalabel if percentage is > 0
+                        return value > 0 ? value.toFixed(1) + '%' : '';
+                    },
+                    display: (context: any) => {
+                        // Only display datalabel if the slice percentage is > 0
+                        const value = context.dataset.data[context.dataIndex];
+                        return value > 0;
                     }
                 }
             },
+            // Add layout padding to make space for legend and labels if needed
+            layout: {
+                padding: {
+                    left: 10,
+                    right: 10,
+                    top: 10,
+                    bottom: 10
+                }
+            }
         },
     });
 
@@ -478,12 +498,10 @@ const createCategoryCompletionChart = () => {
 
 
 const createKarmaChart = () => {
-    // Check if karmaPoints.value.byCategory has items with points > 0
-    const hasData = karmaPoints.value.byCategory.some(cat => cat.points > 0);
-    if (!karmaChart.value || !hasData) return;
+    // Already checked for ref and data availability in updateCharts
+    const ctx = karmaChart.value!.getContext('2d'); // Use non-null assertion
+    if (!ctx) return; // Explicit check for context
 
-    const ctx = karmaChart.value.getContext('2d');
-    if (!ctx) return;
 
     const data = {
         labels: karmaPoints.value.byCategory.map(cat => cat.category),
@@ -512,7 +530,7 @@ const createKarmaChart = () => {
         }]
     };
 
-    const chart = new Chart(ctx, {
+    const chart = new Chart(ctx!, { // Use non-null assertion
         type: 'doughnut',
         data: data,
         options: {
@@ -522,14 +540,14 @@ const createKarmaChart = () => {
                 legend: {
                     position: 'right',
                     labels: {
-                        color: 'var(--color)'
+                        color: textColor // Use theme variable
                     }
                 },
                 title: {
                     display: false,
                     text: 'Karma Points by Category'
                 },
-                tooltip: { // Tooltip is correctly inside plugins
+                tooltip: {
                     callbacks: {
                         label: function (context) {
                             const label = context.label || '';
@@ -547,10 +565,10 @@ const createKarmaChart = () => {
 
 
 const createCompletionTrendChart = () => {
-    if (!completionTrendChart.value || completionTrend.value.labels.length === 0) return;
+    // Already checked for ref and data availability in updateCharts
+    const ctx = completionTrendChart.value!.getContext('2d'); // Use non-null assertion
+    if (!ctx) return; // Explicit check for context
 
-    const ctx = completionTrendChart.value.getContext('2d');
-    if (!ctx) return;
 
     const data = {
         labels: completionTrend.value.labels,
@@ -576,7 +594,7 @@ const createCompletionTrendChart = () => {
         ]
     };
 
-    const chart = new Chart(ctx, {
+    const chart = new Chart(ctx!, { // Use non-null assertion
         type: 'bar',
         data: data,
         options: {
@@ -585,32 +603,34 @@ const createCompletionTrendChart = () => {
             scales: {
                 y: {
                     beginAtZero: true,
+                    // Added suggestedMax to ensure small values are visible
+                    suggestedMax: Math.max(...completionTrend.value.completed, ...completionTrend.value.added, 3), // Set a suggested max, e.g., at least 3 or slightly above max data
                     ticks: {
-                        color: 'var(--color)'
+                        color: textColor // Use theme variable
                     },
                     title: {
                         display: true,
                         text: 'Task Quantity',
-                        color: 'var(--color)'
+                        color: textColor // Use theme variable
                     }
                 },
                 x: {
                     ticks: {
-                        color: 'var(--color)'
+                        color: textColor // Use theme variable
                     }
                 }
             },
             plugins: {
                 legend: {
                     labels: {
-                        color: 'var(--color)'
+                        color: textColor // Use theme variable
                     }
                 },
                 title: {
                     display: false,
                     text: 'Task Completion Trend'
                 },
-                tooltip: { // Tooltip is correctly inside plugins
+                tooltip: {
                     callbacks: {
                         label: function (context) {
                             const label = context.dataset.label || '';
@@ -627,10 +647,10 @@ const createCompletionTrendChart = () => {
 };
 
 const createPunctualityChart = () => {
-    if (!punctualityChart.value || (punctualityRate.value.onTime === 0 && punctualityRate.value.late === 0)) return;
+    // Already checked for ref and data availability in updateCharts
+    const ctx = punctualityChart.value!.getContext('2d'); // Use non-null assertion
+    if (!ctx) return; // Explicit check for context
 
-    const ctx = punctualityChart.value.getContext('2d');
-    if (!ctx) return;
 
     const data = {
         labels: ['On Time', 'Late'],
@@ -649,7 +669,7 @@ const createPunctualityChart = () => {
         }]
     };
 
-    const chart = new Chart(ctx, {
+    const chart = new Chart(ctx!, { // Use non-null assertion
         type: 'doughnut',
         data: data,
         options: {
@@ -659,14 +679,14 @@ const createPunctualityChart = () => {
                 legend: {
                     position: 'right',
                     labels: {
-                        color: 'var(--color)'
+                        color: textColor // Use theme variable
                     }
                 },
                 title: {
                     display: false,
                     text: 'Punctuality Rate'
                 },
-                tooltip: { // Tooltip is correctly inside plugins
+                tooltip: {
                     callbacks: {
                         label: function (context) {
                             const label = context.label || '';
@@ -685,16 +705,16 @@ const createPunctualityChart = () => {
 };
 
 const createPriorityChart = () => {
-    // Check if priorityDistribution has data with counts > 0
+    // Already checked for ref and data availability in updateCharts
     const hasData = priorityDistribution.value.some(item => item.count > 0);
     if (!priorityChart.value || !hasData) return;
 
+    const ctx = priorityChart.value!.getContext('2d'); // Use non-null assertion
+    if (!ctx) return; // Explicit check for context
 
-    const ctx = priorityChart.value.getContext('2d');
-    if (!ctx) return;
 
     const data = {
-        labels: priorityDistribution.value.map(item => item.priority), // Use priority enum values as labels
+        labels: priorityDistribution.value.map(item => `Priority ${item.priority}`), // Use priority enum values as labels
         datasets: [{
             label: 'Number of Tasks',
             data: priorityDistribution.value.map(item => item.count),
@@ -712,7 +732,7 @@ const createPriorityChart = () => {
         }]
     };
 
-    const chart = new Chart(ctx, {
+    const chart = new Chart(ctx!, { // Use non-null assertion
         type: 'pie',
         data: data,
         options: {
@@ -722,14 +742,14 @@ const createPriorityChart = () => {
                 legend: {
                     position: 'right',
                     labels: {
-                        color: 'var(--color)'
+                        color: textColor // Use theme variable
                     }
                 },
                 title: {
                     display: false,
                     text: 'Distribution by Priority'
                 },
-                tooltip: { // Tooltip is correctly inside plugins
+                tooltip: {
                     callbacks: {
                         label: function (context) {
                             const label = context.label || '';
@@ -748,10 +768,10 @@ const createPriorityChart = () => {
 };
 
 const createCalendarCategoryChart = () => {
-    if (!calendarCategoryChart.value || timeDistribution.value.length === 0) return;
+    // Already checked for ref and data availability in updateCharts
+    const ctx = calendarCategoryChart.value!.getContext('2d'); // Use non-null assertion
+    if (!ctx) return; // Explicit check for context
 
-    const ctx = calendarCategoryChart.value.getContext('2d');
-    if (!ctx) return;
 
     const data = {
         labels: timeDistribution.value.map(item => item.category),
@@ -780,7 +800,7 @@ const createCalendarCategoryChart = () => {
         }]
     };
 
-    const chart = new Chart(ctx, {
+    const chart = new Chart(ctx!, { // Use non-null assertion
         type: 'pie',
         data: data,
         options: {
@@ -790,14 +810,14 @@ const createCalendarCategoryChart = () => {
                 legend: {
                     position: 'right',
                     labels: {
-                        color: 'var(--color)'
+                        color: textColor // Use theme variable
                     }
                 },
                 title: {
                     display: false,
                     text: 'Time Distribution by Event Category'
                 },
-                tooltip: { // Tooltip is correctly inside plugins
+                tooltip: {
                     callbacks: {
                         label: function (context) {
                             const label = context.label || '';
@@ -815,10 +835,10 @@ const createCalendarCategoryChart = () => {
 
 
 const createBusyDaysChart = () => {
-    if (!busyDaysChart.value || !Array.isArray(busyPeriods.value.byDay) || busyPeriods.value.byDay.length === 0) return;
+    // Already checked for ref and data availability in updateCharts
+    const ctx = busyDaysChart.value!.getContext('2d'); // Use non-null assertion
+    if (!ctx) return; // Explicit check for context
 
-    const ctx = busyDaysChart.value.getContext('2d');
-    if (!ctx) return;
 
     // Order days correctly (Sunday=0, Monday=1, ...) and translate
     const orderedDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -839,7 +859,7 @@ const createBusyDaysChart = () => {
         }]
     };
 
-    const chart = new Chart(ctx, {
+    const chart = new Chart(ctx!, { // Use non-null assertion
         type: 'bar',
         data: data,
         options: {
@@ -848,21 +868,21 @@ const createBusyDaysChart = () => {
             scales: {
                 y: {
                     beginAtZero: true,
-                    ticks: { color: 'var(--color)' },
+                    ticks: { color: textColor }, // Use theme variable
                     title: {
                         display: true,
                         text: 'Event Count',
-                        color: 'var(--color)'
+                        color: textColor // Use theme variable
                     }
                 },
                 x: {
-                    ticks: { color: 'var(--color)' }
+                    ticks: { color: textColor } // Use theme variable
                 }
             },
             plugins: {
                 legend: { display: false },
                 title: { display: false },
-                tooltip: { // Tooltip is correctly inside plugins
+                tooltip: {
                     callbacks: {
                         label: function (context) {
                             const label = context.dataset.label || '';
@@ -880,11 +900,10 @@ const createBusyDaysChart = () => {
 
 
 const createBusyHoursChart = () => {
-    if (!busyHoursChart.value || !Array.isArray(busyPeriods.value.byHour) || busyPeriods.value.byHour.length === 0) return;
+    // Already checked for ref and data availability in updateCharts
+    const ctx = busyHoursChart.value!.getContext('2d'); // Use non-null assertion
+    if (!ctx) return; // Explicit check for context
 
-
-    const ctx = busyHoursChart.value.getContext('2d');
-    if (!ctx) return;
 
     // Ensure hours are ordered 0-23
     const orderedHours = Array.from({ length: 24 }, (_, i) => i);
@@ -905,7 +924,7 @@ const createBusyHoursChart = () => {
         }]
     };
 
-    const chart = new Chart(ctx, {
+    const chart = new Chart(ctx!, { // Use non-null assertion
         type: 'bar',
         data: data,
         options: {
@@ -914,21 +933,21 @@ const createBusyHoursChart = () => {
             scales: {
                 y: {
                     beginAtZero: true,
-                    ticks: { color: 'var(--color)' },
+                    ticks: { color: textColor }, // Use theme variable
                     title: {
                         display: true,
                         text: 'Event Count',
-                        color: 'var(--color)'
+                        color: textColor // Use theme variable
                     }
                 },
                 x: {
-                    ticks: { color: 'var(--color)' }
+                    ticks: { color: textColor } // Use theme variable
                 }
             },
             plugins: {
                 legend: { display: false },
                 title: { display: false },
-                tooltip: { // Tooltip is correctly inside plugins
+                tooltip: {
                     callbacks: {
                         label: function (context) {
                             const label = context.dataset.label || '';
@@ -945,10 +964,10 @@ const createBusyHoursChart = () => {
 };
 
 const createTimeSavedChart = () => {
-    if (!timeSavedChart.value || timeSaved.value.length === 0) return;
+    // Already checked for ref and data availability in updateCharts
+    const ctx = timeSavedChart.value!.getContext('2d'); // Use non-null assertion
+    if (!ctx) return; // Explicit check for context
 
-    const ctx = timeSavedChart.value.getContext('2d');
-    if (!ctx) return;
 
     const data = {
         labels: timeSaved.value.map(item => item.rule),
@@ -961,7 +980,7 @@ const createTimeSavedChart = () => {
         }]
     };
 
-    const chart = new Chart(ctx, {
+    const chart = new Chart(ctx!, { // Use non-null assertion
         type: 'bar',
         data: data,
         options: {
@@ -970,21 +989,21 @@ const createTimeSavedChart = () => {
             scales: {
                 y: {
                     beginAtZero: true,
-                    ticks: { color: 'var(--color)' },
+                    ticks: { color: textColor }, // Use theme variable
                     title: {
                         display: true,
                         text: 'Minutes',
-                        color: 'var(--color)'
+                        color: textColor // Use theme variable
                     }
                 },
                 x: {
-                    ticks: { color: 'var(--color)' }
+                    ticks: { color: textColor } // Use theme variable
                 }
             },
             plugins: {
                 legend: { display: false },
                 title: { display: false },
-                tooltip: { // Tooltip is correctly inside plugins
+                tooltip: {
                     callbacks: {
                         label: function (context) {
                             const label = context.dataset.label || '';
@@ -1002,10 +1021,10 @@ const createTimeSavedChart = () => {
 
 
 const createRuleEffectivenessChart = () => {
-    if (!ruleEffectivenessChart.value || timeSaved.value.length === 0) return;
+    // Already checked for ref and data availability in updateCharts
+    const ctx = ruleEffectivenessChart.value!.getContext('2d'); // Use non-null assertion
+    if (!ctx) return; // Explicit check for context
 
-    const ctx = ruleEffectivenessChart.value.getContext('2d');
-    if (!ctx) return;
 
     const data = {
         labels: timeSaved.value.map(item => item.rule),
@@ -1018,7 +1037,7 @@ const createRuleEffectivenessChart = () => {
         }]
     };
 
-    const chart = new Chart(ctx, {
+    const chart = new Chart(ctx!, { // Use non-null assertion
         type: 'bar',
         data: data,
         options: {
@@ -1028,21 +1047,21 @@ const createRuleEffectivenessChart = () => {
                 y: {
                     beginAtZero: true,
                     max: 100,
-                    ticks: { color: 'var(--color)', callback: (value) => value + '%' },
+                    ticks: { color: textColor, callback: (value) => value + '%' }, // Use theme variable
                     title: {
                         display: true,
                         text: 'Effectiveness (%)',
-                        color: 'var(--color)'
+                        color: textColor // Use theme variable
                     }
                 },
                 x: {
-                    ticks: { color: 'var(--color)' }
+                    ticks: { color: textColor } // Use theme variable
                 }
             },
             plugins: {
                 legend: { display: false },
                 title: { display: false },
-                tooltip: { // Tooltip is correctly inside plugins
+                tooltip: {
                     callbacks: {
                         label: function (context) {
                             const label = context.dataset.label || '';
@@ -1110,30 +1129,10 @@ onMounted(async () => {
 .main-app {
     display: flex;
     width: 100vw;
-    height: 102vh;
-    overflow-y: auto;
-    overflow: hidden;
-    border: 2px solid #1e1e1e;
-}
-
-/* Stili per la scrollbar custom */
-.custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: #333;
-    border-radius: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #15b680d4;
-    border-radius: 4px;
-}
-
-.custom-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: #15b680d4 #333;
+    min-height: 100vh;
+    overflow-x: hidden;    
+    background-color: var(--background);    
+    color: var(--color);
 }
 
 .main-content {
@@ -1143,12 +1142,10 @@ onMounted(async () => {
     margin-left: 5%;
     box-sizing: border-box;
     overflow-x: hidden;
-    /* Prevent horizontal scrolling */
     font-family: 'Poppins', sans-serif;
     min-height: 100vh;
     padding-bottom: 20px;
-    padding-right: 15px;
-    /* Add padding to the right to prevent content hiding under scrollbar */
+    padding-right: 15px;    
 }
 
 
@@ -1157,7 +1154,7 @@ onMounted(async () => {
     /* Use dark background variable */
     padding: 15px;
     border-radius: 8px;
-    color: var(--color);
+    color: var(--text-color);
     /* Use base color variable */
     box-sizing: border-box;
     width: 95%;
@@ -1218,7 +1215,8 @@ onMounted(async () => {
     align-items: center;
     gap: 10px;
     font-size: 1em;
-    color: var(--color);
+    color: var(--text-color);
+    /* Use base color for labels */
 }
 
 .period-selection select,
@@ -1226,8 +1224,11 @@ onMounted(async () => {
     padding: 5px;
     border-radius: 5px;
     border: 1px solid var(--button-border);
+    /* Use button-border or input-field-border */
     background-color: var(--background);
-    color: var(--color);
+    /* Use base background */
+    color: var(--text-color);
+    /* Use base color */
     cursor: pointer;
 }
 
@@ -1243,30 +1244,45 @@ onMounted(async () => {
     align-items: center;
     gap: 30px;
     margin-left: 2%;
-    width: 97%;
-    
+    width: 97%;    
     margin-bottom: 2%;
     padding: 20px;
     box-sizing: border-box;
+    overflow-y: auto !important;
+    min-height: 0;
 }
 
 .content-area h3.section-title {
     margin-top: 20px;
     margin-bottom: 10px;
     font-size: 1.8em;
-    color: var(--button-border);
+    color: var(--accent-color);
     border-bottom: 2px solid var(--button-border);
     padding-bottom: 5px;
     width: 100%;
     text-align: center;
 }
 
-.charts-grid {
+.charts-grid,
+.charts-grid-2,
+.charts-grid-3 {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
     width: 100%;
+    overflow-x: hidden;    
+    padding-right: 15px;
+    box-sizing: border-box;
+    min-height: 850px;
 }
+.charts-grid-2{
+    min-height: 400px;
+}
+.charts-grid-3{
+    min-height: 100%;
+}
+
+
 
 .chart-container {
     display: flex;
@@ -1274,17 +1290,25 @@ onMounted(async () => {
     align-items: center;
     justify-content: flex-start;
     padding: 15px;
-    background-color:rgba(0, 0, 0, 0.5);
-    
-    color: var(--color);
+    background-color: #212121;
+    color: var(--text-color);
+    /* Use base color for text within the box */
     border-radius: 1rem;
     box-sizing: border-box;
-    min-height: 350px;
+    max-height: 400px;
+    /* Adjust as needed to fit reasonably */
+    overflow: hidden;
+    /* Hide anything exceeding the max height */
     position: relative;
+    margin-bottom: 5%;
+    margin-right: 2%;
+    margin-left: 2%;
 
-    canvas {
-        width: 100% !important;
-        height: 100% !important;
+    /* Target canvas inside the container */
+    & canvas {
+        width: 98% !important;
+        height: 90% !important;
+        /* This forces canvas to fill container height */
     }
 }
 
@@ -1292,19 +1316,9 @@ onMounted(async () => {
     margin-top: 0;
     margin-bottom: 15px;
     font-size: 1.2em;
-    color: var(--button-border);
+    color: var(--accent-color);
+    /* Use accent color for chart titles as requested */
     text-align: center;
     width: 100%;
-}
-
-.disabled-chart {
-    opacity: 0.6;
-    text-align: center;
-    justify-content: center;
-}
-
-.disabled-chart p {
-    font-style: italic;
-    color: var(--color);
 }
 </style>

@@ -45,8 +45,11 @@ export class StatsHandler {
     /**
      * Calcola la percentuale di completamento per categoria
      */
-    getCompletionByCategory(todos: ToDoAction[]): { category: string; completed: number; total: number; percentage: number }[] {
+    getCompletionByCategory(todos: ToDoAction[], categories : string[]): { category: string; completed: number; total: number; percentage: number }[] {
         const result: Record<string, { completed: number; total: number }> = {};
+        for(let c of categories){
+            result[c] = { completed: 0, total: 0 };
+        }
 
         // Filtra per il periodo selezionato
         const filteredTodos = this.filterByPeriod(todos);
@@ -144,7 +147,7 @@ export class StatsHandler {
         const labels = dateLabels.map(date => {
             switch (interval) {
                 case 'day':
-                    return `${date.getDate()}/${date.getMonth() + 1}`;
+                    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
                 case 'week':
                     return `S${this.getWeekNumber(date)}`;
                 case 'month':
@@ -158,6 +161,7 @@ export class StatsHandler {
 
         filteredTodos.forEach(todo => {
             const todoDate = todo.dateWithTime;
+            console.log("to do date in for each get completion trend: ", todoDate)
 
             // Trova l'indice dell'intervallo corrispondente
             let index = -1;

@@ -32,7 +32,8 @@
   --button-border: var(--button-border-light);
   --shadow: var(--shadow-light);
   --input-field-border: var(--input-field-border-light);
-  --checkbox-border: var(--checkbox-border-light)
+  --checkbox-border: var(--checkbox-border-light);
+  --text-color : black  
 }
 
 /* Applicazione del tema dark */
@@ -44,7 +45,8 @@
   --button-border: var(--button-border-dark);
   --shadow: var(--shadow-dark);
   --input-field-border: var(--input-field-border-dark);
-  --checkbox-border: var(--checkbox-border-dark)
+  --checkbox-border: var(--checkbox-border-dark);
+  --text-color : white
 }
 
 /* Usa le variabili nelle regole CSS */
@@ -265,3 +267,24 @@ input[type="number"] {
   transition: background-color 0.2s ease-in-out;
 }
 
+
+/* Custom Scrollbar for Webkit browsers within charts-grid */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 12px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--background-dark);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--accent-color);
+  border-radius: 10px;
+  border: 3px solid var(--background-dark);
+}
+
+/*invisible scroll bar */
+.invisible-scrollbar::-webkit-scrollbar {
+  display: none;
+}
