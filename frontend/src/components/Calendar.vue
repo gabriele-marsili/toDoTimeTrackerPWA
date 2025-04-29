@@ -485,6 +485,7 @@ async function addOrUpdateEvent() {
 
     } finally {
         // Resetta il form
+        await delay(1300)
         resetEventForm();
         showEventForm.value = false;
         isEditEvent.value = false;

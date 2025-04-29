@@ -16,28 +16,38 @@
 
                 <div class="period-selection">
                     <span>Select Period: </span>
-                    <select v-model="selectedPeriod" @change="setPeriod(selectedPeriod)">
-                        <option value="week">Last Week</option>
-                        <option value="month">Last Month</option>
-                        <option value="quarter">Last Quarter</option>
-                        <option value="year">Last Year</option>
-                        <option value="custom">Custom Period</option>
-                    </select>
+                    <div class="custom-select">
+                        <span class="material-symbols-outlined menu-icon select-icon">calendar_month</span>
+                        <select class="selettore" v-model="selectedPeriod" @change="setPeriod(selectedPeriod)">
+                            <option value="week">Last Week</option>
+                            <option value="month">Last Month</option>
+                            <option value="quarter">Last Quarter</option>
+                            <option value="year">Last Year</option>
+                            <option value="custom">Custom Period</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div v-if="selectedPeriod === 'custom'" class="custom-date-picker">
-                    <DatePicker v-model="customStartDate" placeholder="Start Date" />
-                    <DatePicker v-model="customEndDate" placeholder="End Date" />
+                    <span>Start Date : </span>
+                    <DatePicker v-model="customStartDate" />
+                    <span>End Date : </span>
+                    <DatePicker v-model="customEndDate" />
                     <button @click="applyCustomPeriod" class="baseButton">Apply</button>
                 </div>
 
                 <div class="trend-interval-selection">
                     <span>Trend Interval: </span>
-                    <select v-model="trendInterval" @change="setTrendInterval(trendInterval)">
-                        <option value="day">Day</option>
-                        <option value="week">Week</option>
-                        <option value="month">Month</option>
-                    </select>
+
+                    <div class="custom-select">
+                        <span class="material-symbols-outlined menu-icon select-icon">calendar_today</span>
+                        <select class="selettore" v-model="trendInterval" @change="setTrendInterval(trendInterval)">
+                            <option value="day">Day</option>
+                            <option value="week">Week</option>
+                            <option value="month">Month</option>
+                        </select>
+                    </div>
+
                 </div>
             </header>
 
@@ -47,27 +57,67 @@
                 <div class="charts-grid">
                     <div class="chart-container box elevated rounded-2xl">
                         <h4>Completion by Category</h4>
-                        <canvas ref="categoryCompletionChart"></canvas>
+                        <div class="chart-canvas-wrapper"
+                            :class="{ 'blurred-content': !chartDataStatus.categoryCompletionChart }">
+                            <canvas ref="categoryCompletionChart"></canvas>
+                            <div v-if="!chartDataStatus.categoryCompletionChart" class="no-data-overlay">
+                                <p>No data available for this period.</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="chart-container box elevated rounded-2xl">
                         <h4>Completion and Addition Trend</h4>
-                        <canvas ref="completionTrendChart"></canvas>
+                        <div class="chart-canvas-wrapper"
+                            :class="{ 'blurred-content': !chartDataStatus.completionTrendChart }">
+                            <canvas ref="completionTrendChart"></canvas>
+                            <div v-if="!chartDataStatus.completionTrendChart" class="no-data-overlay">
+                                <p>No data available for this period.</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="chart-container box elevated rounded-2xl">
                         <h4>Karma Points by Category</h4>
-                        <canvas ref="karmaChart"></canvas>
+                        <div class="chart-canvas-wrapper" :class="{ 'blurred-content': !chartDataStatus.karmaChart }">
+                            <canvas ref="karmaChart"></canvas>
+                            <div v-if="!chartDataStatus.karmaChart" class="no-data-overlay">
+                                <p>No data available for this period.</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="chart-container box elevated rounded-2xl">
                         <h4>Punctuality Rate</h4>
-                        <canvas ref="punctualityChart"></canvas>
+                        <div class="chart-canvas-wrapper"
+                            :class="{ 'blurred-content': !chartDataStatus.punctualityChart }">
+                            <canvas ref="punctualityChart"></canvas>
+                            <div v-if="!chartDataStatus.punctualityChart" class="no-data-overlay">
+                                <p>No data available for this period.</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="chart-container box elevated rounded-2xl">
                         <h4>Distribution by Priority</h4>
-                        <canvas ref="priorityChart"></canvas>
+                        <div class="chart-canvas-wrapper"
+                            :class="{ 'blurred-content': !chartDataStatus.priorityChart }">
+                            <canvas ref="priorityChart"></canvas>
+                            <div v-if="!chartDataStatus.priorityChart" class="no-data-overlay">
+                                <p>No data available for this period.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container box elevated rounded-2xl">
+                        <h4>Average Completion Time</h4>
+                        <div class="chart-canvas-wrapper"
+                            :class="{ 'blurred-content': !chartDataStatus.averageCompletionTimeChart }">
+                            <canvas ref="averageCompletionTimeChart"></canvas>
+                            <div v-if="!chartDataStatus.averageCompletionTimeChart" class="no-data-overlay">
+                                <p>No data available for this period.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -75,30 +125,60 @@
                 <div class="charts-grid-2">
                     <div class="chart-container box elevated rounded-2xl">
                         <h4>Time Distribution by Event Category</h4>
-                        <canvas ref="calendarCategoryChart"></canvas>
+                        <div class="chart-canvas-wrapper"
+                            :class="{ 'blurred-content': !chartDataStatus.calendarCategoryChart }">
+                            <canvas ref="calendarCategoryChart"></canvas>
+                            <div v-if="!chartDataStatus.calendarCategoryChart" class="no-data-overlay">
+                                <p>No data available for this period.</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="chart-container box elevated rounded-2xl">
                         <h4>Events by Day of the Week</h4>
-                        <canvas ref="busyDaysChart"></canvas>
+                        <div class="chart-canvas-wrapper"
+                            :class="{ 'blurred-content': !chartDataStatus.busyDaysChart }">
+                            <canvas ref="busyDaysChart"></canvas>
+                            <div v-if="!chartDataStatus.busyDaysChart" class="no-data-overlay">
+                                <p>No data available for this period.</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="chart-container box elevated rounded-2xl">
                         <h4>Events by Hour of the Day</h4>
-                        <canvas ref="busyHoursChart"></canvas>
+                        <div class="chart-canvas-wrapper"
+                            :class="{ 'blurred-content': !chartDataStatus.busyHoursChart }">
+                            <canvas ref="busyHoursChart"></canvas>
+                            <div v-if="!chartDataStatus.busyHoursChart" class="no-data-overlay">
+                                <p>No data available for this period.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <h3 class="section-title">Time Tracker Rules Statistics</h3>
                 <div class="charts-grid-3">
                     <div class="chart-container box elevated rounded-2xl">
-                        <h4>Time Saved per Rule</h4>
-                        <canvas ref="timeSavedChart"></canvas>
+                        <h4>Time Spent per Rule</h4>
+                        <div class="chart-canvas-wrapper"
+                            :class="{ 'blurred-content': !chartDataStatus.timeSpentChart }">
+                            <canvas ref="timeSpentChart"></canvas>
+                            <div v-if="!chartDataStatus.timeSpentChart" class="no-data-overlay">
+                                <p>No data available for this period.</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="chart-container box elevated rounded-2xl">
-                        <h4>Rule Effectiveness</h4>
-                        <canvas ref="ruleEffectivenessChart"></canvas>
+                        <h4>Time Limit Usage Rate</h4>
+                        <div class="chart-canvas-wrapper"
+                            :class="{ 'blurred-content': !chartDataStatus.TimeLimitUsageRateChart }">
+                            <canvas ref="TimeLimitUsageRateChart"></canvas>
+                            <div v-if="!chartDataStatus.TimeLimitUsageRateChart" class="no-data-overlay">
+                                <p>No data available for this period.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -125,7 +205,6 @@ import { TimeTrackerHandler, TimeTrackerRule } from '../engine/timeTracker';
 import { CalendarEvent, CalendarEventHandler } from '../engine/calendarEvent';
 import DatePicker from '../components/DatePicker.vue';
 import { Chart, LinearScale, BarElement, PointElement, LineElement, ArcElement, Title, Tooltip, Legend, CategoryScale, PieController, DoughnutController, BarController, LineController } from 'chart.js';
-import { parseISO } from 'date-fns'; // Assuming date-fns is used for date parsing
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 
@@ -189,17 +268,19 @@ const priorityChart = ref<HTMLCanvasElement | null>(null);
 const calendarCategoryChart = ref<HTMLCanvasElement | null>(null);
 const busyDaysChart = ref<HTMLCanvasElement | null>(null);
 const busyHoursChart = ref<HTMLCanvasElement | null>(null);
-const timeSavedChart = ref<HTMLCanvasElement | null>(null);
-const ruleEffectivenessChart = ref<HTMLCanvasElement | null>(null);
+const timeSpentChart = ref<HTMLCanvasElement | null>(null);
+const averageCompletionTimeChart = ref<HTMLCanvasElement | null>(null);
+const TimeLimitUsageRateChart = ref<HTMLCanvasElement | null>(null);
 
 
 // Chart instances for cleanup
-const chartInstances = ref<Chart[]>([]); // Array to hold all Chart instances
+const chartInstances = ref<any[]>([]); // Array to hold all Chart instances
+const chartDataStatus = ref<Record<string, boolean>>({});
 
 // Period selection
 const selectedPeriod = ref('month');
-const customStartDate = ref('');
-const customEndDate = ref('');
+const customStartDate = ref<Date>(new Date());
+const customEndDate = ref<Date>(new Date());
 const trendInterval = ref<'day' | 'week' | 'month'>('day');
 
 // Stats results - Ensure all stats you want to display are here
@@ -210,7 +291,8 @@ const punctualityRate = ref<{ onTime: number; late: number; percentage: number }
 const priorityDistribution = ref<{ priority: ToDoPriority; count: number; percentage: number }[]>([]);
 const timeDistribution = ref<{ category: string; hours: number; percentage: number }[]>([]);
 const busyPeriods = ref<{ byDay: { day: string; count: number }[]; byHour: { hour: number; count: number }[] }>({ byDay: [], byHour: [] });
-const timeSaved = ref<{ rule: string; limitMinutes: number; remainingMinutes: number; savedMinutes: number; percentage: number }[]>([]);
+const timeSpent = ref<{ rule: string; limitMinutes: number; remainingMinutes: number; timeSpentMinutes: number; percentage: number }[]>([]);
+const averageCompletionTime = ref<number>(0);
 
 
 // Stats service
@@ -242,6 +324,7 @@ function setPeriod(period: string) {
             break;
         case 'custom':
             // Do nothing here, applyCustomPeriod will handle setting the period
+            applyDarkMode()
             return;
         default:
             startDate = new Date(now);
@@ -305,12 +388,14 @@ const loadStats = async () => {
 
         priorityDistribution.value = statsHandler.value.getPriorityDistribution(todos.value);
         console.log("priorityDistribution.value", priorityDistribution.value)
+        averageCompletionTime.value = statsHandler.value.getAverageCompletionTime(todos.value);
+        console.log("averageCompletionTime.value", averageCompletionTime.value);
         timeDistribution.value = statsHandler.value.getTimeDistributionByCategory(calendarEvents.value);
         console.log("timeDistribution.value", timeDistribution.value)
         busyPeriods.value = statsHandler.value.getBusyPeriods(calendarEvents.value);
         console.log("busyPeriods.value", busyPeriods.value)
-        timeSaved.value = statsHandler.value.getTimeSaved(ttRules.value);
-        console.log("timeSaved.value", timeSaved.value)
+        timeSpent.value = statsHandler.value.getTimeSpent(ttRules.value);
+        console.log("timeSpent.value", timeSpent.value)
 
         // Now that stats are calculated, update charts
         updateCharts();
@@ -344,9 +429,10 @@ function setTrendInterval(interval: 'day' | 'week' | 'month') {
 const applyCustomPeriod = () => {
     if (customStartDate.value && customEndDate.value) {
         selectedPeriod.value = 'custom';
-        // Use parseISO from date-fns to correctly parse the date strings
-        const startDate = parseISO(customStartDate.value);
-        const endDate = parseISO(customEndDate.value);
+        console.log("customStartDate.value: ", customStartDate.value)
+        console.log("customEndDate.value: ", customEndDate.value)
+        const startDate = customStartDate.value;
+        const endDate = customEndDate.value;
         // Validate dates if necessary (e.g., start before end)
         if (startDate > endDate) {
             sendNotify("warning", "Start date cannot be after end date.");
@@ -368,6 +454,22 @@ const applyCustomPeriod = () => {
 
 // Update all charts
 const updateCharts = () => {
+    chartDataStatus.value = {
+        categoryCompletionChart: completionByCategory.value.some(cat => cat.percentage > 0),
+        karmaChart: karmaPoints.value.byCategory.some(cat => cat.points > 0),
+        completionTrendChart: (completionTrend.value.added.some(addedQuantity => addedQuantity > 0)) || (completionTrend.value.completed.some(completedQuantity => completedQuantity > 0)), // Controlla se ci sono etichette nel trend
+        punctualityChart: punctualityRate.value.onTime > 0 || punctualityRate.value.late > 0,
+        priorityChart: priorityDistribution.value.some(item => item.count > 0),
+        averageCompletionTimeChart: averageCompletionTime.value > 0, // Usa il nuovo ref
+        calendarCategoryChart: timeDistribution.value.length > 0,
+        busyDaysChart: busyPeriods.value.byDay.some(d => d.count > 0), // Controlla se ci sono conteggi > 0
+        busyHoursChart: busyPeriods.value.byHour.some(h => h.count > 0), // Controlla se ci sono conteggi > 0
+        timeSpentChart: timeSpent.value.length > 0, // Controlla se ci sono regole con tempo risparmiato
+        // Rule Effectiveness potrebbe basarsi su timeSpent.value.some(item => item.timeSpentMinutes > 0) se vuoi essere più specifico
+        TimeLimitUsageRateChart: timeSpent.value.some(item => item.timeSpentMinutes > 0)
+    };
+    console.log("chartDataStatus in update charts:\n", chartDataStatus)
+
     // Destroy existing charts to prevent memory leaks
     chartInstances.value.forEach(chart => {
         if (chart && typeof chart.destroy === 'function') {
@@ -376,27 +478,225 @@ const updateCharts = () => {
     });
     chartInstances.value = []; // Clear the array
 
-    // Create new charts only if the canvas ref exists AND there is data
-    // Added stricter checks for data presence before attempting to create charts
-    if (categoryCompletionChart.value && completionByCategory.value.length > 0) createCategoryCompletionChart();
-    if (karmaChart.value && karmaPoints.value.byCategory.some(cat => cat.points > 0)) createKarmaChart();
-    if (completionTrendChart.value && completionTrend.value.labels.length > 0) createCompletionTrendChart();
-    if (punctualityChart.value && (punctualityRate.value.onTime > 0 || punctualityRate.value.late > 0)) createPunctualityChart(); // Check if at least one count is > 0
-    if (priorityChart.value && priorityDistribution.value.some(item => item.count > 0)) createPriorityChart();
-    if (calendarCategoryChart.value && timeDistribution.value.length > 0) createCalendarCategoryChart();
-    // Check if busyPeriods.byDay and busyPeriods.byHour have actual data points before creating charts
-    if (busyDaysChart.value && busyPeriods.value.byDay.some(d => d.count > 0)) createBusyDaysChart();
-    if (busyHoursChart.value && busyPeriods.value.byHour.some(h => h.count > 0)) createBusyHoursChart();
-    if (timeSavedChart.value && timeSaved.value.length > 0) {
-        createTimeSavedChart();
-        // Check if there's any time saved before creating effectiveness chart
-        if (ruleEffectivenessChart.value && timeSaved.value.some(item => item.savedMinutes > 0)) {
-            createRuleEffectivenessChart();
+    // Create new charts only if the canvas ref exists AND there is data (usando il nuovo stato)
+    // Aggiungi anche la pulizia del canvas se non ci sono dati
+
+    // categoryCompletionChart
+    if (categoryCompletionChart.value) {
+        if (chartDataStatus.value.categoryCompletionChart) {
+            createCategoryCompletionChart();
+        } else {
+            // Pulisci il canvas se non ci sono dati
+            const ctx = categoryCompletionChart.value.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, categoryCompletionChart.value.width, categoryCompletionChart.value.height);
         }
     }
+
+    // karmaChart
+    if (karmaChart.value) {
+        if (chartDataStatus.value.karmaChart) {
+            createKarmaChart();
+        } else {
+            const ctx = karmaChart.value.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, karmaChart.value.width, karmaChart.value.height);
+        }
+    }
+
+    // completionTrendChart
+    if (completionTrendChart.value) {
+        if (chartDataStatus.value.completionTrendChart) {
+            createCompletionTrendChart();
+        } else {
+            const ctx = completionTrendChart.value.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, completionTrendChart.value.width, completionTrendChart.value.height);
+        }
+    }
+
+    // punctualityChart
+    if (punctualityChart.value) {
+        if (chartDataStatus.value.punctualityChart) {
+            createPunctualityChart();
+        } else {
+            const ctx = punctualityChart.value.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, punctualityChart.value.width, punctualityChart.value.height);
+        }
+    }
+
+    // priorityChart
+    if (priorityChart.value) {
+        if (chartDataStatus.value.priorityChart) {
+            createPriorityChart();
+        } else {
+            const ctx = priorityChart.value.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, priorityChart.value.width, priorityChart.value.height);
+        }
+    }
+
+    if (averageCompletionTimeChart.value) {
+        if (chartDataStatus.value.averageCompletionTimeChart) {
+            createAverageCompletionTimeChart();
+        } else {
+            const ctx = averageCompletionTimeChart.value.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, averageCompletionTimeChart.value.width, averageCompletionTimeChart.value.height);
+            // Nota: La logica nell'overlay gestisce la visualizzazione del messaggio
+        }
+    }
+
+    // calendarCategoryChart
+    if (calendarCategoryChart.value) {
+        if (chartDataStatus.value.calendarCategoryChart) {
+            createCalendarCategoryChart();
+        } else {
+            const ctx = calendarCategoryChart.value.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, calendarCategoryChart.value.width, calendarCategoryChart.value.height);
+        }
+    }
+
+    // busyDaysChart
+    if (busyDaysChart.value) {
+        if (chartDataStatus.value.busyDaysChart) {
+            createBusyDaysChart();
+        } else {
+            const ctx = busyDaysChart.value.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, busyDaysChart.value.width, busyDaysChart.value.height);
+        }
+    }
+
+
+    // busyHoursChart
+    if (busyHoursChart.value) {
+        if (chartDataStatus.value.busyHoursChart) {
+            createBusyHoursChart();
+        } else {
+            const ctx = busyHoursChart.value.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, busyHoursChart.value.width, busyHoursChart.value.height);
+        }
+    }
+
+
+    // timeSpentChart
+    if (timeSpentChart.value) {
+        if (chartDataStatus.value.timeSpentChart) {
+            createtimeSpentChart();
+        } else {
+            const ctx = timeSpentChart.value.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, timeSpentChart.value.width, timeSpentChart.value.height);
+        }
+    }
+
+
+    // TimeLimitUsageRateChart (creato solo se timeSpentChart ha dati e c'è almeno 1 minuto risparmiato)
+    if (TimeLimitUsageRateChart.value) {
+        // La condizione è più specifica per questo grafico
+        if (timeSpent.value.some(item => item.timeSpentMinutes > 0)) {
+            chartDataStatus.value.TimeLimitUsageRateChart = true; // Aggiorna lo stato specifico
+            createTimeLimitUsageRateChart();
+        } else {
+            chartDataStatus.value.TimeLimitUsageRateChart = false; // Aggiorna lo stato specifico
+            const ctx = TimeLimitUsageRateChart.value.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, TimeLimitUsageRateChart.value.width, TimeLimitUsageRateChart.value.height);
+        }
+    } else {
+        // Se il ref non è ancora disponibile, imposta lo stato su false
+        chartDataStatus.value.TimeLimitUsageRateChart = false;
+    }
+
+
 };
 
 // --- Chart Creation Functions ---
+
+const createAverageCompletionTimeChart = () => {
+    // Already checked for ref and data availability in updateCharts
+    // We also check if the average time is > 0 before creating
+    if (!averageCompletionTimeChart.value || averageCompletionTime.value <= 0) {
+        // Optional: display a message or placeholder if no data
+        const ctx = averageCompletionTimeChart.value?.getContext('2d');
+        if (ctx) {
+            ctx.clearRect(0, 0, averageCompletionTimeChart.value!.width, averageCompletionTimeChart.value!.height);
+            // You might add text like "No completed tasks in this period" here
+        }
+        return;
+    }
+
+    const ctx = averageCompletionTimeChart.value!.getContext('2d');
+    if (!ctx) return;
+
+    const data = {
+        labels: ['Average Time'], // Un'unica etichetta per la barra
+        datasets: [{
+            label: 'Average Completion Time (Minutes)',
+            data: [averageCompletionTime.value], // Il singolo valore calcolato
+            backgroundColor: 'rgba(153, 102, 255, 0.7)', // Un colore a scelta
+            borderColor: 'rgba(153, 102, 255, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    const chart = new Chart(ctx!, {
+        type: 'bar', // Un grafico a barre
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Time (Minutes)', // Etichetta dell'asse y
+                        color: textColor
+                    },
+                    ticks: {
+                        color: textColor // Use theme variable
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: textColor // Use theme variable
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false, // Potresti voler nascondere la legenda per una singola barra
+                    labels: {
+                        color: textColor // Use theme variable
+                    }
+                },
+                title: {
+                    display: false, // Il titolo è già nell'h4
+                    text: 'Average Completion Time'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            const label = context.dataset.label || '';
+                            const value = context.raw as number;
+                            return `${label}: ${value.toFixed(2)} minutes`; // Formatta il tooltip
+                        }
+                    }
+                },
+                datalabels: { // Aggiungi datalabels per mostrare il valore sulla barra
+                    color: textColor, // Usa la variabile del tema
+                    anchor: 'end', // Posiziona alla fine della barra
+                    align: 'top', // Allinea in alto
+                    formatter: (value: number) => {
+                        return value.toFixed(2); // Formatta il valore mostrato
+                    },
+                    display: (context: any) => {
+                        // Mostra il datalabel solo se il valore è maggiore di 0
+                        const value = context.dataset.data[context.dataIndex];
+                        return value > 0;
+                    }
+                }
+            },
+        },
+        plugins: [ChartDataLabels] // Assicurati che ChartDataLabels sia registrato qui se usato in options.plugins
+    });
+
+    chartInstances.value.push(chart as Chart);
+};
 
 const createCategoryCompletionChart = () => {
     // Already checked for ref and data availability in updateCharts
@@ -610,7 +910,7 @@ const createCompletionTrendChart = () => {
                     },
                     title: {
                         display: true,
-                        text: 'Task Quantity',
+                        text: 'To Do Quantity',
                         color: textColor // Use theme variable
                     }
                 },
@@ -628,7 +928,7 @@ const createCompletionTrendChart = () => {
                 },
                 title: {
                     display: false,
-                    text: 'Task Completion Trend'
+                    text: 'To Do Completion Trend'
                 },
                 tooltip: {
                     callbacks: {
@@ -655,7 +955,7 @@ const createPunctualityChart = () => {
     const data = {
         labels: ['On Time', 'Late'],
         datasets: [{
-            label: 'Tasks',
+            label: 'To Do Actions',
             data: [punctualityRate.value.onTime, punctualityRate.value.late],
             backgroundColor: [
                 'rgba(75, 192, 192, 0.7)',
@@ -716,7 +1016,7 @@ const createPriorityChart = () => {
     const data = {
         labels: priorityDistribution.value.map(item => `Priority ${item.priority}`), // Use priority enum values as labels
         datasets: [{
-            label: 'Number of Tasks',
+            label: 'Number of To Do Actions',
             data: priorityDistribution.value.map(item => item.count),
             backgroundColor: [
                 'rgba(255, 99, 132, 0.7)', // High (Red)
@@ -963,21 +1263,41 @@ const createBusyHoursChart = () => {
     chartInstances.value.push(chart as Chart);
 };
 
-const createTimeSavedChart = () => {
-    // Already checked for ref and data availability in updateCharts
-    const ctx = timeSavedChart.value!.getContext('2d'); // Use non-null assertion
+
+const createtimeSpentChart = () => {
+    const ctx = timeSpentChart.value!.getContext('2d'); // Usa il ref corretto del canvas
     if (!ctx) return; // Explicit check for context
 
 
     const data = {
-        labels: timeSaved.value.map(item => item.rule),
-        datasets: [{
-            label: 'Minutes Saved',
-            data: timeSaved.value.map(item => item.savedMinutes),
-            backgroundColor: 'rgba(75, 192, 192, 0.7)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1
-        }]
+        labels: timeSpent.value.map(item => item.rule), // Usa timeSpent.value
+        datasets: [
+            {
+                label: 'Daily Limit (Minutes)',
+                data: timeSpent.value.map(item => item.limitMinutes), // Prendi i valori del limite
+                // Colore grigio semi-trasparente per l'effetto "retro candela opaca"
+                backgroundColor: 'rgba(169, 169, 169, 0.4)', // Grigio con 40% di opacità
+                borderColor: 'rgba(169, 169, 169, 0.6)', // Bordo leggermente meno trasparente
+                borderWidth: 1,
+                // Imposta l'asse x e y per assicurarsi che le barre si sovrappongano
+                xAxisID: 'x',
+                yAxisID: 'y'
+            },
+
+
+            // Dataset per il Tempo Speso (il tuo dataset originale)
+            {
+                label: 'Minutes Spent',
+                // Calcola il tempo speso come limite - tempo rimanente
+                data: timeSpent.value.map(item => item.limitMinutes - item.remainingMinutes),
+                backgroundColor: 'rgba(75, 192, 192, 0.7)', // Il tuo colore originale
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+                // Imposta l'asse x e y per assicurarsi che le barre si sovrappongano
+                xAxisID: 'x',
+                yAxisID: 'y'
+            }
+        ]
     };
 
     const chart = new Chart(ctx!, { // Use non-null assertion
@@ -994,43 +1314,87 @@ const createTimeSavedChart = () => {
                         display: true,
                         text: 'Minutes',
                         color: textColor // Use theme variable
-                    }
+                    },
+                    // Assicurati che gli assi siano configurati correttamente
+                    stacked: false, // Non è uno stacked bar chart tradizionale, ma barre sovrapposte
+                    id: 'y' // Imposta un ID per l'asse y
                 },
                 x: {
-                    ticks: { color: textColor } // Use theme variable
+                    ticks: { color: textColor }, // Use theme variable
+                    // Assicurati che gli assi siano configurati correttamente
+                    stacked: false,
+                    id: 'x' // Imposta un ID per l'asse x
                 }
             },
             plugins: {
-                legend: { display: false },
+
+                legend: {
+                    display: true, // Imposta su true
+                    labels: {
+                        color: textColor // Usa la variabile del tema
+                    }
+                },
+
                 title: { display: false },
+
                 tooltip: {
                     callbacks: {
                         label: function (context) {
                             const label = context.dataset.label || '';
                             const value = context.raw as number;
-                            return `${label}: ${value} minutes`;
+                            const index = context.dataIndex;
+                            const ruleData = timeSpent.value[index]; // Accedi ai dati della regola
+                            const limit = ruleData.limitMinutes;
+                            const spent = ruleData.limitMinutes - ruleData.remainingMinutes;
+
+                            // Mostra entrambi i valori nel tooltip indipendentemente dalla barra su cui passi il mouse
+                            return `Spent: ${spent} min | Limit: ${limit} min`;
+                        },
+                        title: function (context) {
+                            // Usa il nome della regola come titolo del tooltip
+                            return context[0].label;
                         }
                     }
+                },
+
+                // Aggiungi datalabels se vuoi mostrare i valori sulle barre
+                datalabels: {
+                    color: textColor,
+                    anchor: 'end',
+                    align: 'top',
+                    formatter: (value: number, context: any) => {
+                        // Mostra solo il valore del tempo speso sulla barra del tempo speso
+                        if (context.dataset.label === 'Minutes Spent') {
+                            return value > 0 ? value.toFixed(0) : ''; // Mostra intero, non decimali per i minuti
+                        }
+                        return ''; // Non mostrare datalabel sulla barra del limite
+                    },
+                    display: (context: any) => {
+                        // Mostra il datalabel solo sulla barra del tempo speso e se il valore è > 0
+                        const value = context.dataset.data[context.dataIndex];
+                        return context.dataset.label === 'Minutes Spent' && value > 0;
+                    }
                 }
-            }
+            },
+            plugins: [ChartDataLabels] // Assicurati che ChartDataLabels sia registrato se lo usi qui
         },
     });
 
-    chartInstances.value.push(chart as Chart);
+    chartInstances.value.push(chart as any); // Usa 'any' per evitare l'errore di complessità del tipo
 };
 
 
-const createRuleEffectivenessChart = () => {
+const createTimeLimitUsageRateChart = () => {
     // Already checked for ref and data availability in updateCharts
-    const ctx = ruleEffectivenessChart.value!.getContext('2d'); // Use non-null assertion
+    const ctx = TimeLimitUsageRateChart.value!.getContext('2d'); // Use non-null assertion
     if (!ctx) return; // Explicit check for context
 
 
     const data = {
-        labels: timeSaved.value.map(item => item.rule),
+        labels: timeSpent.value.map(item => item.rule),
         datasets: [{
-            label: 'Effectiveness (%)',
-            data: timeSaved.value.map(item => item.percentage),
+            label: 'Usage Rate (%)',
+            data: timeSpent.value.map(item => item.percentage),
             backgroundColor: 'rgba(54, 162, 235, 0.7)',
             borderColor: 'rgba(54, 162, 235, 1)',
             borderWidth: 1
@@ -1050,7 +1414,7 @@ const createRuleEffectivenessChart = () => {
                     ticks: { color: textColor, callback: (value) => value + '%' }, // Use theme variable
                     title: {
                         display: true,
-                        text: 'Effectiveness (%)',
+                        text: 'Usage Rate (%)',
                         color: textColor // Use theme variable
                     }
                 },
@@ -1093,9 +1457,7 @@ const handleSectionChange = (newSection: any) => {
     console.log(`Navigating to section: ${newSection}`);
 };
 
-
-
-onMounted(async () => {
+function applyDarkMode() {
     // Apply theme
     if (isDarkMode.value) {
         document.body.classList.add('dark');
@@ -1105,6 +1467,10 @@ onMounted(async () => {
         document.body.classList.remove('dark');
     }
 
+}
+
+onMounted(async () => {
+    applyDarkMode()
     // Load user info to get license key and time tracker status
     const userInfoRes = await userHandler.getUserInfo(true);
     console.log("userInfoRes (stats page):\n", userInfoRes);
@@ -1130,8 +1496,8 @@ onMounted(async () => {
     display: flex;
     width: 100vw;
     min-height: 100vh;
-    overflow-x: hidden;    
-    background-color: var(--background);    
+    overflow-x: hidden;
+    background-color: var(--background);
     color: var(--color);
 }
 
@@ -1145,7 +1511,7 @@ onMounted(async () => {
     font-family: 'Poppins', sans-serif;
     min-height: 100vh;
     padding-bottom: 20px;
-    padding-right: 15px;    
+    padding-right: 15px;
 }
 
 
@@ -1243,8 +1609,8 @@ onMounted(async () => {
     flex-direction: column;
     align-items: center;
     gap: 30px;
-    margin-left: 2%;
-    width: 97%;    
+    margin-left: 3%;
+    width: 97%;
     margin-bottom: 2%;
     padding: 20px;
     box-sizing: border-box;
@@ -1270,16 +1636,19 @@ onMounted(async () => {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
     width: 100%;
-    overflow-x: hidden;    
+    overflow-x: hidden;
     padding-right: 15px;
     box-sizing: border-box;
     min-height: 850px;
 }
-.charts-grid-2{
+
+.charts-grid-2 {
     min-height: 400px;
 }
-.charts-grid-3{
+
+.charts-grid-3 {
     min-height: 100%;
+    margin-bottom: 1%;
 }
 
 
@@ -1320,5 +1689,96 @@ onMounted(async () => {
     /* Use accent color for chart titles as requested */
     text-align: center;
     width: 100%;
+}
+
+.custom-select {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.menu-icon {
+    font-size: 18px;
+    display: inline-flex;
+}
+
+.select-icon {
+    position: absolute;
+    right: 10px;
+    pointer-events: none;
+}
+
+.custom-select .selettore {
+    width: 140px;
+}
+
+.chart-container {
+    /* Assicurati che il container abbia una posizione relativa se il suo contenuto (il wrapper) è assoluto */
+    position: relative;
+    /* Aggiungi altri stili per i tuoi box (padding, margins, etc.) */
+    padding: 1rem;
+    /* Esempio */
+    display: flex;
+    flex-direction: column;
+    /* Per impilare titolo e wrapper */
+}
+
+.chart-container h4 {
+    text-align: center;
+    /* Centra il titolo */
+    margin-bottom: 0.5rem;
+    /* Spazio tra titolo e grafico */
+    /* Aggiungi stili per il titolo */
+}
+
+.chart-canvas-wrapper {
+    position: relative;
+    /* Importante per posizionare l'overlay */
+    flex-grow: 1;
+    /* Permette al wrapper di espandersi */
+    /* Imposta un'altezza minima se necessario, anche se maintainAspectRatio: false lo gestisce */
+    /* min-height: 200px; Esempio */
+}
+
+
+.chart-canvas-wrapper canvas {
+    display: block;
+    /* Assicurati che il canvas sia un blocco per evitare spazio extra */
+    width: 100% !important;
+    /* Chart.js a volte imposta width inline, override */
+    height: 100% !important;
+    /* Chart.js a volte imposta height inline, override */
+}
+
+.blurred-content canvas {
+    /* Applica il blur al canvas quando la classe 'blurred-content' è presente sul wrapper */
+    filter: blur(4px);
+    /* Regola il valore del blur come preferisci */
+    pointer-events: none;
+    /* Rendi il canvas non interattivo quando sfocato */
+}
+
+.no-data-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0);
+    /* Sfondo bianco semi-trasparente */
+    color: #555;
+    /* Colore testo */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    /* Assicurati che l'overlay sia sopra il canvas */
+    text-align: center;
+    font-size: 1.2rem;
+    /* Dimensione testo */
+    font-weight: bold;
+    /* Per il tema scuro, puoi usare un background-color diverso */
+    /* background-color: rgba(0, 0, 0, 0.7); */
+    /* color: #ccc; */
 }
 </style>

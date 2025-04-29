@@ -15,6 +15,7 @@ export type ToDoObj = {
     completed: boolean;
     id: string
     category: string
+    completionDate : Date 
 }
 
 export class ToDoAction { //OSS : attributi public per Vue
@@ -28,6 +29,7 @@ export class ToDoAction { //OSS : attributi public per Vue
     public completed: boolean
     public id: string;
     public category: string
+    public completionDate : Date
 
     constructor(id: string, title: string, priority: ToDoPriority, dateWithTime: Date, expiration: Date, notifyDate: Date, category: string, description = "") {
         this.id = id;
@@ -40,6 +42,8 @@ export class ToDoAction { //OSS : attributi public per Vue
         this.dateWithTime = dateWithTime;
         this.completed = false;
         this.category = category;
+        this.completionDate = dateWithTime
+
     }
 
     public getAsObj(): ToDoObj {
@@ -58,7 +62,8 @@ export class ToDoAction { //OSS : attributi public per Vue
             expiration: this.expiration,
             notifyDate: this.notifyDate,
             subActions: subActionsObj,
-            completed: this.completed
+            completed: this.completed,
+            completionDate : this.completionDate
         }
     }
 
@@ -79,10 +84,12 @@ export class ToDoAction { //OSS : attributi public per Vue
     public setAsCompleted() {
         this.completed = true;
         this.subActions.forEach(a => a.setAsCompleted());
+        this.completionDate = new Date(Date.now());
     }
 
     public setAsNotCompleted() {
         this.completed = false;
+        this.completionDate = this.dateWithTime
     }
 
     public clone(id: string | null = null): ToDoAction {
@@ -324,6 +331,7 @@ export class ToDoHandler {
             toDoObj.category,
             toDoObj.description
         );
+        action.completionDate = toDoObj.completionDate;
         action.completed = toDoObj.completed;
 
         for (let a of toDoObj.subActions) {

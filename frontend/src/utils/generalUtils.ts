@@ -71,14 +71,17 @@ export function isToday(date: Date): boolean {
 
 
 export function parseActionDates(action: ToDoObj) {
-    let firestoneDateWithTime = action.dateWithTime as unknown as firestoreTimestamp
-    action.dateWithTime = firestoneDateWithTime.toDate()
+    let firestoreDateWithTime = action.dateWithTime as unknown as firestoreTimestamp
+    action.dateWithTime = firestoreDateWithTime.toDate()
 
-    let firestonenotifyDate = action.notifyDate as unknown as firestoreTimestamp
-    action.notifyDate = firestonenotifyDate.toDate()
+    let firestorenotifyDate = action.notifyDate as unknown as firestoreTimestamp
+    action.notifyDate = firestorenotifyDate.toDate()
 
-    let firestone_expiration = action.expiration as unknown as firestoreTimestamp
-    action.expiration = firestone_expiration.toDate()
+    let firestore_expiration = action.expiration as unknown as firestoreTimestamp
+    action.expiration = firestore_expiration.toDate()
+
+    let completionFirestoreDate = action.completionDate as unknown as firestoreTimestamp
+    action.completionDate = completionFirestoreDate.toDate()
 
     for(let a of action.subActions){
         parseActionDates(a)

@@ -45,9 +45,9 @@ export class StatsHandler {
     /**
      * Calcola la percentuale di completamento per categoria
      */
-    getCompletionByCategory(todos: ToDoAction[], categories : string[]): { category: string; completed: number; total: number; percentage: number }[] {
+    getCompletionByCategory(todos: ToDoAction[], categories: string[]): { category: string; completed: number; total: number; percentage: number }[] {
         const result: Record<string, { completed: number; total: number }> = {};
-        for(let c of categories){
+        for (let c of categories) {
             result[c] = { completed: 0, total: 0 };
         }
 
@@ -251,6 +251,51 @@ export class StatsHandler {
         }));
     }
 
+    /**
+     * Calcola il tempo medio di completamento delle to do completate nel periodo specificato.
+     * Il risultato è in minuti.
+     */
+    getAverageCompletionTime(todos: ToDoAction[]): number {
+        console.log("todos in getAverageCompletionTime:\n", todos)
+
+        // 1 & 2. Filtra i task completati in base alla loro completionDate e al periodo impostato
+        const completedTodosInPeriod = todos.filter(todo =>
+            todo.completed &&
+            todo.completionDate && // Assicura che completionDate esista
+            todo.completionDate >= this.startDate &&
+            todo.completionDate <= this.endDate
+        );
+
+        console.log("completedTodosInPeriod in getAverageCompletionTime:\n", completedTodosInPeriod)
+
+        // 3. Calcola la somma dei tempi di completamento
+        let totalCompletionTimeMs = 0;
+        completedTodosInPeriod.forEach(todo => {
+            // Assicurati che sia dateWithTime che completionDate esistano prima di calcolare la differenza
+            if (todo.dateWithTime && todo.completionDate) {
+                // Tempo di completamento = completionDate - dateWithTime (in ms)
+                totalCompletionTimeMs += todo.completionDate.getTime() - todo.dateWithTime.getTime();
+            }
+        });
+
+        // 4. Calcola il numero di task completati nel periodo
+        const numberOfCompletedTodos = completedTodosInPeriod.length;
+
+        // 5. Calcola il tempo medio
+        if (numberOfCompletedTodos === 0) {
+            return 0; // Nessun task completato nel periodo
+        }
+
+        // Tempo medio in millisecondi
+        const averageCompletionTimeMs = totalCompletionTimeMs / numberOfCompletedTodos;
+
+        // Converte il tempo medio in minuti
+        const averageCompletionTimeMinutes = averageCompletionTimeMs / (1000 * 60);
+
+        // Puoi scegliere di arrotondare o formattare a seconda della precisione desiderata
+        return parseFloat(averageCompletionTimeMinutes.toFixed(2)); // Arrotonda a 2 cifre decimali
+    }
+
     // CALENDAR EVENTS STATISTICS
 
     /**
@@ -261,8 +306,11 @@ export class StatsHandler {
         hours: number;
         percentage: number;
     }[] {
+        console.log("events in getTimeDistributionByCategory:\n", events);
+
         // Filtra per il periodo
         const filteredEvents = this.filterByPeriod(events);
+        console.log("filtered events in getTimeDistributionByCategory:\n", filteredEvents);
 
         // Somma ore per categoria
         const categoryHours: Record<string, number> = {};
@@ -329,25 +377,25 @@ export class StatsHandler {
     // TIME TRACKER STATISTICS
 
     /**
-     * Calcola il tempo risparmiato usando le regole di time tracking
+     * Calcola il tempo speso davvero usando le regole di time tracking
      */
-    getTimeSaved(rules: TimeTrackerRule[]): {
+    getTimeSpent(rules: TimeTrackerRule[]): {
         rule: string;
         limitMinutes: number;
         remainingMinutes: number;
-        savedMinutes: number;
+        timeSpentMinutes: number;
         percentage: number;
     }[] {
         return rules.map(rule => {
-            const savedMinutes = rule.remainingTimeMin;
-            const percentage = (savedMinutes / rule.minutesDailyLimit) * 100;
+            const timeSpent = rule.minutesDailyLimit <= rule.minutesDailyLimit ? rule.minutesDailyLimit - rule.remainingTimeMin : rule.minutesDailyLimit;
+            const percentage = (timeSpent / rule.minutesDailyLimit) * 100;
 
             return {
                 rule: rule.site_or_app_name,
                 limitMinutes: rule.minutesDailyLimit,
                 remainingMinutes: rule.remainingTimeMin,
-                savedMinutes,
-                percentage
+                timeSpentMinutes:timeSpent,
+                percentage : Number(percentage.toFixed(2))
             };
         });
     }
