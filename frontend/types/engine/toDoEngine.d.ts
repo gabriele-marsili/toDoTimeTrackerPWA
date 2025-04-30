@@ -12,6 +12,7 @@ export type ToDoObj = {
     completed: boolean;
     id: string;
     category: string;
+    completionDate: Date;
 };
 export declare class ToDoAction {
     title: string;
@@ -24,6 +25,7 @@ export declare class ToDoAction {
     completed: boolean;
     id: string;
     category: string;
+    completionDate: Date;
     constructor(id: string, title: string, priority: ToDoPriority, dateWithTime: Date, expiration: Date, notifyDate: Date, category: string, description?: string);
     getAsObj(): ToDoObj;
     isCompleted(): boolean;

@@ -13,6 +13,7 @@ import { TimeTrackerRule, TimeTrackerRuleObj } from "../engine/timeTracker.js";
 import { FirestoreProxy } from "./firestoneProxy.js";
 import { getToken } from "firebase/messaging";
 import { notificationDocData, requestNotifyPermission, TTT_Notification } from "../engine/notification.js";
+import { MysteryBoxConfig, ShopItem, UserInventory } from "../types/shopTypes.js";
 
 
 type InitDHresponse = {
@@ -810,7 +811,7 @@ export class API_gestor {
                 licenseIsValid: uInfo.licenseIsValid,
                 friends: uInfo.friends,
                 karmaCoinsBalance: uInfo.karmaCoinsBalance,
-                avatarImagePath : uInfo.avatarImagePath
+                avatarImagePath: uInfo.avatarImagePath
             });
             return {
                 success: true,
@@ -855,7 +856,7 @@ export class API_gestor {
                 friends: [],
                 karmaCoinsBalance: 0,
                 fcmToken: "",
-                avatarImagePath : ""
+                avatarImagePath: ""
             });
 
             this.licenseKey = licenseKey;
@@ -1512,7 +1513,6 @@ export class API_gestor {
         }
     }
 
-
     public async removeTimeTrackerRule(licenseKey: string, ruleId: string): Promise<baseResponse> {
         try {
             if (!this.user) throw new Error("user not logged");
@@ -1574,6 +1574,144 @@ export class API_gestor {
         }
     }
 
+    // ----- handle shop <--> db :
+    // ----- handle shop <--> db :
+    public async getShopItems(): Promise<{
+        items: ShopItem[],
+        mysteryBoxes: MysteryBoxConfig[],
+        success: boolean,
+        errorMessage: string
+    }> {
+        try {
+            // Reference the specific documents
+            const itemsDocRef = doc(this.db, "shop", "items");
+            const mysteryBoxesDocRef = doc(this.db, "shop", "mysteryBoxes");
+
+            // Fetch both documents
+            const [itemsDocSnap, mysteryBoxesDocSnap] = await Promise.all([
+                this.firestoreProxy.getDocWithNetworkFirst(itemsDocRef),
+                this.firestoreProxy.getDocWithNetworkFirst(mysteryBoxesDocRef)
+            ]);
+
+            console.log("itemsDocSnap:", itemsDocSnap.data() );
+            console.log("mysteryBoxesDocSnap:",  mysteryBoxesDocSnap.data() );
 
 
+            let shop_items: ShopItem[] = [];
+            let shop_mysteryBoxes: MysteryBoxConfig[] = [];
+
+            // Check if the documents exist and extract data
+            if (itemsDocSnap.exists()) {
+                const itemsData = itemsDocSnap.data();
+                shop_items = itemsData?.items || []; // Access the 'items' field
+            } else {
+                console.log("Shop items document does not exist.");
+                // Optionally throw an error or return with an error message if items are mandatory
+            }
+
+            if (mysteryBoxesDocSnap.exists()) {
+                const mysteryBoxesData = mysteryBoxesDocSnap.data();
+                shop_mysteryBoxes = mysteryBoxesData?.mysteryBoxes || []; // Access the 'mysteryBoxes' field
+            } else {
+                console.log("Mystery boxes document does not exist.");
+                // Optionally throw an error or return with an error message if mystery boxes are mandatory
+            }
+
+            // You can add a check here if both documents are expected to exist
+            if (shop_items.length === 0 && shop_mysteryBoxes.length === 0) {
+                // If neither document existed or they were empty
+                return {
+                    success: false,
+                    errorMessage: "No shop content found in expected documents.",
+                    mysteryBoxes: [],
+                    items: []
+                };
+            }
+
+
+            return {
+                success: true,
+                errorMessage: "",
+                mysteryBoxes: shop_mysteryBoxes,
+                items: shop_items
+            }
+
+        } catch (error: any) {
+            console.log("error in get shop item:\n", error)
+            return {
+                errorMessage: error.message,
+                success: false,
+                mysteryBoxes: [],
+                items: []
+            }
+        }
+
+    }
+
+
+    // ----- handle user inventory <--> db :
+    public async updateUserInventory(userInventory: UserInventory): Promise<baseResponse> {
+        try {
+            if (userInventory.licenseKey == "") {
+                throw new Error("invalid license key")
+            }
+            const q = query(collection(this.db, "userInventory"), where("licenseKey", "==", userInventory.licenseKey));
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
+
+            if (!snapshot.empty) {
+                const userDoc = snapshot.docs[0].ref;
+                await updateDoc(userDoc, { licenseKey: userInventory.licenseKey, inventory: userInventory.items });
+            } else {
+                if (!this.user) throw new Error("user not logged");
+
+                await setDoc(doc(collection(this.db, "userInventory"), this.user.uid), {
+                    inventory: userInventory.items,
+                    licenseKey: userInventory.licenseKey
+                });
+            }
+
+            return { success: true, errorMessage: "" };
+        } catch (error: any) {
+            console.log("error in update user inventory:\n", error)
+            return {
+                success: false,
+                errorMessage: error.message
+            }
+        }
+    }
+
+    public async getUserInventory(licenseKey: string): Promise<{
+        success: boolean,
+        errorMessage: string,
+        userInventory: UserInventory
+    }> {
+        try {
+            if (licenseKey == "") {
+                throw new Error("invalid license key")
+            }
+
+            const q = query(collection(this.db, "userInventory"), where("licenseKey", "==", licenseKey));
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
+
+            if (snapshot.empty) {
+                throw new Error("No user inventory found for license key: " + licenseKey);
+            }
+
+            const docData = snapshot.docs[0].data();
+            const items: { itemId: string, quantity: number }[] = docData.inventory || [];
+
+            return {
+                success: true,
+                errorMessage: '',
+                userInventory: { licenseKey, items }
+            };
+        } catch (error: any) {
+            console.error("Error getting user inventory:", error);
+            return {
+                success: false,
+                errorMessage: error.message,
+                userInventory: { licenseKey, items: [] }
+            };
+        }
+    }
 }

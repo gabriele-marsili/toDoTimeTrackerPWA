@@ -27,6 +27,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TTTappServer = void 0;
+const node_cron_1 = __importDefault(require("node-cron"));
 const fs_1 = __importDefault(require("fs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const dotenv = __importStar(require("dotenv"));
@@ -40,6 +41,7 @@ const firestore_1 = require("firebase/firestore");
 const firebase_1 = require("../firebase/firebase");
 const cors_1 = __importDefault(require("cors"));
 const notificationManager_1 = require("../notificationEngine/notificationManager");
+const shopEngine_1 = require("../engine/shopEngine");
 /**
  * Singleton class to handle the server services
  */
@@ -271,6 +273,8 @@ class TTTappServer {
         this.abilitEndpoints();
         //start check notification every minute
         this.notificationManager.startCheckNotification();
+        //start update shop every day at 00.00
+        this.startUpdateShop();
     }
     abilitEndpoints() {
         //DH protocol
@@ -652,6 +656,11 @@ class TTTappServer {
         }
         // Il contenuto del BIT STRING è la chiave raw; la sua lunghezza è (bitStringLength - 1)
         return buffer.subarray(offset, offset + bitStringLength - 1);
+    }
+    startUpdateShop() {
+        node_cron_1.default.schedule("0 0 * * *", async () => {
+            await (0, shopEngine_1.updateDailyShop)();
+        });
     }
 }
 exports.TTTappServer = TTTappServer;

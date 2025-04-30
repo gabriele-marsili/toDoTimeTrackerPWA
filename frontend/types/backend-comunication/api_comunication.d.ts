@@ -5,6 +5,7 @@ import { ToDoAction, ToDoObj } from "../engine/toDoEngine.js";
 import { CalendarEvent, CalendarObj } from "../engine/calendarEvent.js";
 import { TimeTrackerRule, TimeTrackerRuleObj } from "../engine/timeTracker.js";
 import { TTT_Notification } from "../engine/notification.js";
+import { MysteryBoxConfig, ShopItem } from "../types/shopTypes.js";
 /**
  * singleton class to interact with the backend via API
  */
@@ -142,5 +143,11 @@ export declare class API_gestor {
         success: boolean;
         errorMessage: string;
         rules: TimeTrackerRuleObj[];
+    }>;
+    getShopItems(): Promise<{
+        items: ShopItem[];
+        mysteryBoxes: MysteryBoxConfig[];
+        success: boolean;
+        errorMessage: string;
     }>;
 }

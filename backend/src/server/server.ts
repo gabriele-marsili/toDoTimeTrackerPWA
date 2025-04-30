@@ -1,3 +1,4 @@
+import cron from 'node-cron';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import * as dotenv from 'dotenv';
@@ -13,6 +14,7 @@ import { auth, db, initializedFirestonAdmin } from '../firebase/firebase';
 import cors from 'cors';
 import { app } from 'firebase-admin';
 import { NotificationManager } from '../notificationEngine/notificationManager';
+import { updateDailyShop } from '../engine/shopEngine';
 
 
 /**
@@ -327,6 +329,8 @@ export class TTTappServer {
 
         //start check notification every minute
         this.notificationManager.startCheckNotification()
+        //start update shop every day at 00.00
+        this.startUpdateShop()
     }
 
     private abilitEndpoints(): void {
@@ -779,6 +783,11 @@ export class TTTappServer {
     }
 
 
+    private startUpdateShop(){ //run every day at 00:00 
+        cron.schedule("0 0 * * *",async ()=>{
+            await updateDailyShop()
+        })
+    }
 
 }
 

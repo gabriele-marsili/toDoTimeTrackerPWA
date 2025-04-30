@@ -114,6 +114,7 @@ export default {
 </script>
 
 <style scoped>
+
 .logo-container {
     display: flex;
     align-items: center;
