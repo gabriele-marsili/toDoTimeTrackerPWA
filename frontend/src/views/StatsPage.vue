@@ -55,7 +55,7 @@
 
                 <h3 class="section-title">To-Do Actions Statistics</h3>
                 <div class="charts-grid">
-                    <div class="chart-container box elevated rounded-2xl">
+                    <div class="chart-container canvas-box elevated rounded-2xl">
                         <h4>Completion by Category</h4>
                         <div class="chart-canvas-wrapper"
                             :class="{ 'blurred-content': !chartDataStatus.categoryCompletionChart }">
@@ -66,7 +66,7 @@
                         </div>
                     </div>
 
-                    <div class="chart-container box elevated rounded-2xl">
+                    <div class="chart-container canvas-box elevated rounded-2xl">
                         <h4>Completion and Addition Trend</h4>
                         <div class="chart-canvas-wrapper"
                             :class="{ 'blurred-content': !chartDataStatus.completionTrendChart }">
@@ -77,7 +77,7 @@
                         </div>
                     </div>
 
-                    <div class="chart-container box elevated rounded-2xl">
+                    <div class="chart-container canvas-box elevated rounded-2xl">
                         <h4>Karma Points by Category</h4>
                         <div class="chart-canvas-wrapper" :class="{ 'blurred-content': !chartDataStatus.karmaChart }">
                             <canvas ref="karmaChart"></canvas>
@@ -87,7 +87,7 @@
                         </div>
                     </div>
 
-                    <div class="chart-container box elevated rounded-2xl">
+                    <div class="chart-container canvas-box elevated rounded-2xl">
                         <h4>Punctuality Rate</h4>
                         <div class="chart-canvas-wrapper"
                             :class="{ 'blurred-content': !chartDataStatus.punctualityChart }">
@@ -98,7 +98,7 @@
                         </div>
                     </div>
 
-                    <div class="chart-container box elevated rounded-2xl">
+                    <div class="chart-container canvas-box elevated rounded-2xl">
                         <h4>Distribution by Priority</h4>
                         <div class="chart-canvas-wrapper"
                             :class="{ 'blurred-content': !chartDataStatus.priorityChart }">
@@ -109,7 +109,7 @@
                         </div>
                     </div>
 
-                    <div class="chart-container box elevated rounded-2xl">
+                    <div class="chart-container canvas-box elevated rounded-2xl">
                         <h4>Average Completion Time</h4>
                         <div class="chart-canvas-wrapper"
                             :class="{ 'blurred-content': !chartDataStatus.averageCompletionTimeChart }">
@@ -123,7 +123,7 @@
 
                 <h3 class="section-title">Calendar Events Statistics</h3>
                 <div class="charts-grid-2">
-                    <div class="chart-container box elevated rounded-2xl">
+                    <div class="chart-container canvas-box elevated rounded-2xl">
                         <h4>Time Distribution by Event Category</h4>
                         <div class="chart-canvas-wrapper"
                             :class="{ 'blurred-content': !chartDataStatus.calendarCategoryChart }">
@@ -134,7 +134,7 @@
                         </div>
                     </div>
 
-                    <div class="chart-container box elevated rounded-2xl">
+                    <div class="chart-container canvas-box elevated rounded-2xl">
                         <h4>Events by Day of the Week</h4>
                         <div class="chart-canvas-wrapper"
                             :class="{ 'blurred-content': !chartDataStatus.busyDaysChart }">
@@ -145,7 +145,7 @@
                         </div>
                     </div>
 
-                    <div class="chart-container box elevated rounded-2xl">
+                    <div class="chart-container canvas-box elevated rounded-2xl">
                         <h4>Events by Hour of the Day</h4>
                         <div class="chart-canvas-wrapper"
                             :class="{ 'blurred-content': !chartDataStatus.busyHoursChart }">
@@ -159,7 +159,7 @@
 
                 <h3 class="section-title">Time Tracker Rules Statistics</h3>
                 <div class="charts-grid-3">
-                    <div class="chart-container box elevated rounded-2xl">
+                    <div class="chart-container canvas-box elevated rounded-2xl">
                         <h4>Time Spent per Rule</h4>
                         <div class="chart-canvas-wrapper"
                             :class="{ 'blurred-content': !chartDataStatus.timeSpentChart }">
@@ -170,7 +170,7 @@
                         </div>
                     </div>
 
-                    <div class="chart-container box elevated rounded-2xl">
+                    <div class="chart-container canvas-box elevated rounded-2xl">
                         <h4>Time Limit Usage Rate</h4>
                         <div class="chart-canvas-wrapper"
                             :class="{ 'blurred-content': !chartDataStatus.TimeLimitUsageRateChart }">
@@ -1317,13 +1317,11 @@ const createtimeSpentChart = () => {
                     },
                     // Assicurati che gli assi siano configurati correttamente
                     stacked: false, // Non è uno stacked bar chart tradizionale, ma barre sovrapposte
-                    id: 'y' // Imposta un ID per l'asse y
                 },
                 x: {
                     ticks: { color: textColor }, // Use theme variable
                     // Assicurati che gli assi siano configurati correttamente
                     stacked: false,
-                    id: 'x' // Imposta un ID per l'asse x
                 }
             },
             plugins: {
@@ -1376,7 +1374,7 @@ const createtimeSpentChart = () => {
                     }
                 }
             },
-            plugins: [ChartDataLabels] // Assicurati che ChartDataLabels sia registrato se lo usi qui
+            //plugins: [ChartDataLabels] // Assicurati che ChartDataLabels sia registrato se lo usi qui
         },
     });
 
@@ -1515,7 +1513,7 @@ onMounted(async () => {
 }
 
 
-.box {
+.canvas-box {
     background-color: var(--background-dark);
     /* Use dark background variable */
     padding: 15px;

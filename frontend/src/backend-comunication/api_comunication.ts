@@ -927,8 +927,8 @@ export class API_gestor {
         }
     }
 
-    public async getUserInfo() {
-        if (!this.userByDB) { //try to get data by login with lk or email : 
+    public async getUserInfo(forceUpdate=false) {
+        if (!this.userByDB || forceUpdate) { //try to get data by login with lk or email : 
             if (this.licenseKey && this.licenseKey != "") {
                 await this.loginWithLicenseKey(this.licenseKey)
             } else if ((this.userEmail && this.userEmail != "") || (this.user && this.user.email)) {

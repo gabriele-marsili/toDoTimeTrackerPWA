@@ -10,6 +10,16 @@ export enum ItemRarity {
     Unique = 'unique',
 }
 
+export enum MysterBoxImageUrls {
+    Mainstream = 'https://i.imgur.com/leelBQV.jpeg',
+    QuiteCommon = 'https://i.imgur.com/r9FQWcy.png',
+    Uncommon = 'https://i.imgur.com/n1m83eQ.jpeg',
+    Rare = 'https://i.imgur.com/3mO25NY.jpeg',
+    Special = 'https://i.imgur.com/hhxk5rk.jpeg',
+    Legendary = 'https://i.imgur.com/K2NjeQt.jpeg',
+    Unique = 'https://i.imgur.com/yBNMbYQ.jpeg',
+}
+
 // Base class for any item in the shop or inventory
 export interface ShopItem {
     id: string;
@@ -18,7 +28,7 @@ export interface ShopItem {
     cost: number; // in Karma Points
     rarity: ItemRarity;
     imageUrl?: string; // Optional image for the item
-    type: 'cosmetic' | 'utility' | 'mystery_box' | 'gift' | 'reminder'; // Categorize item types
+    type: 'cosmetic' | 'utility' | 'mystery_box' | 'gift' | 'reminder' | 'avatar'; // Categorize item types
     // Add other properties specific to item type if needed
 }
 
@@ -38,6 +48,7 @@ export interface MysteryBoxConfig {
     name: string;
     cost: number; // in Karma Points
     rarity: ItemRarity; // Rarity of the box itself
+    imageUrl : string;
     availableItems: {
         itemId: string;
         probability: number; // Probability of getting this item (0 to 1)

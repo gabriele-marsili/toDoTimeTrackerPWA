@@ -18,7 +18,7 @@ export interface ShopItem {
     cost: number; // in Karma Points
     rarity: ItemRarity;
     imageUrl?: string; // Optional image for the item
-    type: 'cosmetic' | 'utility' | 'mystery_box' | 'gift' | 'reminder'; // Categorize item types
+    type: 'cosmetic' | 'utility' | 'mystery_box' | 'gift' | 'reminder' | 'avatar'; // Categorize item types
     // Add other properties specific to item type if needed
 }
 
@@ -38,6 +38,7 @@ export interface MysteryBoxConfig {
     name: string;
     cost: number; // in Karma Points
     rarity: ItemRarity; // Rarity of the box itself
+    imageUrl : string;
     availableItems: {
         itemId: string;
         probability: number; // Probability of getting this item (0 to 1)

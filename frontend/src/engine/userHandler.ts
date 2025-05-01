@@ -22,17 +22,17 @@ export class UserHandler {
         this.apiGestor = apiGestor;
         this.licenseKey = "";
         this.userEmail = ""
-        this.updateLocalUserInfo()
+        this.updateLocalUserInfo(true)
         this.userByDB = null;
     }
 
 
     public async getUserInfo(update = false) {
         if (update) {
-            await this.updateLocalUserInfo();
+            await this.updateLocalUserInfo(update);
         }
         if (!this.userByDB) {
-            await this.updateLocalUserInfo();
+            await this.updateLocalUserInfo(update);
         }
         return {
             userInfo: {
@@ -68,8 +68,8 @@ export class UserHandler {
         }
     }
 
-    private async updateLocalUserInfo() {
-        const info = await this.apiGestor.getUserInfo()
+    private async updateLocalUserInfo(forceUpdate=false) {
+        const info = await this.apiGestor.getUserInfo(forceUpdate)
 
         console.log("info in update local user info (user handler):\n", info)
         const uInfo = info.userInfo;

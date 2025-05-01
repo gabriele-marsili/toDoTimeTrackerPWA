@@ -3,7 +3,7 @@
         <h2>Shop Items</h2>
 
         <div class="items-carousel custom-scrollbar">
-            <div v-for="item in shopItems" :key="item.id" :class="['shop-item-card', `rarity-${item.rarity}`]">
+            <div v-for="item in shopItems" :key="item.id" :class="['shop-item-card', `rarity-${item.rarity}`, { 'owned-item': isItemOwned(item.id) }]">
                 <img :src="item.imageUrl || '/path/to/default-item-image.png'" :alt="item.name" class="item-image" />
                 <div class="item-info">
                     <h3 :class="`rarity-text-${item.rarity}`">{{ item.name }}</h3>
@@ -11,7 +11,14 @@
                     <p>Cost: {{ item.cost }} Karma Points</p>
                     <p :class="`rarity-text-${item.rarity}`">Rarity: {{ item.rarity }}</p>
                 </div>
-                <button class="baseButton buy-button" @click="buyItem(item)">Buy</button>
+                 <button
+                    class="baseButton buy-button"
+                    @click="buyItem(item)"
+                    :disabled="isItemOwned(item.id)"
+                    :class="{ 'disabled-button': isItemOwned(item.id) }"
+                >
+                    {{ isItemOwned(item.id) ? 'Already Owned' : 'Buy' }}
+                </button>
             </div>
         </div>
 
@@ -19,13 +26,13 @@
 
         <div class="mystery-boxes">
             <div v-for="box in mysteryBoxes" :key="box.id" :class="['mystery-box-card', `rarity-${box.rarity}`]">
-                <img :src="getMysteryBoxImage(box.rarity)" :alt="box.name" class="item-image" />
+                <img :src="box.imageUrl || '/path/to/default-box-image.png'" :alt="box.name" class="item-image" />
                 <div class="item-info">
                     <h3 :class="`rarity-text-${box.rarity}`">{{ box.name }}</h3>
                     <p>Cost: {{ box.cost }} Karma Points</p>
                     <p :class="`rarity-text-${box.rarity}`">Rarity: {{ box.rarity }}</p>
                 </div>
-                <button class="baseButton buy-button" @click="buyMysteryBox(box)">Buy Mystery Box</button>
+                 <button class="baseButton buy-button" @click="buyMysteryBox(box)">Buy Mystery Box</button>
             </div>
         </div>
     </div>
@@ -44,35 +51,22 @@ const mysteryBoxes = ref<MysteryBoxConfig[]>([]);
 const props = defineProps<{
     userInfo: userDBentry;
 }>();
-const userInventory = ref<UserInventory>({ licenseKey: props.userInfo.licenseKey, items: [] })
+const userInventory = ref<UserInventory>({ licenseKey: '', items: [] }) // Initialize with empty licenseKey
+
 
 const emit = defineEmits(['update-karma', 'show-notification']);
 
-function getMysteryBoxImage(rarity: ItemRarity) { //to do to finish
-    switch (rarity) {
-        case ItemRarity.Mainstream:
-            return ""
-        case ItemRarity.QuiteCommon:
-            return ""
-        case ItemRarity.Uncommon:
-            return ""
-        case ItemRarity.Rare:
-            return ""
-        case ItemRarity.Special:
-            return ""
-        case ItemRarity.Legendary:
-            return ""
-        case ItemRarity.Unique:
-            return ""
-        default:
-            return "" // Default image if rarity is not matched
-
-    }
+// Helper function to check if an item is in the user's inventory
+function isItemOwned(itemId: string): boolean {
+    return userInventory.value.items.some(item => item.itemId === itemId);
 }
+
 
 watch(() => props.userInfo, async (updated_info) => { // Watch for changes in props.userInfo
     console.log("new user info shop display:\n", updated_info)
     if (updated_info && updated_info.licenseKey !== "") { // Ensure licenseKey is loaded
+        // Update userInventory ref with the new licenseKey before fetching
+        userInventory.value.licenseKey = updated_info.licenseKey;
         await updateLocalUserInventory();
         console.log("local inventory updated");
     }
@@ -80,12 +74,12 @@ watch(() => props.userInfo, async (updated_info) => { // Watch for changes in pr
 
 
 async function updateLocalUserInventory() {
-    if (props.userInfo.licenseKey == "") {
-        console.log("user info lk not loaded yet, skipping inventory update");
+    if (userInventory.value.licenseKey == "") {
+        console.log("user inventory lk not loaded yet, skipping inventory update");
         return;
     }
 
-    const userInventoryRes = await api_gestor.getUserInventory(props.userInfo.licenseKey);
+    const userInventoryRes = await api_gestor.getUserInventory(userInventory.value.licenseKey);
     if (userInventoryRes.success) {
         userInventory.value = userInventoryRes.userInventory;
     }
@@ -93,7 +87,7 @@ async function updateLocalUserInventory() {
         if (userInventoryRes.errorMessage.includes('No user inventory found')) {
             // If no inventory found, it means this is a new user or an issue.
             // Let's create a default empty inventory for the user if it doesn't exist.
-            const newInventory: UserInventory = { licenseKey: props.userInfo.licenseKey, items: [] };
+            const newInventory: UserInventory = { licenseKey: userInventory.value.licenseKey, items: [] };
             const r = await api_gestor.updateUserInventory(newInventory);
             if (r.success) {
                 userInventory.value = newInventory; // Update local state as well
@@ -115,6 +109,7 @@ onMounted(async () => {
 });
 
 async function fetchShopContent() {
+    // Use api_gestor.getShopItems() which should handle server/cache logic
     const response = await api_gestor.getShopItems();
     if (response.success) {
         // For the carousel, let's take up to the first 5 items as requested
@@ -130,6 +125,12 @@ async function fetchShopContent() {
 
 
 async function buyItem(item: ShopItem) {
+    // Prevent purchase if already owned
+    if (isItemOwned(item.id)) {
+        emit('show-notification', 'info', `You already own "${item.name}".`);
+        return;
+    }
+
     if (props.userInfo.karmaCoinsBalance < item.cost) {
         emit('show-notification', 'warning', 'Not enough Karma Points to buy this item.');
         return;
@@ -159,8 +160,7 @@ async function buyItem(item: ShopItem) {
 
     if (inventoryUpdateRes.success && userUpdateRes.success) {
         emit('show-notification', 'success', `${item.name} purchased successfully!`);
-        emit('update-karma', updatedUserInfo.karmaCoinsBalance);
-
+        emit("update-karma")
     } else {
         // Consider rolling back the changes if one update failed
         emit('show-notification', 'error', 'Failed to purchase item.');
@@ -185,30 +185,45 @@ async function buyMysteryBox(box: MysteryBoxConfig) {
         return;
     }
 
+    let inventoryUpdateRes: { success: boolean; errorMessage?: string } | null = null;
+    let userUpdateRes: { success: boolean; errorMessage?: string } | null = null;
+    let updatedUserInfo = { ...props.userInfo, karmaCoinsBalance: props.userInfo.karmaCoinsBalance - box.cost }; // Deduct box cost first
 
-    const existingItemIndex = userInventory.value.items.findIndex(invItem => invItem.itemId === grantedItem.id);
+    // Check if the granted item is already in the user's inventory
+    const existingItemInInventory = userInventory.value.items.find(invItem => invItem.itemId === grantedItem.id);
 
-    if (existingItemIndex > -1) {
-        userInventory.value.items[existingItemIndex].quantity += 1;
+    if (existingItemInInventory) {
+        // User already owns the item, grant karma points instead
+        const karmaRefund = grantedItem.cost; // Amount of karma to grant (cost of the item)
+        updatedUserInfo.karmaCoinsBalance += karmaRefund; // Add karma points
+
+         emit('show-notification', 'info', `You already own "${grantedItem.name}". You received ${karmaRefund} Karma Points instead.`);
+
+         // Only update user karma balance, no inventory update needed for this item
+         userUpdateRes = await api_gestor.updateUserInfo(updatedUserInfo);
+         // Simulate a successful inventory update since the item wasn't added
+         inventoryUpdateRes = { success: true };
+
     } else {
+        // User does not own the item, add it to inventory
         userInventory.value.items.push({ itemId: grantedItem.id, quantity: 1 });
+
+        // Deduct box cost and update inventory and user karma
+        [inventoryUpdateRes, userUpdateRes] = await Promise.all([
+            api_gestor.updateUserInventory(userInventory.value),
+            api_gestor.updateUserInfo(updatedUserInfo)
+        ]);
+
+         emit('show-notification', 'success', `You opened a ${box.name} and found: ${grantedItem.name}!`);
     }
 
-    // 3. Deduct karma points and update inventory
-    const updatedUserInfo = { ...props.userInfo, karmaCoinsBalance: props.userInfo.karmaCoinsBalance - box.cost };
 
-    const [inventoryUpdateRes, userUpdateRes] = await Promise.all([
-        api_gestor.updateUserInventory(userInventory.value),
-        api_gestor.updateUserInfo(updatedUserInfo)
-    ]);
-
-
-    if (inventoryUpdateRes.success && userUpdateRes.success) {
-        emit('show-notification', 'success', `You opened a ${box.name} and found: ${grantedItem.name}!`);
-        emit('update-karma', updatedUserInfo.karmaCoinsBalance);
+    if (inventoryUpdateRes?.success && userUpdateRes?.success) {
+        emit("update-karma")
     } else {
-        emit('show-notification', 'error', 'Failed to open mystery box.');
-        console.log("Mystery box purchase failed:", inventoryUpdateRes.errorMessage, userUpdateRes.errorMessage);
+        // Consider rolling back the changes if an update failed
+        emit('show-notification', 'error', 'Failed to complete mystery box transaction.');
+        console.log("Mystery box transaction failed:", inventoryUpdateRes?.errorMessage, userUpdateRes?.errorMessage);
     }
 }
 
@@ -221,36 +236,37 @@ function selectRandomItemFromBox(box: MysteryBoxConfig): ShopItem | null {
         randomValue -= itemConfig.probability;
         if (randomValue <= 0) {
             // Find the actual ShopItem object for the granted item id
-            // Search in both fetched shop items and mystery boxes available items
-            const allPossibleItems: ShopItem[] = [
-                ...shopItems.value,
-                ...mysteryBoxes.value.flatMap(mb => mb.availableItems.map(ai => {
-                    // Attempt to find the actual item details in shopItems first
-                    const itemDetail = shopItems.value.find(item => item.id === ai.itemId);
-                    if (itemDetail) return itemDetail;
+            // Search in all available shop items (assuming generateMysteryBoxes populates allAvailableShopItems)
+            // Access the global allAvailableShopItems directly if available in this scope
+            // If not, you might need to fetch all items or pass them down.
+            // For this context, let's assume allAvailableShopItems is accessible or can be fetched.
+             // *** IMPORTANT: This implementation requires `allAvailableShopItems` to be available here.
+             // If `allAvailableShopItems` is only defined in your backend function,
+             // you will need a way to fetch the full list of items in your frontend or pass it down.
+             // A better approach might be for the backend to return the granted item's details
+             // as part of the mystery box opening API call. ***
 
-                    // If not found in shopItems, return a basic item structure
-                    return {
-                        id: ai.itemId,
-                        name: 'Unknown Item', // Placeholder name
-                        description: 'Details unavailable', // Placeholder description
-                        cost: 0, // Placeholder cost
-                        rarity: ItemRarity.Mainstream, // Default rarity
-                        type: 'utility' // Default type
-                    } as ShopItem;
-                }))
-            ];
+             // Placeholder lookup (assuming you have a way to get the item details by ID)
+            const grantedItem = shopItems.value.find(item => item.id === itemConfig.itemId) // Check items currently in the shop display
+                 // Fallback: You would ideally have a comprehensive list of all items here or a backend lookup
+                 // For demonstration, let's assume all shop items are accessible
+                 // const allItemsPool: ShopItem[] = /* get all possible items */;
+                 // const grantedItem = allItemsPool.find(item => item.id === itemConfig.itemId);
 
-            const grantedItem = allPossibleItems.find(item => item.id === itemConfig.itemId);
-            return grantedItem || null;
+
+            if (!grantedItem) {
+                 console.error("Granted item details not found for ID:", itemConfig.itemId);
+                 // You might want to search in the mysteryBoxes availableItems list itself as a last resort,
+                 // although that only has ID and probability, not full item details.
+                 // For a proper solution, ensure you can get full item details.
+                 return null;
+            }
+            return grantedItem;
         }
     }
 
     return null; // Should not happen if totalProbability is > 0
 }
-
-import { doc } from "firebase/firestore"; // Import doc for fetching specific documents
-
 </script>
 
 <style scoped>
@@ -294,6 +310,7 @@ import { doc } from "firebase/firestore"; // Import doc for fetching specific do
     /* Needed for absolute positioning of the button */
     padding-bottom: 50px;
     /* Add padding to make space for the button */
+    transition: opacity 0.3s ease; /* Add transition for opacity */
 }
 
 .mystery-box-card {
@@ -315,7 +332,7 @@ import { doc } from "firebase/firestore"; // Import doc for fetching specific do
     gap: 2px;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     flex-grow: 1;
     /* Allow item-info to take up available space */
     margin-bottom: 10px;
@@ -347,105 +364,58 @@ import { doc } from "firebase/firestore"; // Import doc for fetching specific do
     /* Adjust button width */
 }
 
+/* Style for disabled button */
+.buy-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6; /* Make it slightly transparent */
+}
+
+/* Visual indication for owned items */
+.owned-item {
+    opacity: 0.7; /* Slightly dim the card */
+     /* You can add more styles, e.g., a border or an "Owned" badge */
+}
+
 
 /* Rarity Borders (Keeping your existing border colors) */
-.rarity-mainstream {
-    border-color: gray;
-}
-
-.rarity-quite-common {
-    border-color: whitesmoke;
-}
-
-/* Verdolina */
-.rarity-uncommon {
-    border-color: lightgreen;
-}
-
-/* Verde light */
-.rarity-rare {
-    border-color: dodgerblue;
-}
-
-/* Blu elettrico */
-.rarity-special {
-    border-color: violet;
-}
-
-/* Viola chiaro */
+.rarity-mainstream { border-color: gray; }
+.rarity-quite-common { border-color: whitesmoke; }
+.rarity-uncommon { border-color: lightgreen; }
+.rarity-rare { border-color: dodgerblue; }
+.rarity-special { border-color: violet; }
 .rarity-legendary {
     border-color: gold;
+    box-shadow: 0 0 6px 3px gold;
+    background-size: 100% 100%;
+    animation: chrome-effect 3s linear infinite;
 }
-
-/* Gialla acceso */
 .rarity-unique {
     border-color: #8B0000;
-    /* Bordeoux */
     box-shadow: 0 0 10px 5px #8B0000;
-    /* Glow effect */
     background: linear-gradient(45deg, #8B0000, #C0C0C0, #8B0000);
-    /* Chromed effect */
     background-size: 200% 200%;
     animation: chrome-effect 3s linear infinite;
 }
 
 @keyframes chrome-effect {
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 /* Rarity Text Colors */
-.rarity-text-mainstream {
-    color: gray;
-}
-
-.rarity-text-quite-common {
-    color: #a4e4a4;
-}
-
-.rarity-text-uncommon {
-    color: lightgreen;
-}
-
-.rarity-text-rare {
-    color: dodgerblue;
-}
-
-.rarity-text-special {
-    color: violet;
-}
-
-.rarity-text-legendary {
-    color: gold;
-}
-
-.rarity-text-unique {
-    color: #8B0000;
-    /* Matching bordeoux color for unique text */
-}
-
+.rarity-text-mainstream { color: gray; }
+.rarity-text-quite-common { color: #a4e4a4; }
+.rarity-text-uncommon { color: lightgreen; }
+.rarity-text-rare { color: dodgerblue; }
+.rarity-text-special { color: violet; }
+.rarity-text-legendary { color: gold; }
+.rarity-text-unique { color: #8B0000; }
 
 .mystery-boxes {
     display: flex;
     gap: 20px;
     margin-top: 20px;
     flex-wrap: wrap;
-    /* Allow wrapping for multiple boxes */
-}
-
-/* Added some minor adjustments for better layout */
-.shop-item-card .item-info,
-.mystery-box-card .item-info {
-    justify-content: flex-start;
-    /* Align info to the top */
 }
 </style>
