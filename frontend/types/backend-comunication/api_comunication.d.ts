@@ -5,7 +5,7 @@ import { ToDoAction, ToDoObj } from "../engine/toDoEngine.js";
 import { CalendarEvent, CalendarObj } from "../engine/calendarEvent.js";
 import { TimeTrackerRule, TimeTrackerRuleObj } from "../engine/timeTracker.js";
 import { TTT_Notification } from "../engine/notification.js";
-import { MysteryBoxConfig, ShopItem } from "../types/shopTypes.js";
+import { MysteryBoxConfig, ShopItem, UserInventory } from "../types/shopTypes.js";
 /**
  * singleton class to interact with the backend via API
  */
@@ -76,7 +76,7 @@ export declare class API_gestor {
     updateUserInfo(uInfo: userDBentry): Promise<baseResponse>;
     registerUser(userForm: userDBentry): Promise<baseResponse>;
     loginWithLicenseKey(licenseKey: string): Promise<baseResponse>;
-    getUserInfo(): Promise<{
+    getUserInfo(forceUpdate?: boolean): Promise<{
         userInfo: {
             licenseKey: string;
             user: User | null;
@@ -149,5 +149,11 @@ export declare class API_gestor {
         mysteryBoxes: MysteryBoxConfig[];
         success: boolean;
         errorMessage: string;
+    }>;
+    updateUserInventory(userInventory: UserInventory): Promise<baseResponse>;
+    getUserInventory(licenseKey: string): Promise<{
+        success: boolean;
+        errorMessage: string;
+        userInventory: UserInventory;
     }>;
 }

@@ -1698,7 +1698,7 @@ export class API_gestor {
             }
 
             const docData = snapshot.docs[0].data();
-            const items: { itemId: string, quantity: number }[] = docData.inventory || [];
+            const items: { item: ShopItem, quantity: number }[] = docData.inventory || [];
 
             return {
                 success: true,

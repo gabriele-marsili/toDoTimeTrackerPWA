@@ -26,7 +26,7 @@ export interface ShopItem {
 export interface UserInventory {
     licenseKey: string;
     items: {
-        itemId: string;
+        item: ShopItem;
         quantity: number;
         // Potentially add acquisition date or other relevant info
     }[];
@@ -40,7 +40,7 @@ export interface MysteryBoxConfig {
     rarity: ItemRarity; // Rarity of the box itself
     imageUrl : string;
     availableItems: {
-        itemId: string;
+        item: ShopItem;
         probability: number; // Probability of getting this item (0 to 1)
     }[];
 }

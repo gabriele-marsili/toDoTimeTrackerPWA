@@ -38,6 +38,22 @@
                 @update-karma="askUserInfo"
                 @show-notification="sendNotify"
             />
+
+            <InventoryDisplay
+                v-if="currentView === 'inventory'"                
+                @show-notification="sendNotify"
+                :userLicenseKey="userInfo.licenseKey"
+            />
+
+            <SellDisplay
+                v-if="currentView === 'sell'"                
+                @show-notification="sendNotify"
+                :userLicenseKey="userInfo.licenseKey"
+                :user-info="userInfo"
+                @update-karma="askUserInfo"
+                
+            />
+
             </div>
 
         </div>
@@ -57,6 +73,8 @@ import { userDBentry } from '../types/userTypes';
 import { useRouter } from 'vue-router';
 import { delay } from '../utils/generalUtils';
 import ShopDisplay from '../components/ShopDisplay.vue';
+import InventoryDisplay from '../components/InventoryDisplay.vue';
+import SellDisplay from '../components/SellDisplay.vue';
 
 const notificationManager = ref(null);
 const isDarkMode = ref(localStorage.getItem('theme') === 'dark');

@@ -14,7 +14,7 @@ export interface ShopItem {
     cost: number;
     rarity: ItemRarity;
     imageUrl?: string;
-    type: 'cosmetic' | 'utility' | 'mystery_box' | 'gift' | 'reminder';
+    type: 'cosmetic' | 'utility' | 'mystery_box' | 'gift' | 'reminder' | 'avatar';
 }
 export interface UserInventory {
     licenseKey: string;
@@ -28,8 +28,9 @@ export interface MysteryBoxConfig {
     name: string;
     cost: number;
     rarity: ItemRarity;
+    imageUrl: string;
     availableItems: {
-        itemId: string;
+        item: ShopItem;
         probability: number;
     }[];
 }
