@@ -206,6 +206,7 @@ import { CalendarEvent, CalendarEventHandler } from '../engine/calendarEvent';
 import DatePicker from '../components/DatePicker.vue';
 import { Chart, LinearScale, BarElement, PointElement, LineElement, ArcElement, Title, Tooltip, Legend, CategoryScale, PieController, DoughnutController, BarController, LineController } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { ExtComunicator } from '../comunicator/extComunicator';
 
 
 Chart.register(
@@ -253,6 +254,7 @@ const router = useRouter();
 const todoHandler = ToDoHandler.getInstance(api_gestor);
 const timeTrackerHandler = TimeTrackerHandler.getInstance(api_gestor)
 const calendarEventsHandler = CalendarEventHandler.getInstance(api_gestor)
+const extComunicator = ExtComunicator.getInstance(timeTrackerHandler, userInfo.value.licenseKey)
 
 const todos = ref<ToDoAction[]>([])
 const calendarEvents = ref<CalendarEvent[]>([])
@@ -362,6 +364,9 @@ const loadStats = async () => {
             throw new Error(timeTrackerRulesRes.errorMessage)
         }
         ttRules.value = timeTrackerRulesRes.rules.map(r => timeTrackerHandler.fromRuleObj(r));
+        const rulesByExt = await extComunicator.requestTimeTrackerRules()
+        let mergedRules = await timeTrackerHandler.mergeAndCheckCoerence(ttRules.value, rulesByExt, userInfo.value.licenseKey)
+        ttRules.value = mergedRules.map(r => timeTrackerHandler.fromRuleObj(r));
 
 
         const categoryKarmaMap = userInfo.value.categories.reduce((map, category) => {
@@ -1480,9 +1485,33 @@ onMounted(async () => {
     }
 
     userInfo.value = userInfoRes.userInfo_DB as userDBentry;
-
+    extComunicator.licenseKey = userInfo.value.licenseKey
     // Set initial period and load stats
     setPeriod('month');
+
+    //comuncation with ext:
+    extComunicator.notifyPwaReady(userInfo.value);
+    //ottengo rules da ext + controllo (ed eventuale update db + update locale)
+    const extRuls = await extComunicator.requestTimeTrackerRules()
+    if (Array.isArray(extRuls)) {
+        let mergedRules = await timeTrackerHandler.mergeAndCheckCoerence(ttRules.value, extRuls, userInfo.value.licenseKey)
+        ttRules.value = []
+        for (let r of mergedRules) {
+            ttRules.value.push(timeTrackerHandler.fromRuleObj(r));
+        }
+    }
+
+
+    extComunicator.on("RULES_UPDATED_FROM_EXT", async (payload: { timeTrackerRules: TimeTrackerRule[] }) => {
+        //check + merge per coerenza
+        if (Array.isArray(payload.timeTrackerRules)) {
+            let mergedRules = await timeTrackerHandler.mergeAndCheckCoerence(ttRules.value, extRuls, userInfo.value.licenseKey)
+            ttRules.value = []
+            for (let r of mergedRules) {
+                ttRules.value.push(timeTrackerHandler.fromRuleObj(r));
+            }
+        }
+    })
 });
 
 </script>

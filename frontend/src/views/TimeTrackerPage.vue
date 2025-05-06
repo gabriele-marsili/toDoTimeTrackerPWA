@@ -63,6 +63,7 @@ import { userDBentry } from '../types/userTypes';
 import { TimeTrackerHandler, TimeTrackerRule } from '../engine/timeTracker';
 import { delay, minToParsedTime } from '../utils/generalUtils';
 import { useRouter } from 'vue-router';
+import { ExtComunicator } from '../comunicator/extComunicator';
 
 
 const notificationManager = ref(null);
@@ -88,9 +89,12 @@ const userInfo = ref<userDBentry>({ // State per le info utente
     friends: [],
     fcmToken: "" // Assumendo che questa proprietà esista
 });
+
 const rules = ref<TimeTrackerRule[]>([]); // State per la lista delle regole
 const router = useRouter();
 const timeTrackerHandler = TimeTrackerHandler.getInstance(api_gestor)
+const extComunicator = ExtComunicator.getInstance(timeTrackerHandler, userInfo.value.licenseKey)
+
 
 // Computed properties per le statistiche dell'header
 const totalRules = computed(() => rules.value.length);
@@ -119,7 +123,8 @@ const isTimeTrackerActive = computed({
                 if (!r.success) {
                     sendNotify("error", "Error updating value : " + r.errorMessage)
                 } else {
-                    sendNotify('success', `Time Tracker ${value ? 'enabled' : 'disabled'}`);
+                    sendNotify('success', `Time Tracker ${value ? 'enabled' : 'disabled'}`);                    
+                    extComunicator.notifyPwaReady(userInfo.value) //notify ext with updated user info (updated value of timeTrackerActive)
                 }
             } else {
                 sendNotify("error", "Error updating value : user info not found in db")
@@ -196,6 +201,7 @@ onMounted(async () => {
     }
 
     userInfo.value = userInfoRes.userInfo_DB as userDBentry;
+    extComunicator.licenseKey = userInfo.value.licenseKey
     await askTimeTrackerRules()
 
 

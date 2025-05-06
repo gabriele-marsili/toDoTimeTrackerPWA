@@ -16,7 +16,8 @@
       "vite-plugin-pwa/client",
       "vite-plugin-pwa/info",
       "vite/client",
-      "jest"
+      "jest",
+      "chrome"
     ],
     "lib": [
       "ESNext",

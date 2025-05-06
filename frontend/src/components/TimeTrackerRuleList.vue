@@ -126,6 +126,7 @@ import { UserHandler } from '../engine/userHandler';
 import { useRouter } from 'vue-router';
 import { delay } from '../utils/generalUtils';
 import { userDBentry } from '../types/userTypes';
+import { ExtComunicator } from '../comunicator/extComunicator';
 
 const emit = defineEmits(["ttRuleListEvent"])
 const router = useRouter();
@@ -175,6 +176,7 @@ const userInfo = ref<userDBentry>({
     friends: [],
     fcmToken: ""
 });
+const extComunicator = ExtComunicator.getInstance(timeTrackerRuleHandler, userInfo.value.licenseKey)
 
 function sendNotify(type: "info" | "warning" | "error" | "success", text: string) {
     if (notificationManager.value) {
@@ -217,6 +219,8 @@ async function addNewRule() {
         sendNotify("success", "Successfully added rule for site " + newRule.site_or_app_name);
         showAddNewRuleBox.value = false;
         emit("ttRuleListEvent", { action: "add new rule", needUpdate: true })
+        //notify ext:
+        extComunicator.updateTTrulesInExt(rules.value)
     }
 
 
@@ -264,6 +268,8 @@ async function editRule() {
         hours.value = 0
         minutes.value = 0
         emit("ttRuleListEvent", { action: "edit rule " + r.id, needUpdate: true })
+        //notify ext:
+        extComunicator.updateTTrulesInExt(rules.value)
     }
 }
 
@@ -316,6 +322,8 @@ async function onRuleDelete(ruleToDelete: TimeTrackerRule) {
         rules.value = rules.value.filter(r => r.id !== ruleToDelete.id);
         sendNotify("success", "Successfully deleted rule for site " + ruleToDelete.site_or_app_name)
         emit("ttRuleListEvent", { action: "edit rule " + ruleToDelete.id, needUpdate: true })
+        //notify ext:
+        extComunicator.updateTTrulesInExt(rules.value)
     } catch (error: any) {
         sendNotify("error", "Error deleting rule : " + error.message)
     }
@@ -352,7 +360,32 @@ onMounted(async () => {
     }
     userInfo.value = userInfoRes.userInfo_DB
     licenseKey = userInfoRes.userInfo_DB.licenseKey
+    extComunicator.licenseKey = licenseKey;
     await askTimeTrackerRules()
+
+    extComunicator.notifyPwaReady(userInfo.value);
+    //ottengo rules da ext + controllo (ed eventuale update db + update locale)
+    const extRuls = await extComunicator.requestTimeTrackerRules()
+    if (Array.isArray(extRuls)) {
+        let mergedRules = await timeTrackerRuleHandler.mergeAndCheckCoerence(rules.value, extRuls, userInfo.value.licenseKey)
+        rules.value = []
+        for (let r of mergedRules) {
+            rules.value.push(timeTrackerRuleHandler.fromRuleObj(r));
+        }
+    }
+
+
+    extComunicator.on("RULES_UPDATED_FROM_EXT", async (payload: { timeTrackerRules: TimeTrackerRule[] }) => {
+        //check + merge per coerenza
+        if (Array.isArray(payload.timeTrackerRules)) {
+            let mergedRules = await timeTrackerRuleHandler.mergeAndCheckCoerence(rules.value, extRuls, userInfo.value.licenseKey)
+            rules.value = []
+            for (let r of mergedRules) {
+                rules.value.push(timeTrackerRuleHandler.fromRuleObj(r));
+            }
+        }
+    })
+
 })
 </script>
 

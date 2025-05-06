@@ -3,7 +3,7 @@ import { baseResponse } from "../types/utilityTypes";
 
 export type ruleType = "only notify" | "notify & close" | "notify, close & block";
 
-export type TimeTrackerRuleObj = {
+export interface TimeTrackerRuleObj {
     id: string;
     site_or_app_name: string;
     minutesDailyLimit: number;
@@ -56,7 +56,7 @@ export class TimeTrackerHandler {
      * 
      * @returns a new id for a time tracker rule (actual timestamp)
      */
-    public getNextTimeTrackerRuleId():string{
+    public getNextTimeTrackerRuleId(): string {
         return new Date().getTime().toString()
     }
 
@@ -143,7 +143,80 @@ export class TimeTrackerHandler {
             ruleObj.category
         );
         rule.remainingTimeMin = ruleObj.remainingTimeMin;
-        this.rules.set(rule.id,rule)
+        this.rules.set(rule.id, rule)
         return rule;
+    }
+
+    /**
+ * Merges PWA rules with extension rules, maintaining coherence based on PWA policy.
+ * Policy: For rules with the same ID in both batches, the minimum of the remaining times
+ * is kept in the PWA rule within the resulting array.
+ * Rules present only in the PWA batch are included as they are.
+ * Rules present only in the Extension batch are ignored.
+ * In case of changing update also db
+ *
+ * @param PWArules - Rules from the PWA (have priority for the base structure).
+ * @param ExtRules - Rules from the extension.
+ * @param lk - License Key
+ * @returns A new array containing the merged rules derived from PWArules,
+ * with remaining times updated based on ExtRules where applicable.
+ */
+    public async mergeAndCheckCoerence(PWArules: TimeTrackerRuleObj[], ExtRules: TimeTrackerRuleObj[], lk: string): Promise<TimeTrackerRuleObj[]> {
+        let changed = false //flag
+        interface ttRuleObjChanged extends TimeTrackerRuleObj {
+            changed: boolean
+        }
+        // Step 1: Create a map of extension rules for efficient lookup by rule ID.
+        // This allows finding an extension rule by its ID in O(1) on average.
+        const extRulesMap = new Map<string, TimeTrackerRuleObj>();
+        for (const extRule of ExtRules) {
+            extRulesMap.set(extRule.id, extRule);
+        }
+        // Time Complexity: O(M), where M is the number of rules in ExtRules.
+
+        // Step 2: Iterate through the PWA rules and merge with corresponding extension rules if found.
+        // Use .map() to create a new array and transform each PWA rule.
+        const mergedRules: ttRuleObjChanged[] = PWArules.map((pwaRule) => {
+            // Create a shallow copy of the PWA rule to avoid mutating the original array.
+            // This is good practice unless you specifically intend to mutate the input array.
+            const mergedRule: ttRuleObjChanged = { ...pwaRule, changed: false };
+
+            // Look up the corresponding rule in the extension rules map.
+            // This lookup is O(1) on average.
+            const matchingExtRule = extRulesMap.get(pwaRule.id);
+
+            // If a matching rule is found in the extension rules (by ID),
+            // update the remaining time in the merged rule to be the minimum of the two.
+            if (matchingExtRule && matchingExtRule.remainingTimeMin < pwaRule.remainingTimeMin) {
+                // We take the minimum remaining time between the PWA's state and the extension's state.
+                // This ensures the most restrictive (lowest) time is reflected, maintaining coherence.
+                changed = true;
+                mergedRule.changed = true
+                mergedRule.remainingTimeMin = matchingExtRule.remainingTimeMin
+            }
+
+            // Return the (potentially updated) rule based on the PWA rule.
+            // Rules only in ExtRules are not processed here and thus not included in the result.
+            return mergedRule;
+        });
+        // Time Complexity: O(N), where N is the number of rules in PWArules,
+        // as the map lookup inside the loop is O(1) on average.
+
+        // Total Time Complexity: O(M) + O(N) = O(N + M)
+
+        let parsedMergedRules: TimeTrackerRuleObj[] = []
+        if (changed) {
+            for (let r of mergedRules) {
+                let parsedR: TimeTrackerRuleObj = { ...r }
+                if (r.changed) {
+                    await this.addOrUpdateRule(lk, this.fromRuleObj(parsedR));
+                }
+                parsedMergedRules.push(parsedR)
+            }
+            return parsedMergedRules;
+        }else{
+            return mergedRules.map((r) =>  {return { ...r } as TimeTrackerRuleObj})
+        }
+        
     }
 }

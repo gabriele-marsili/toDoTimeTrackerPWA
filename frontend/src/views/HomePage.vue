@@ -12,13 +12,15 @@
                 <!-- Colonna 1: Today To Do -->
                 <div class="box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center">
                     <h3>Today To Do</h3>
-                    <ToDoList :trigger-add-to-do="false" :is-sub-list="false" :todos=todayToDoActions @todoEvent=handleToDoEvent viewMode="grid">
+                    <ToDoList :trigger-add-to-do="false" :is-sub-list="false" :todos=todayToDoActions
+                        @todoEvent=handleToDoEvent viewMode="grid">
                     </ToDoList>
                 </div>
                 <!-- Colonna 2: Generic To Do -->
                 <div class="box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center">
                     <h3>Generic To Do</h3>
-                    <ToDoList :trigger-add-to-do="triggerAddToDo" :is-sub-list="false" @todoEvent=handleToDoEvent :todos=genericToDoActions viewMode="grid">
+                    <ToDoList :trigger-add-to-do="triggerAddToDo" :is-sub-list="false" @todoEvent=handleToDoEvent
+                        :todos=genericToDoActions viewMode="grid">
                     </ToDoList>
 
                 </div>
@@ -70,7 +72,7 @@
 
                     <div class="sub-box max-w-lg w-full p-15 rounded-2xl elevated shadow-lg text-center">
                         <h3>Time Tracker</h3>
-                        <TimeTrackerRuleList :view-mode="'list'" ></TimeTrackerRuleList>
+                        <TimeTrackerRuleList :view-mode="'list'"></TimeTrackerRuleList>
                     </div>
 
                 </div>
@@ -100,6 +102,8 @@ import { UserHandler } from '../engine/userHandler';
 import { userDBentry } from '../types/userTypes';
 import { delay, isToday } from '../utils/generalUtils';
 import { useRouter } from 'vue-router';
+import { ExtComunicator } from '../comunicator/extComunicator';
+import { TimeTrackerHandler, TimeTrackerRule } from '../engine/timeTracker';
 
 export default {
     components: { Sidebar, NotificationManager, ConnectionStatus, ToDoList, Calendar, TimeTrackerRuleList },
@@ -115,6 +119,7 @@ export default {
         const todoCompletedQuantity = ref(0);
         const totalToDoQuantity = ref(genericToDoActions.value.length);
         const totalEventsQuantity = ref(0);
+
 
         const userInfo = ref<userDBentry>({
             username: "",
@@ -133,7 +138,7 @@ export default {
             timeTrackerActive: false,
             karmaCoinsBalance: 0,
             friends: [],
-            fcmToken : ""
+            fcmToken: ""
         });
 
         const router = useRouter();
@@ -262,6 +267,11 @@ export default {
 
             await askUserInfo()
             await askToDo()
+
+            const timeTrackerHandler = TimeTrackerHandler.getInstance(api_gestor)
+            const extComunicator = ExtComunicator.getInstance(timeTrackerHandler, userInfo.value.licenseKey)
+
+            extComunicator.notifyPwaReady(userInfo.value);            
         });
 
         return {
@@ -488,10 +498,10 @@ grigio : #1e1e1e
     box-sizing: border-box;
     display: flex;
     min-height: 10%;
-    max-height: 10.3%;    
+    max-height: 10.3%;
     flex-direction: column;
     overflow-y: auto;
-    
+
 }
 
 .sub-box::-webkit-scrollbar {
