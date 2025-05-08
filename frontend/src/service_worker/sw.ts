@@ -8,15 +8,21 @@ import { registerRoute, setCatchHandler } from 'workbox-routing';
 import { NetworkFirst, CacheFirst } from 'workbox-strategies'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { SW_BROADCAST_CHANNEL } from '../utils/generalUtils.js';
+import { API_gestor } from '../backend-comunication/api_comunication.js';
+import { ExtComunicator } from '../comunicator/extComunicator.js';
+import { TimeTrackerHandler, TimeTrackerRuleObj } from '../engine/timeTracker.js';
 
 
 declare const self: ServiceWorkerGlobalScope;
 
 //messages via broadcast channel:
 const broadcast = new BroadcastChannel(SW_BROADCAST_CHANNEL);
-
+const apiGestor: API_gestor = API_gestor.getInstance();
+const timeTrackerHandler = TimeTrackerHandler.getInstance(apiGestor)
+let rules: TimeTrackerRuleObj[] = []
+let licenseKeyGlobal : string = ""
 const manifest = self.__WB_MANIFEST;
-console.log("manifest :\n",manifest)
+console.log("manifest :\n", manifest)
 // Pre-cache file statici
 precacheAndRoute(manifest);
 /*precacheAndRoute([
@@ -139,18 +145,18 @@ setCatchHandler(async ({ request }) => {
     console.log("req in set cactch handler:\n", request)
     const acceptHeader = request.headers.get("accept") || "";
     console.log("acceptHeader = ", acceptHeader)
-    
+
     //HTML :
     if (acceptHeader.includes("text/html") && !request.url.includes(".js") && !request.url.includes(".css")) {
         let k = getCacheKeyForURL("offline.html") || "k not found"
-        console.log("cache k = ",k)
-        if(k == "k not found"){
+        console.log("cache k = ", k)
+        if (k == "k not found") {
             k = "offline"
         }
         const fallbackResponse = await caches.match(k);
-        console.log("fallback (html) response (k)",fallbackResponse)
-        
-        if(fallbackResponse) {
+        console.log("fallback (html) response (k)", fallbackResponse)
+
+        if (fallbackResponse) {
             return fallbackResponse;
         }
 
@@ -162,19 +168,19 @@ setCatchHandler(async ({ request }) => {
     //js :
     if (request.url.includes(".js")) {
         const fallbackResponse = await caches.match('/main_offline.js');
-        console.log("fallback (js) response:\n",fallbackResponse)
+        console.log("fallback (js) response:\n", fallbackResponse)
         if (fallbackResponse) {
             return fallbackResponse;
-        }        
+        }
     }
 
     //css :    
     if (request.url.includes(".css")) {
         const fallbackResponse = await caches.match('/style.css');
-        console.log("fallback (css) response:\n",fallbackResponse)
+        console.log("fallback (css) response:\n", fallbackResponse)
         if (fallbackResponse) {
             return fallbackResponse;
-        }        
+        }
     }
 
     // Per altri tipi di risorsa, restituisci una response "benigna" in base al destination
@@ -194,12 +200,71 @@ setCatchHandler(async ({ request }) => {
     return Response.error();
 });
 
+async function updateRules(licenseKey: string) {
+    const response = await timeTrackerHandler.loadAllRules(licenseKey)
+    if (response.success) {
+        rules = response.rules.map(r => timeTrackerHandler.fromRuleObj((r)));
+    }
+}
 
+async function checkLicenseKey(licenseKey: string): Promise<string> {
+    if (licenseKey != "") {
+        return licenseKey
+    } else {
+        const r = await apiGestor.getUserInfo(true)
+        return r.userInfo_DB?.licenseKey || ""
+    }
+}
 
-
-self.addEventListener("install", (event) => {
+self.addEventListener("install", async (event) => {
     console.log("SW installazione completata!");
     self.skipWaiting();
+
+    const res = await apiGestor.getUserInfo(true)
+    if (res.userInfo_DB) {
+        const userInfo = res.userInfo_DB
+        licenseKeyGlobal = userInfo.licenseKey
+        const extComunicator: ExtComunicator = ExtComunicator.getInstance(timeTrackerHandler, licenseKeyGlobal);
+
+
+        //ottengo rules da ext + controllo (ed eventuale update db + update locale)
+        const extRuls = await extComunicator.requestTimeTrackerRules()
+        if (Array.isArray(extRuls)) {
+            let mergedRules = await timeTrackerHandler.mergeAndCheckCoerence(rules, extRuls,licenseKeyGlobal)
+            rules = []
+            for (let r of mergedRules) {
+                rules.push(timeTrackerHandler.fromRuleObj(r));
+            }
+        }
+
+        extComunicator.on("ASK_RULES_FROM_EXT", async () => {
+            licenseKeyGlobal = await checkLicenseKey(licenseKeyGlobal)
+            if (licenseKeyGlobal != "") {
+                extComunicator.licenseKey = licenseKeyGlobal
+            }
+            await updateRules(licenseKeyGlobal)
+            extComunicator.updateTTrulesInExt(rules)
+        })
+
+
+        extComunicator.on("RULES_UPDATED_FROM_EXT", async (payload: { timeTrackerRules: TimeTrackerRuleObj[] }) => {
+            //check + merge per coerenza
+            if (Array.isArray(payload.timeTrackerRules)) {
+                licenseKeyGlobal = await checkLicenseKey(licenseKeyGlobal)
+                if (licenseKeyGlobal != "") {
+                    extComunicator.licenseKey = licenseKeyGlobal
+                }
+                await updateRules(licenseKeyGlobal)
+                let mergedRules = await timeTrackerHandler.mergeAndCheckCoerence(rules, extRuls, licenseKeyGlobal)
+                rules = []
+                for (let r of mergedRules) {
+                    rules.push(timeTrackerHandler.fromRuleObj(r));
+                }
+            }
+        })
+    }
+
+
 });
 
 self.addEventListener("activate", (event) => {

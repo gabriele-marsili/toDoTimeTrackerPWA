@@ -270,8 +270,12 @@ export default {
 
             const timeTrackerHandler = TimeTrackerHandler.getInstance(api_gestor)
             const extComunicator = ExtComunicator.getInstance(timeTrackerHandler, userInfo.value.licenseKey)
-
-            extComunicator.notifyPwaReady(userInfo.value);            
+            
+            const rawUserInfo = toRaw(userInfo.value)
+            extComunicator.notifyPwaReady(rawUserInfo);  
+            
+            
+                       
         });
 
         return {

@@ -124,7 +124,8 @@ const isTimeTrackerActive = computed({
                     sendNotify("error", "Error updating value : " + r.errorMessage)
                 } else {
                     sendNotify('success', `Time Tracker ${value ? 'enabled' : 'disabled'}`);                    
-                    extComunicator.notifyPwaReady(userInfo.value) //notify ext with updated user info (updated value of timeTrackerActive)
+                    const rawUserInfo = toRaw(userInfo.value) //notify ext with updated user info (updated value of timeTrackerActive)
+                    extComunicator.notifyPwaReady(rawUserInfo);            
                 }
             } else {
                 sendNotify("error", "Error updating value : user info not found in db")
@@ -203,6 +204,33 @@ onMounted(async () => {
     userInfo.value = userInfoRes.userInfo_DB as userDBentry;
     extComunicator.licenseKey = userInfo.value.licenseKey
     await askTimeTrackerRules()
+
+    //ottengo rules da ext + controllo (ed eventuale update db + update locale)
+    const extRuls = await extComunicator.requestTimeTrackerRules()
+    if (Array.isArray(extRuls)) {
+        let mergedRules = await timeTrackerHandler.mergeAndCheckCoerence(rules.value, extRuls, userInfo.value.licenseKey)
+        rules.value = []
+        for (let r of mergedRules) {
+            rules.value.push(timeTrackerHandler.fromRuleObj(r));
+        }
+    }
+
+    extComunicator.on("ASK_RULES_FROM_EXT",async()=>{
+        const rawRules = toRaw(rules.value)
+        extComunicator.updateTTrulesInExt(rawRules)
+    })
+
+
+    extComunicator.on("RULES_UPDATED_FROM_EXT", async (payload: { timeTrackerRules: TimeTrackerRule[] }) => {
+        //check + merge per coerenza
+        if (Array.isArray(payload.timeTrackerRules)) {
+            let mergedRules = await timeTrackerHandler.mergeAndCheckCoerence(rules.value, extRuls, userInfo.value.licenseKey)
+            rules.value = []
+            for (let r of mergedRules) {
+                rules.value.push(timeTrackerHandler.fromRuleObj(r));
+            }
+        }
+    })
 
 
 });

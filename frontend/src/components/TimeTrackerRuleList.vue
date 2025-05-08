@@ -116,7 +116,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, toRaw } from 'vue';
 import TimeTrackerRuleItem from './TimeTrackerRuleItem.vue';
 import NotificationManager from '../gestors/NotificationManager.vue'
 import { TimeTrackerRule, ruleType } from '../engine/timeTracker';
@@ -363,9 +363,13 @@ onMounted(async () => {
     extComunicator.licenseKey = licenseKey;
     await askTimeTrackerRules()
 
-    extComunicator.notifyPwaReady(userInfo.value);
+    const rawUserInfo = toRaw(userInfo.value)
+    extComunicator.notifyPwaReady(rawUserInfo);
+
     //ottengo rules da ext + controllo (ed eventuale update db + update locale)
-    const extRuls = await extComunicator.requestTimeTrackerRules()
+    let extRuls = await extComunicator.requestTimeTrackerRules()
+    
+    console.log("extRuls in tt rule list =  ",extRuls)
     if (Array.isArray(extRuls)) {
         let mergedRules = await timeTrackerRuleHandler.mergeAndCheckCoerence(rules.value, extRuls, userInfo.value.licenseKey)
         rules.value = []
@@ -374,9 +378,14 @@ onMounted(async () => {
         }
     }
 
+    extComunicator.on("ASK_RULES_FROM_EXT",async()=>{
+        const rawRules = toRaw(rules.value)
+        extComunicator.updateTTrulesInExt(rawRules)
+    })
 
     extComunicator.on("RULES_UPDATED_FROM_EXT", async (payload: { timeTrackerRules: TimeTrackerRule[] }) => {
         //check + merge per coerenza
+        
         if (Array.isArray(payload.timeTrackerRules)) {
             let mergedRules = await timeTrackerRuleHandler.mergeAndCheckCoerence(rules.value, extRuls, userInfo.value.licenseKey)
             rules.value = []

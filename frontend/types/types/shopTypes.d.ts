@@ -19,7 +19,7 @@ export interface ShopItem {
 export interface UserInventory {
     licenseKey: string;
     items: {
-        itemId: string;
+        item: ShopItem;
         quantity: number;
     }[];
 }
