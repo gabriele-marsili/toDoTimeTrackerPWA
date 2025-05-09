@@ -113,14 +113,45 @@ self.addEventListener('notificationclick', function (event) {
     }
 });
 
-// Nota: L'handler onMessage per i messaggi in primo piano va implementato nell'app principale (non nel service worker)
-// Esempio (nel tuo codice JavaScript principale dell'app):
-/*
-import { getMessaging, onMessage } from "firebase/messaging";
-const messaging = getMessaging(app);
-onMessage(messaging, (payload) => {
-  console.log('Message received. ', payload);
-  // Mostra una notifica in-app all'utente (es. un banner, un toast)
-  // NON usare self.registration.showNotification qui, è per il service worker
+// Aggiungi questo listener AL TUO ESISTENTE FILE firebase-messaging-sw.js
+// Non cancellare il codice esistente (quello per onBackgroundMessage e notificationclick)
+
+self.addEventListener('message', function(event) {
+    console.log('[firebase-messaging-sw.js] Messaggio ricevuto dalla finestra:', event.data);
+
+    // IMPORTANTE: Controlla l'origine e il tipo del messaggio per sicurezza
+    // event.origin contiene l'origine della finestra che ha inviato il messaggio
+    // event.data contiene i dati inviati
+    if (event.data && event.data.type === 'SHOW_CUSTOM_NOTIFICATION' && event.data.payload) {
+        console.log('[firebase-messaging-sw.js] Ricevuta richiesta per mostrare notifica custom.');
+
+        const notificationData = event.data.payload;
+
+        // Prepara le opzioni per showNotification basate sul payload ricevuto
+        const title = notificationData.title || 'Time Limit Reached!';
+        const options = {
+            body: notificationData.body || '',
+            icon: notificationData.icon || self.registration.scope + '../mainLogo.png', // Usa icona ricevuta o fallback
+            tag: notificationData.tag || 'custom_pwa_notification', // Usa tag ricevuto o fallback
+            renotify: notificationData.renotify || true,
+            requireInteraction: notificationData.requireInteraction || true,
+            data: notificationData.data // Allega i dati custom ricevuti. Saranno disponibili nell'handler 'notificationclick'.
+            // Puoi aggiungere qui altre opzioni standard come 'actions', 'vibrate', 'sound' se li passi nel payload
+        };
+
+        // Mostra la notifica usando l'API standard del Service Worker
+        // self.registration è disponibile all'interno del Service Worker
+        event.waitUntil(
+            self.registration.showNotification(title, options)
+                .catch(error => {
+                    console.error('[firebase-messaging-sw.js] Errore mostrando notifica custom:', error);
+                })
+        );
+
+        // Non devi chiamare event.source.postMessage qui a meno che tu non voglia
+        // inviare un feedback esplicito alla finestra che ha richiesto la notifica.
+
+    }
+    // Ignora altri tipi di messaggi che il Service Worker non deve gestire
 });
-*/
+

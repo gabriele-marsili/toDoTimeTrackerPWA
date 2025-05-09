@@ -71,8 +71,15 @@ export class ExtComunicator {
         })
 
         //default handlers for ext -to-> pwa:
-        this.on("LIMIT_REACHED", (payload: { rule: TimeTrackerRuleObj }) => {
+        this.on("LIMIT_REACHED", async (payload: { rule: TimeTrackerRuleObj }) => {
             console.log("[Ext comunicator] : limit reached event with payload : ", payload)
+            const rule = payload.rule
+            const notificationData = {
+                title :`It's enought ${rule.site_or_app_name} for today!`, 
+                body : `Time limit of ${rule.minutesDailyLimit}m reached for site ${rule.site_or_app_name}`,
+
+            }
+            await this.showClientSideNotification(notificationData)
         })
     }
 
@@ -81,6 +88,82 @@ export class ExtComunicator {
             this.instance = new ExtComunicator(timeTrackerHandler, licenseKey)
         }
         return this.instance
+    }
+
+    private async showClientSideNotification(notificationData: {
+        title: string;
+        body: string;
+    }) {
+        // 1. Assicurati di avere il permesso
+        const permissionGranted = await this.ensureNotificationPermission();
+        if (!permissionGranted) {
+            console.warn("Impossibile mostrare la notifica: permesso non concesso.");
+            return;
+        }
+    
+        // 2. Assicurati che il Service Worker sia attivo e pronto
+        if (!navigator.serviceWorker) {
+             console.warn("Questo browser non supporta i Service Worker.");
+             return;
+        }
+    
+        try {
+            // navigator.serviceWorker.ready ritorna la registrazione attiva
+            const registration = await navigator.serviceWorker.ready;
+    
+            if (registration.active) {
+                console.log("SW pronto. Invio messaggio al SW per mostrare notifica...");
+                // Invia un messaggio al Service Worker attivo
+                registration.active.postMessage({
+                    type: 'SHOW_CUSTOM_NOTIFICATION', // Un tipo di messaggio che il SW riconoscerà
+                    payload: notificationData
+                });
+                 console.log("Messaggio 'SHOW_CUSTOM_NOTIFICATION' inviato al SW.");
+    
+            } else {
+                console.warn("Service Worker non attivo.");
+                 // Potresti voler gestire questo caso, ad esempio mostrando una notifica
+                 // tradizionale (anche se non funzionerà se la tab viene chiusa)
+                 // new Notification(notificationData.title, notificationData);
+            }
+    
+        } catch (error) {
+            console.error("Errore durante la comunicazione con il Service Worker:", error);
+            // Gestisci l'errore (es. registrazione fallita, SW non raggiungibile)
+        }
+    }
+    
+    private async ensureNotificationPermission(): Promise<boolean> {
+        if (!('Notification' in window)) {
+            console.warn("Questo browser non supporta le notifiche desktop.");
+            return false;
+        }
+    
+        if (Notification.permission === 'granted') {
+            console.log("Permesso notifiche già concesso.");
+            return true;
+        }
+    
+        if (Notification.permission === 'denied') {
+            console.warn("Permesso notifiche negato dall'utente.");
+            // Potresti voler mostrare un messaggio all'utente su come riabilitare il permesso
+            return false;
+        }
+    
+        // Permesso non ancora richiesto o 'default'
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                console.log("Permesso notifiche concesso dopo la richiesta.");
+                return true;
+            } else {
+                console.warn("Permesso notifiche negato dall'utente durante la richiesta.");
+                return false;
+            }
+        } catch (error) {
+            console.error("Errore durante la richiesta permesso notifiche:", error);
+            return false;
+        }
     }
 
     // Metodo per impostare i gestori (callback) per tipi specifici di messaggi dall'estensione
