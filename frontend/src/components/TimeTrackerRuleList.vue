@@ -220,7 +220,8 @@ async function addNewRule() {
         showAddNewRuleBox.value = false;
         emit("ttRuleListEvent", { action: "add new rule", needUpdate: true })
         //notify ext:
-        extComunicator.updateTTrulesInExt(rules.value)
+        const rawRules = toRaw(rules.value).map(r => toRaw(r))
+        extComunicator.updateTTrulesInExt(rawRules)
     }
 
 
@@ -269,7 +270,9 @@ async function editRule() {
         minutes.value = 0
         emit("ttRuleListEvent", { action: "edit rule " + r.id, needUpdate: true })
         //notify ext:
-        extComunicator.updateTTrulesInExt(rules.value)
+        const rawRules = toRaw(rules.value).map(r => toRaw(r))
+        extComunicator.updateTTrulesInExt(rawRules)
+
     }
 }
 
@@ -323,7 +326,10 @@ async function onRuleDelete(ruleToDelete: TimeTrackerRule) {
         sendNotify("success", "Successfully deleted rule for site " + ruleToDelete.site_or_app_name)
         emit("ttRuleListEvent", { action: "edit rule " + ruleToDelete.id, needUpdate: true })
         //notify ext:
-        extComunicator.updateTTrulesInExt(rules.value)
+        const rawRules = toRaw(rules.value).map(r => toRaw(r))
+        console.log("raw rules on rule delete:\n",rawRules)
+        extComunicator.updateTTrulesInExt(rawRules)
+
     } catch (error: any) {
         sendNotify("error", "Error deleting rule : " + error.message)
     }
@@ -367,7 +373,10 @@ onMounted(async () => {
     extComunicator.notifyPwaReady(rawUserInfo);
 
     //ottengo rules da ext + controllo (ed eventuale update db + update locale)
-    let extRuls = await extComunicator.requestTimeTrackerRules()
+    const extRuls = await extComunicator.requestTimeTrackerRules()
+    
+   
+
     
     console.log("extRuls in tt rule list =  ",extRuls)
     if (Array.isArray(extRuls)) {
@@ -379,7 +388,7 @@ onMounted(async () => {
     }
 
     extComunicator.on("ASK_RULES_FROM_EXT",async()=>{
-        const rawRules = toRaw(rules.value)
+        const rawRules = toRaw(rules.value).map(r => toRaw(r))
         extComunicator.updateTTrulesInExt(rawRules)
     })
 

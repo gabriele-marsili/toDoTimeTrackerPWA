@@ -229,6 +229,7 @@ self.addEventListener("install", async (event) => {
 
         //ottengo rules da ext + controllo (ed eventuale update db + update locale)
         const extRuls = await extComunicator.requestTimeTrackerRules()
+    
         if (Array.isArray(extRuls)) {
             let mergedRules = await timeTrackerHandler.mergeAndCheckCoerence(rules, extRuls,licenseKeyGlobal)
             rules = []

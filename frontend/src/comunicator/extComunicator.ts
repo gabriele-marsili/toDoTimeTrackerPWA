@@ -5,8 +5,7 @@ import { userDBentry } from "../types/userTypes";
 export type PwaToExtMessageType =
     "UPDATE_TIME_TRACKER_RULES" |
     "REQUEST_TIME_TRACKER_RULES" |
-    // Aggiungi qui altri tipi di messaggi che la PWA invia all'estensione
-    "PWA_READY" // Esempio: notifica al background che la PWA è pronta
+    "PWA_READY"
 
 // Unione dei tipi di messaggi (solo i 'type' stringhe) che possono essere inviati dall'estensione alla PWA
 export type ExtToPwaMessageType = "LIMIT_REACHED" | "TTT_EXTENSION_ID_BROADCAST" | "RULES_UPDATED_FROM_EXT" | "ASK_RULES_FROM_EXT"
@@ -75,8 +74,8 @@ export class ExtComunicator {
             console.log("[Ext comunicator] : limit reached event with payload : ", payload)
             const rule = payload.rule
             const notificationData = {
-                title :`It's enought ${rule.site_or_app_name} for today!`, 
-                body : `Time limit of ${rule.minutesDailyLimit}m reached for site ${rule.site_or_app_name}`,
+                title: `It's enought ${rule.site_or_app_name} for today!`,
+                body: `Time limit of ${rule.minutesDailyLimit}m reached for site ${rule.site_or_app_name}`,
 
             }
             await this.showClientSideNotification(notificationData)
@@ -100,17 +99,17 @@ export class ExtComunicator {
             console.warn("Impossibile mostrare la notifica: permesso non concesso.");
             return;
         }
-    
+
         // 2. Assicurati che il Service Worker sia attivo e pronto
         if (!navigator.serviceWorker) {
-             console.warn("Questo browser non supporta i Service Worker.");
-             return;
+            console.warn("Questo browser non supporta i Service Worker.");
+            return;
         }
-    
+
         try {
             // navigator.serviceWorker.ready ritorna la registrazione attiva
             const registration = await navigator.serviceWorker.ready;
-    
+
             if (registration.active) {
                 console.log("SW pronto. Invio messaggio al SW per mostrare notifica...");
                 // Invia un messaggio al Service Worker attivo
@@ -118,38 +117,38 @@ export class ExtComunicator {
                     type: 'SHOW_CUSTOM_NOTIFICATION', // Un tipo di messaggio che il SW riconoscerà
                     payload: notificationData
                 });
-                 console.log("Messaggio 'SHOW_CUSTOM_NOTIFICATION' inviato al SW.");
-    
+                console.log("Messaggio 'SHOW_CUSTOM_NOTIFICATION' inviato al SW.");
+
             } else {
                 console.warn("Service Worker non attivo.");
-                 // Potresti voler gestire questo caso, ad esempio mostrando una notifica
-                 // tradizionale (anche se non funzionerà se la tab viene chiusa)
-                 // new Notification(notificationData.title, notificationData);
+                // Potresti voler gestire questo caso, ad esempio mostrando una notifica
+                // tradizionale (anche se non funzionerà se la tab viene chiusa)
+                // new Notification(notificationData.title, notificationData);
             }
-    
+
         } catch (error) {
             console.error("Errore durante la comunicazione con il Service Worker:", error);
             // Gestisci l'errore (es. registrazione fallita, SW non raggiungibile)
         }
     }
-    
+
     private async ensureNotificationPermission(): Promise<boolean> {
         if (!('Notification' in window)) {
             console.warn("Questo browser non supporta le notifiche desktop.");
             return false;
         }
-    
+
         if (Notification.permission === 'granted') {
             console.log("Permesso notifiche già concesso.");
             return true;
         }
-    
+
         if (Notification.permission === 'denied') {
             console.warn("Permesso notifiche negato dall'utente.");
             // Potresti voler mostrare un messaggio all'utente su come riabilitare il permesso
             return false;
         }
-    
+
         // Permesso non ancora richiesto o 'default'
         try {
             const permission = await Notification.requestPermission();
@@ -222,6 +221,7 @@ export class ExtComunicator {
                     reject(new Error(`Extension Error for ${message.type}: ${message.error}`)); // Reject con un errore
                 } else {
                     console.log("ExtComunicator: Promise resolved for request ID", message.requestId);
+                    console.log("message.payload:\n",message.payload)
                     resolve(message.payload); // Risolvi con il payload della risposta dal background
                 }
                 return; // Gestita la risposta
@@ -258,6 +258,7 @@ export class ExtComunicator {
             window.postMessage(message, window.location.origin);
         } catch (error) {
             console.log("[ExtComunicator] error in send message to ext:\n", error)
+            console.log("[ExtComunicator] message that caused error:\n", message)
         }
     }
 

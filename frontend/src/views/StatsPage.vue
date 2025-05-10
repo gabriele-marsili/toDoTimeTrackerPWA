@@ -1504,7 +1504,7 @@ onMounted(async () => {
     }
 
     extComunicator.on("ASK_RULES_FROM_EXT",async()=>{
-        const rawRules = toRaw(ttRules.value)
+        const rawRules = toRaw(ttRules.value).map(r => toRaw(r))
         extComunicator.updateTTrulesInExt(rawRules)
     })
 

@@ -207,6 +207,7 @@ onMounted(async () => {
 
     //ottengo rules da ext + controllo (ed eventuale update db + update locale)
     const extRuls = await extComunicator.requestTimeTrackerRules()
+    
     if (Array.isArray(extRuls)) {
         let mergedRules = await timeTrackerHandler.mergeAndCheckCoerence(rules.value, extRuls, userInfo.value.licenseKey)
         rules.value = []
@@ -216,7 +217,8 @@ onMounted(async () => {
     }
 
     extComunicator.on("ASK_RULES_FROM_EXT",async()=>{
-        const rawRules = toRaw(rules.value)
+        const rawRules = toRaw(rules.value).map(r => toRaw(r))
+        console.log("ASK_RULES_FROM_EXT => raw rules:\n",rawRules);
         extComunicator.updateTTrulesInExt(rawRules)
     })
 
