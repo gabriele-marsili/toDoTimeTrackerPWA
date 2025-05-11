@@ -481,8 +481,8 @@ grigio : #1e1e1e
     border-radius: 8px;
     color: #ffffff;
     box-sizing: border-box;
-    min-height: 22%;
-    max-height: 22%;
+    min-height: 69%;
+    max-height: 69%;
     display: flex;
     flex-direction: column;
 }
@@ -501,8 +501,8 @@ grigio : #1e1e1e
     color: #ffffff;
     box-sizing: border-box;
     display: flex;
-    min-height: 10%;
-    max-height: 10.3%;
+    min-height: 32%;
+    max-height: 32.3%;
     flex-direction: column;
     overflow-y: auto;
 
