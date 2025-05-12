@@ -99,7 +99,7 @@
                     </div>
                     <div>
                         <label class="flex items-center gap-2">
-                            <input class="baseCheckbox" type="checkbox" v-model="form.timeTracker" />
+                            <input class="baseCheckbox" type="checkbox" v-model="form.timeTrackerActive" />
                             Enable Time Tracker
                         </label>
                     </div>

@@ -182,7 +182,7 @@ export class ToDoHandler {
             if (!todo.isCompleted()) {
                 const tk = await this.checkFcmToken()
                 const expirationNotification: TTT_Notification = {
-                    id: todo.id + "_expiration",
+                    notificationID: todo.id + "_expiration",
                     body: "Let's complete " + todo.title,
                     scheduleAt_timestamp: todo.expiration,
                     imagePath: "../assets/mainLogo.png",
@@ -191,7 +191,7 @@ export class ToDoHandler {
                     fcmToken: tk
                 }
                 const reminderNotification: TTT_Notification = {
-                    id: todo.id + "_reminder",
+                    notificationID: todo.id + "_reminder",
                     body: "Pss, don't forget to complete " + todo.title,
                     scheduleAt_timestamp: todo.notifyDate,
                     imagePath: "../assets/mainLogo.png",

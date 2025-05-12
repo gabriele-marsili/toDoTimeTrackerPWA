@@ -1,19 +1,19 @@
 import { Analytics } from "firebase/analytics";
 import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updatePassword, User, UserCredential, onAuthStateChanged } from "firebase/auth";
-import { arrayRemove, collection, doc, Firestore, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { arrayRemove, collection, doc, documentId, Firestore, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { analytics, auth, db, messaging } from "./firebase.js";
 import { delay, generateLicenseKey, getDeviceId, hashPassword, MAIN_LOGO_URL, parseActionDates, VAPID_PUB_KEY } from "../utils/generalUtils.js";
 import { baseResponse } from "../types/utilityTypes.js";
 import { Timestamp as firestoreTimestamp } from "firebase/firestore";
 import sodium from 'libsodium-wrappers';
-import { userDBentry } from "../types/userTypes.js";
+import { friend, friendRequest, userDBentry } from "../types/userTypes.js";
 import { ToDoAction, ToDoObj } from "../engine/toDoEngine.js";
 import { CalendarEvent, CalendarObj } from "../engine/calendarEvent.js";
 import { TimeTrackerRule, TimeTrackerRuleObj } from "../engine/timeTracker.js";
 import { FirestoreProxy } from "./firestoneProxy.js";
 import { getToken } from "firebase/messaging";
 import { notificationDocData, requestNotifyPermission, TTT_Notification } from "../engine/notification.js";
-import { MysteryBoxConfig, ShopItem, UserInventory } from "../types/shopTypes.js";
+import { GiftItem, MysteryBoxConfig, ShopItem, UserInventory } from "../types/shopTypes.js";
 
 
 type InitDHresponse = {
@@ -668,7 +668,7 @@ export class API_gestor {
                 when: notification.scheduleAt_timestamp,
                 tag: notification.tag,
                 sent: false,
-                notificationID: notification.id,
+                notificationID: notification.notificationID,
                 licenseKey: licenseKey,
                 uId: this.user.uid
             }
@@ -681,7 +681,7 @@ export class API_gestor {
                 console.log("doc data (schedule notifications):\n", docData);
 
                 let updatedNotifications: notificationDocData[] = docData.notifications || []
-                let index = updatedNotifications.findIndex(x => x.notificationID == notification.id)
+                let index = updatedNotifications.findIndex(x => x.notificationID == notification.notificationID)
 
                 if (index != -1) {
                     updatedNotifications[index] = notificationForDB
@@ -827,6 +827,7 @@ export class API_gestor {
     }
 
     public async registerUser(userForm: userDBentry): Promise<baseResponse> {
+        let user: User | null = null;
         try {
             let licenseKey = generateLicenseKey()
             while (await this.checkIfUserExist(licenseKey)) { //ensures uniqueness
@@ -834,7 +835,7 @@ export class API_gestor {
             }
             console.log("chosen license key = ", licenseKey)
             const userCredential = await createUserWithEmailAndPassword(this.auth, userForm.email, licenseKey);
-            const user = userCredential.user;
+            user = userCredential.user;
             this.user = user;
             this.userCredentials = userCredential;
             console.log("registered user:\n", user)
@@ -870,6 +871,17 @@ export class API_gestor {
                 errorMessage: ""
             }
         } catch (error: any) {
+            if (user) {
+                try {
+                    console.log(`Attempting to delete partially created user from Auth: ${user.uid}`);
+                    await user.delete(); // Elimina l'utente da Firebase Authentication
+                    console.log("Partially created user successfully deleted from Firebase Auth.");
+                } catch (deleteError: any) {
+                    console.error("Error deleting partially created user from Firebase Auth:", deleteError);
+                    // Registra l'errore di eliminazione, ma restituisci l'errore originale di registrazione.
+                }
+            }
+
             console.log("error while registering user:\n", error);
             return {
                 success: false,
@@ -927,7 +939,7 @@ export class API_gestor {
         }
     }
 
-    public async getUserInfo(forceUpdate=false) {
+    public async getUserInfo(forceUpdate = false) {
         if (!this.userByDB || forceUpdate) { //try to get data by login with lk or email : 
             if (this.licenseKey && this.licenseKey != "") {
                 await this.loginWithLicenseKey(this.licenseKey)
@@ -1553,7 +1565,11 @@ export class API_gestor {
             const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
 
             if (snapshot.empty) {
-                throw new Error("No time tracker rules found for license key: " + licenseKey);
+                return {
+                    success: true,
+                    errorMessage: '',
+                    rules: []
+                };
             }
 
             const docData = snapshot.docs[0].data();
@@ -1593,8 +1609,8 @@ export class API_gestor {
                 this.firestoreProxy.getDocWithNetworkFirst(mysteryBoxesDocRef)
             ]);
 
-            console.log("itemsDocSnap:", itemsDocSnap.data() );
-            console.log("mysteryBoxesDocSnap:",  mysteryBoxesDocSnap.data() );
+            console.log("itemsDocSnap:", itemsDocSnap.data());
+            console.log("mysteryBoxesDocSnap:", mysteryBoxesDocSnap.data());
 
 
             let shop_items: ShopItem[] = [];
@@ -1714,4 +1730,431 @@ export class API_gestor {
             };
         }
     }
+
+
+    // --- handle firends : 
+
+    public async loadFriends(friendLicenseKeys: string[]): Promise<{
+        success: boolean,
+        errorMessage: string,
+        friends: userDBentry[]
+    }> {
+        try {
+
+            if (!friendLicenseKeys || friendLicenseKeys.length === 0) {
+                console.warn("Nessuna licenseKey fornita. Restituisco un array vuoto.");
+                throw new Error("You don't have any friends yet")
+            }
+
+            const usersCollectionRef = collection(db, "users");
+            const fetchedUsers: userDBentry[] = [];
+            const chunkSize = 10; // La limitazione di Firestore per l'operatore 'in'
+
+            // Dividi l'array di licenseKeys in "chunk" (blocchi) di dimensione massima di 10
+            for (let i = 0; i < friendLicenseKeys.length; i += chunkSize) {
+                const chunk = friendLicenseKeys.slice(i, i + chunkSize);
+                console.log("chunk in load friends:\n", chunk)
+                // Costruisci la query per il chunk corrente
+                const q = query(
+                    usersCollectionRef,
+                    where('licenseKey', 'in', chunk)
+                );
+
+
+                const querySnapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q)
+                console.log("querySnapshot:\n", querySnapshot)
+                querySnapshot.forEach((doc) => {
+                    fetchedUsers.push(doc.data() as userDBentry);
+                });
+
+            }
+
+            return {
+                success: true,
+                errorMessage: "",
+                friends: fetchedUsers
+            }
+        } catch (error: any) {
+            console.log("error in api gestor for load friends:\n", error)
+            return {
+                success: false,
+                errorMessage: error.message,
+                friends: []
+            }
+        }
+    }
+
+    public async removeFriend(userInfoToUpdate: userDBentry, friendLicenseKey: string): Promise<baseResponse> {
+        try {
+            let indexOfFriendToRemove = userInfoToUpdate.friends.findIndex(f => f.licenseKey === friendLicenseKey)
+            if (indexOfFriendToRemove == -1) throw new Error("Friend to remove not found in your friends")
+            userInfoToUpdate.friends.splice(indexOfFriendToRemove, 1);
+
+            let updateUserRes = await this.updateUserInfo(userInfoToUpdate)
+            if (!updateUserRes.success) throw new Error(updateUserRes.errorMessage);
+
+            const q = query(collection(this.db, "users"), where("licenseKey", "==", friendLicenseKey))
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
+            if (snapshot.empty) {
+                //restore friend : 
+                userInfoToUpdate.friends.push({ licenseKey: friendLicenseKey });
+                await this.updateUserInfo(userInfoToUpdate)
+                throw new Error("Friend to remove not found")
+            }
+            else {
+                const friendDoc = snapshot.docs[0].ref;
+                const friendData = snapshot.docs[0].data() as userDBentry;
+                console.log("friendData.friends:\n", friendData.friends)
+                console.log("userInfoToUpdate.licenseKey:\n", userInfoToUpdate.licenseKey)
+                let index = friendData.friends.findIndex(el => el.licenseKey == userInfoToUpdate.licenseKey)
+                console.log("index:\n", index)
+
+                if (index != -1) {
+                    friendData.friends.splice(index, 1)
+                    await updateDoc(friendDoc, { friends: friendData.friends });
+                }
+
+                const notificationForFriend: TTT_Notification = {
+                    notificationID: "friendDelete_" + Date.now(),
+                    body: `Sadly, your friend ${userInfoToUpdate.username} has decided to end your friendship (he/she is probably jealous) `,
+                    scheduleAt_timestamp: new Date(Date.now()),
+                    imagePath: "https://i.imgur.com/ROIfwjw.png",
+                    tag: "Friend Delete",
+                    title: "It's a sad moment: a friendship has ended",
+                    fcmToken: friendData.fcmToken
+                }
+
+                await this.scheduleNotification(notificationForFriend, friendData.licenseKey);
+            }
+
+
+            return {
+                success: true,
+                errorMessage: ""
+            }
+        } catch (error: any) {
+            return {
+                success: false,
+                errorMessage: error.message
+            }
+        }
+    }
+
+    public async loadFriendRequests(licenseKey: string): Promise<{
+        success: boolean,
+        errorMessage: string,
+        friendRequests: friendRequest[]
+    }> {
+        try {
+            const q = query(collection(this.db, "notifications"), where("licenseKey", "==", licenseKey))
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
+            if (snapshot.empty) {
+                throw new Error("No friend request")
+            }
+            else {
+                const data = snapshot.docs[0].data().notifications as notificationDocData[]
+                const filterdData = data.filter(notification => notification.tag.includes("Friend Request by"))
+                console.log("filterdData:\n", filterdData)
+                const requests: friendRequest[] = filterdData.map(notification => {
+                    console.log("filterdData:\n", filterdData)
+
+                    let by_lk = notification.tag.split("Friend Request by")[1].trim()
+                    let by_username = notification.notificationID.split("_")[1]
+                    return { by_username, by_licenseKey: by_lk }
+                })
+
+                return {
+                    success: true,
+                    errorMessage: "",
+                    friendRequests: requests
+                }
+            }
+
+        } catch (error: any) {
+            return {
+                success: false,
+                errorMessage: error.message,
+                friendRequests: []
+            }
+        }
+    }
+
+    public async sendFriendRequest(userNameOfFriendToAdd: string, userUsername: string, userLK: string): Promise<baseResponse> {
+        try {
+
+            const q = query(collection(this.db, "users"), where("username", "==", userNameOfFriendToAdd))
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
+            if (snapshot.empty) {
+                throw new Error("No user found with username : " + userNameOfFriendToAdd)
+            }
+            else {
+                const friendData = snapshot.docs[0].data() as userDBentry;
+
+                const requestOnFriendSide = (await this.loadFriendRequests(friendData.licenseKey)).friendRequests
+
+                const index = requestOnFriendSide.findIndex(request => request.by_username == userUsername)
+                if (index != -1) throw new Error(`You've already sent a friend request to ${userNameOfFriendToAdd}, please be patient`)
+
+                const notificationForFriend: TTT_Notification = {
+                    notificationID: "friendRequestBy_" + userUsername + "_" + Date.now(),
+                    body: `Great news, ${userUsername} would like to be your firend!`,
+                    scheduleAt_timestamp: new Date(Date.now()),
+                    imagePath: "https://i.imgur.com/ROIfwjw.png",
+                    tag: "Friend Request by " + userLK,
+                    title: "A new friendship may be born",
+                    fcmToken: friendData.fcmToken
+                }
+
+                await this.scheduleNotification(notificationForFriend, friendData.licenseKey);
+            }
+
+
+            return {
+                success: true,
+                errorMessage: ""
+            }
+        } catch (error: any) {
+            return {
+                success: false,
+                errorMessage: error.message
+            }
+        }
+    }
+
+    public async acceptFriendRequest(requestAccepted: friendRequest, userInfo: userDBentry): Promise<baseResponse> {
+        try {
+            console.log(userInfo.username + " is accepting friends request by " + requestAccepted.by_username);
+            console.log("requestAccepted ", requestAccepted);
+            //add friend to user that accepted the request
+            const index = userInfo.friends.findIndex(f => f.licenseKey == requestAccepted.by_licenseKey)
+            if (index == -1) {
+                userInfo.friends.push({ licenseKey: requestAccepted.by_licenseKey })
+                const updateUinfoRes = await this.updateUserInfo(userInfo)
+                if (!updateUinfoRes.success) throw new Error("Error updating user info : " + updateUinfoRes.errorMessage)
+            }
+
+            //add user as friend of the friend that sent the request            
+            const q = query(collection(this.db, "users"), where("licenseKey", "==", requestAccepted.by_licenseKey))
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
+            if (snapshot.empty) {
+                //restore user friends:
+                userInfo.friends = userInfo.friends.filter(f => f.licenseKey != requestAccepted.by_licenseKey)
+                await this.updateUserInfo(userInfo)
+                throw new Error("No user found")
+            }
+            else {
+                const friendDoc = snapshot.docs[0].ref;
+                const friendData = snapshot.docs[0].data() as userDBentry;
+                console.log("friend data in accept friend request:\n", friendData)
+
+                //update frind data in db:
+                friendData.friends.push({ licenseKey: userInfo.licenseKey })
+                console.log("new friendData.friends:\n", friendData.friends)
+
+                await updateDoc(friendDoc, { friends: friendData.friends })
+
+                //remove request
+                await this.removeFriendRequest(userInfo.licenseKey, requestAccepted)
+
+                //send notification to friend
+                const notificationForFriend: TTT_Notification = {
+                    notificationID: "friendRequestAcceptedBy_" + userInfo.username + "_" + Date.now(),
+                    body: `A new friendship was born with ${userInfo.username}!`,
+                    scheduleAt_timestamp: new Date(Date.now()),
+                    imagePath: "https://i.imgur.com/ROIfwjw.png",
+                    tag: "Friend Request Accepted",
+                    title: `${userInfo.username} just becamed your friend!`,
+                    fcmToken: friendData.fcmToken
+                }
+
+                await this.scheduleNotification(notificationForFriend, friendData.licenseKey);
+            }
+
+
+            return {
+                success: true,
+                errorMessage: ""
+            }
+        } catch (error: any) {
+            return {
+                success: false,
+                errorMessage: error.message
+            }
+        }
+    }
+
+    public async sendGiftToFriend(gift: GiftItem, friendLicenseKey: string, userInfo: userDBentry): Promise<baseResponse> {
+        try {
+            console.log("sending gift:\n", gift)
+            //assert to be friends with user to wich I sent the gift:
+            if (userInfo.friends.findIndex(f => f.licenseKey == friendLicenseKey) == -1) throw new Error("You can send gift only to your friends")
+
+            const q = query(collection(this.db, "users"), where("licenseKey", "==", friendLicenseKey))
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
+            if (snapshot.empty) {
+                throw new Error("No friend found")
+            } else {
+                const friendData = snapshot.docs[0].data() as userDBentry;
+
+                //update friend user inventory adding the gift:
+                const actualFriendUserInventory = (await this.getUserInventory(friendData.licenseKey)).userInventory
+                let i = actualFriendUserInventory.items.findIndex(element => element.item.id == gift.originalItemId)
+                if (i == -1) {
+                    type shopItemType = "cosmetic" | "utility" | "mystery_box" | "gift" | "reminder" | "avatar"
+                    const originalType = gift.id.split("originalType:")[1] as shopItemType
+                    //restore shop item by gift
+                    const shopItemToAdd: ShopItem = {
+                        ...gift,
+                        name: gift.name.split("Gift ")[1],
+                        id: gift.originalItemId,
+                        type: originalType,
+                    }
+                    actualFriendUserInventory.items.push({ quantity: 1, item: shopItemToAdd })
+                } else {
+                    actualFriendUserInventory.items[i].quantity++
+                }
+                const updateFrindInventoryRes = await this.updateUserInventory(actualFriendUserInventory)
+                if (!updateFrindInventoryRes.success) throw new Error(updateFrindInventoryRes.errorMessage)
+
+                //update user inventory decreasing gift quantity
+                const getUserInventorRes = await this.getUserInventory(userInfo.licenseKey)
+                if (!getUserInventorRes.success) throw new Error(getUserInventorRes.errorMessage)
+                const actualUserInventory = getUserInventorRes.userInventory;
+                let updatedInventory: UserInventory = {
+                    licenseKey: userInfo.licenseKey,
+                    items: []
+                }
+                for (let el of actualUserInventory.items) {
+                    if (el.item.id == gift.id) {
+                        el.quantity--
+                    }
+                    if (el.quantity > 0) {
+                        updatedInventory.items.push(el)
+                    }
+                }
+                const updateUserInventoryRes = await this.updateUserInventory(updatedInventory)
+                if (!updateUserInventoryRes.success) throw new Error(updateUserInventoryRes.errorMessage)
+
+
+                //notify the friend
+                const giftNotification: TTT_Notification = {
+                    notificationID: "giftSentBy_" + userInfo.username + "_" + Date.now(),
+                    body: `Let's see what's the surprise sent by ${userInfo.username} and remember to say thank you`,
+                    scheduleAt_timestamp: new Date(Date.now()),
+                    imagePath: "https://i.imgur.com/ROIfwjw.png",
+                    tag: "Gift",
+                    title: `${userInfo.username} sent you a gift! What will it be?`,
+                    fcmToken: friendData.fcmToken
+                }
+                await this.scheduleNotification(giftNotification, friendData.licenseKey);
+
+
+                return {
+                    success: true,
+                    errorMessage: ""
+                }
+            }
+        } catch (error: any) {
+            console.error("error in send gift:\n", error)
+            return {
+                success: false,
+                errorMessage: error.message
+            }
+        }
+    }
+
+    private async removeFriendRequest(userLK: string, request: friendRequest) {
+        //controllo che la rejected request ci sia
+        const firendsRequest = (await this.loadFriendRequests(userLK)).friendRequests;
+        console.log("firendsRequest in removeFriendRequest:\n", firendsRequest)
+
+        if ((firendsRequest.findIndex(r => r.by_licenseKey == request.by_licenseKey && r.by_username == request.by_username)) != -1) {
+            //rimuovo notifica relativa a richiesta ad utente che rifiuta richiesta:
+            const q = query(collection(this.db, "notifications"), where("licenseKey", "==", userLK))
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
+            console.log("snapshot = ", snapshot)
+            if (!snapshot.empty) {
+                const userNotifications = snapshot.docs[0].data().notifications as notificationDocData[]
+                if (userNotifications.length > 0) {
+                    const tagOfNotificationToRemove = "Friend Request by " + request.by_licenseKey
+                    const notificationsToRemove = userNotifications.filter(n => n.tag === tagOfNotificationToRemove);
+                    if (notificationsToRemove.length > 0) {
+                        const userNotificationDocRef = snapshot.docs[0].ref
+                        console.log("updating...u lk = ", userLK)
+                        await updateDoc(userNotificationDocRef, {
+                            notifications: arrayRemove(...notificationsToRemove)
+                        });
+                        console.log("updated")
+                    }
+
+                }
+            }
+        }
+    }
+
+    public async rejectFriendRequest(requestRejected: friendRequest, userLK: string, username: string): Promise<baseResponse> {
+        try {
+            await this.removeFriendRequest(userLK, requestRejected)
+
+            const q = query(collection(this.db, "users"), where("licenseKey", "==", requestRejected.by_licenseKey))
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
+            if (!snapshot.empty) {
+                const friendData = snapshot.docs[0].data() as userDBentry;
+
+                //send notification to user whose request was denied
+                const notificationOfReject: TTT_Notification = {
+                    notificationID: "friendRequestRejectedBy_" + username + "_" + Date.now(),
+                    body: `${username} is sorry in politely letting you know that your frien request has been declined`,
+                    scheduleAt_timestamp: new Date(Date.now()),
+                    imagePath: "https://i.imgur.com/ROIfwjw.png",
+                    tag: "Friend Request Rejected",
+                    title: `${username} rejected your friend request`,
+                    fcmToken: friendData.fcmToken
+                }
+
+                await this.scheduleNotification(notificationOfReject, friendData.licenseKey);
+
+
+            }
+
+
+            return {
+                success: true,
+                errorMessage: ""
+            }
+        } catch (error: any) {
+            return {
+                success: false,
+                errorMessage: error.message
+            }
+        }
+    }
+
+    // --- handle set avatar image
+
+    public async setAvatarImage(avatarImage: string, licenseKey: string): Promise<baseResponse> {
+        try {
+            const q = query(collection(this.db, "users"), where("licenseKey", "==", licenseKey))
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
+            if (snapshot.empty) {
+                throw new Error("No user found")
+            } else {
+                const userDocRef = snapshot.docs[0].ref;
+                await updateDoc(userDocRef, {
+                    avatarImagePath: avatarImage 
+                });
+            }
+
+            return {
+                success: true,
+                errorMessage: ""
+            }
+        } catch (error: any) {
+            return {
+                success: false,
+                errorMessage: error.message
+            }
+        }
+    }
+
 }

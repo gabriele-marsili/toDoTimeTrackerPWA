@@ -101,7 +101,7 @@ export class CalendarEventHandler {
             console.log("event notices :\n", event.notices)
             const tk = await this.checkFcmToken();
             const eventNotification: TTT_Notification = {
-                id: event.id + "_notification",
+                notificationID: event.id + "_notification",
                 body: "Don't forger the event " + event.title,
                 scheduleAt_timestamp: event.eventDate,
                 imagePath: "../assets/mainLogo.png",
@@ -114,7 +114,7 @@ export class CalendarEventHandler {
             for (let notice of event.notices) {
                 notice.fcmToken = tk; //update fcm tk
                 let r = await this.apiGestor.scheduleNotification(notice, licenseKey)
-                console.log(`notice ${notice.id} r:`,r);
+                console.log(`notice ${notice.notificationID} r:`,r);
             }
 
             return await this.apiGestor.scheduleNotification(eventNotification, licenseKey)
@@ -140,7 +140,7 @@ export class CalendarEventHandler {
             console.log("deleteR (event notification):\n", deleteR)
 
             //de-schedule (delete) event notices 
-            event.notices.forEach(async (notice) => await this.apiGestor.deleteNotification(notice.id, licenseKey))
+            event.notices.forEach(async (notice) => await this.apiGestor.deleteNotification(notice.notificationID, licenseKey))
 
             return { success: true, errorMessage: "" };
         } catch (err: any) {

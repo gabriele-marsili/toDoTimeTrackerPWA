@@ -22,6 +22,8 @@ export declare class ExtComunicator {
     private extID;
     private constructor();
     static getInstance(timeTrackerHandler: TimeTrackerHandler, licenseKey: string): ExtComunicator;
+    private showClientSideNotification;
+    private ensureNotificationPermission;
     on<T extends ExtToPwaMessageType>(messageType: T, handler: (payload: any) => void): void;
     off<T extends ExtToPwaMessageType>(messageType: T): void;
     deleteAllHandlers(): void;

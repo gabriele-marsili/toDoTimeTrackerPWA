@@ -1,7 +1,7 @@
 // In your backend logic file (where loadShopItems and loadMysteyBoxes are)
 
 import { initializedFirestonAdmin } from "../firebase/firebase";
-import { ItemRarity, MysterBoxImageUrls, MysteryBoxConfig, ShopItem } from "../types/shopTypes"; // Adjust import path
+import { GiftItem, ItemRarity, MysterBoxImageUrls, MysteryBoxConfig, ShopItem } from "../types/shopTypes"; // Adjust import path
 
 const db = initializedFirestonAdmin.firestore();
 
@@ -51,10 +51,9 @@ const ALL_ITEM_IMAGE_URLS: Record<string, string> = {
 
 
     // Gift Items
-    "gift_karmaboost_small_001": "url_gift_small_boost.png",
-    "gift_frame_bronze_001": "url_gift_bronze_frame.png",
+    "gift_item": "https://i.imgur.com/SyxGEq3.jpeg",
 
-    // Reminder Items
+    // Reminder Items (deleted)
     "reminder_template_001": "url_motiviation_reminder.png",
     "reminder_credit_001": "url_reminder_credit.png",
 
@@ -65,46 +64,46 @@ const ALL_ITEM_IMAGE_URLS: Record<string, string> = {
     "avatar_cool_dog": "https://i.imgur.com/Va9d8d8.jpeg",
     "avatar_mainstream_girl": "https://i.imgur.com/18URuNf.jpeg",
     "avatar_mainstream_guy": "https://i.imgur.com/QltbsXj.jpeg",
-    "avatar_bored_guy": "https://i.imgur.com/edBQeve.jpeg", 
-    "avatar_bored_girl": "https://i.imgur.com/hnFsbjY.jpeg", 
-    "avatar_concentrated_guy": "https://i.imgur.com/pwoApri.jpeg", 
-    "avatar_concentrated_girl": "https://i.imgur.com/ZTFXhUb.jpeg", 
-    "avatar_nerd_guy": "https://i.imgur.com/kps4f3q.jpeg", 
-    "avatar_nerd_girl": "https://i.imgur.com/siqB01g.jpeg", 
-    "avatar_cheeky_monkey": "https://i.imgur.com/5huBNIo.jpeg", 
-    "avatar_cool_guy": "https://i.imgur.com/QLW9Iyn.jpeg", 
-    "avatar_cool_girl": "https://i.imgur.com/cf1cXm0.jpeg", 
-    "avatar_student_girl": "https://i.imgur.com/7wozqKg.jpeg", 
-    "avatar_student_guy": "https://i.imgur.com/bCnqhsZ.jpeg", 
-    "avatar_addicted_caffe_guy": "https://i.imgur.com/zKGGUeB.jpeg", 
+    "avatar_bored_guy": "https://i.imgur.com/edBQeve.jpeg",
+    "avatar_bored_girl": "https://i.imgur.com/hnFsbjY.jpeg",
+    "avatar_concentrated_guy": "https://i.imgur.com/pwoApri.jpeg",
+    "avatar_concentrated_girl": "https://i.imgur.com/ZTFXhUb.jpeg",
+    "avatar_nerd_guy": "https://i.imgur.com/kps4f3q.jpeg",
+    "avatar_nerd_girl": "https://i.imgur.com/siqB01g.jpeg",
+    "avatar_cheeky_monkey": "https://i.imgur.com/5huBNIo.jpeg",
+    "avatar_cool_guy": "https://i.imgur.com/QLW9Iyn.jpeg",
+    "avatar_cool_girl": "https://i.imgur.com/cf1cXm0.jpeg",
+    "avatar_student_girl": "https://i.imgur.com/7wozqKg.jpeg",
+    "avatar_student_guy": "https://i.imgur.com/bCnqhsZ.jpeg",
+    "avatar_addicted_caffe_guy": "https://i.imgur.com/zKGGUeB.jpeg",
     "avatar_addicted_caffe_girl": "https://i.imgur.com/GXYpARr.jpeg",
     "avatar_chill_guy": "https://i.imgur.com/EqYeMLZ.png",
     "avatar_chill_girl": "https://i.imgur.com/Rgzhq4M.png",
-    "avatar_sport_guy": "https://i.imgur.com/qZmvapY.jpeg", 
+    "avatar_sport_guy": "https://i.imgur.com/qZmvapY.jpeg",
     "avatar_sport_girl": "https://i.imgur.com/TruapTw.jpeg",
     "avatar_mysterious_stranger": "https://i.imgur.com/w9Wf7Ut.jpeg",
-    "avatar_eyes": "https://i.imgur.com/C48X4ra.jpeg", 
+    "avatar_eyes": "https://i.imgur.com/C48X4ra.jpeg",
     "avatar_night_girl": "https://i.imgur.com/HWJ9t4v.jpeg",
-    "avatar_night_guy": "https://i.imgur.com/W2DTPcR.jpeg", 
+    "avatar_night_guy": "https://i.imgur.com/W2DTPcR.jpeg",
     "avatar_early_bird_girl": "https://i.imgur.com/Qd6RNAM.jpeg",
-    "avatar_early_bird_guy": "https://i.imgur.com/5CJf1BU.jpeg", 
-    "avatar_zen_cat": "https://i.imgur.com/VH4zYY0.jpeg", 
+    "avatar_early_bird_guy": "https://i.imgur.com/5CJf1BU.jpeg",
+    "avatar_zen_cat": "https://i.imgur.com/VH4zYY0.jpeg",
     "avatar_minimalist_girl": "https://i.imgur.com/EIap6MD.jpeg",
-    "avatar_minimalist_guy": "https://i.imgur.com/u43e1ZO.jpeg", 
-    "avatar_shadow": "https://i.imgur.com/hVIy4Lg.jpeg", 
-    "avatar_robot": "https://i.imgur.com/jhxMMPd.jpeg", 
+    "avatar_minimalist_guy": "https://i.imgur.com/u43e1ZO.jpeg",
+    "avatar_shadow": "https://i.imgur.com/hVIy4Lg.jpeg",
+    "avatar_robot": "https://i.imgur.com/jhxMMPd.jpeg",
     "avatar_nature_entity": "https://i.imgur.com/nPCoXYj.jpeg",
-    "avatar_king_focus": "https://i.imgur.com/Xj35TKZ.jpeg", 
+    "avatar_king_focus": "https://i.imgur.com/Xj35TKZ.jpeg",
     "avatar_task_widzard": "https://i.imgur.com/Z3IwO8H.jpeg",
     "avatar_futurist": "https://i.imgur.com/LuOcAdj.jpeg",
     "avatar_desert_wolf": "https://i.imgur.com/CDw7AI6.jpeg",
-    "avatar_lady_noire": "https://i.imgur.com/FZAdmog.jpeg", 
+    "avatar_lady_noire": "https://i.imgur.com/FZAdmog.jpeg",
     "avatar_hermit": "https://i.imgur.com/LCPtcJm.jpeg",
-    "avatar_masked_planned": "https://i.imgur.com/dUb5Cw9.jpeg", 
-    "avatar_elf": "https://i.imgur.com/aMxYbNk.jpeg", 
-    "avatar_star_commander": "https://i.imgur.com/tzWyW3X.jpeg", 
+    "avatar_masked_planned": "https://i.imgur.com/dUb5Cw9.jpeg",
+    "avatar_elf": "https://i.imgur.com/aMxYbNk.jpeg",
+    "avatar_star_commander": "https://i.imgur.com/tzWyW3X.jpeg",
     "avatar_mind_reader": "https://i.imgur.com/90m9YiC.jpeg",
-    "avatar_phoenix": "https://i.imgur.com/EDrqkLr.jpeg", 
+    "avatar_phoenix": "https://i.imgur.com/EDrqkLr.jpeg",
     "avatar_time_bender": "https://i.imgur.com/Gf2yAAV.jpeg",
     "avatar_cosmic_entity": "https://i.imgur.com/SSoeUON.jpeg",
     "avatar_chrono_panthern": "https://i.imgur.com/ZSmiwjJ.jpeg",
@@ -133,15 +132,10 @@ const allAvailableShopItems: ShopItem[] = [
     { id: "utility_karmaboost_003", name: "Large Karma Boost", description: "Increases karma earned by 25% for 6 hours.", cost: 500, rarity: ItemRarity.Special, imageUrl: ALL_ITEM_IMAGE_URLS["utility_karmaboost_003"], type: "utility" },
     { id: "utility_karmaboost_004", name: "Legendary Karma Boost", description: "Increases karma earned by 35% for 8 hours.", cost: 700, rarity: ItemRarity.Legendary, imageUrl: ALL_ITEM_IMAGE_URLS["utility_karmaboost_004"], type: "utility" }, // Corrected ID
 
-    // Gift Items (Assuming these are purchasable as gifts)
-    // Note: You might want specific gift box images
-    { id: "gift_karmaboost_small_001", name: "Gift: Small Karma Boost", description: "Gift a small karma boost to a friend.", cost: 180, rarity: ItemRarity.QuiteCommon, imageUrl: ALL_ITEM_IMAGE_URLS["gift_karmaboost_small_001"], type: "gift" },
-    { id: "gift_frame_bronze_001", name: "Gift: Bronze Frame", description: "Gift a bronze frame to a friend.", cost: 120, rarity: ItemRarity.QuiteCommon, imageUrl: ALL_ITEM_IMAGE_URLS["gift_frame_bronze_001"], type: "gift" },
-
     // Reminder Items (Assuming these are purchasable templates or credits)
     // Note: You might want specific reminder icons
-    { id: "reminder_template_001", name: "Motiviation Reminder Template", description: "A template for sending motivational reminders.", cost: 50, rarity: ItemRarity.Mainstream, imageUrl: ALL_ITEM_IMAGE_URLS["reminder_template_001"], type: "reminder" },
-    { id: "reminder_credit_001", name: "Custom Reminder Credit", description: "Allows sending one custom reminder to a friend.", cost: 80, rarity: ItemRarity.Mainstream, imageUrl: ALL_ITEM_IMAGE_URLS["reminder_credit_001"], type: "reminder" },
+    //{ id: "reminder_template_001", name: "Motiviation Reminder Template", description: "A template for sending motivational reminders.", cost: 50, rarity: ItemRarity.Mainstream, imageUrl: ALL_ITEM_IMAGE_URLS["reminder_template_001"], type: "reminder" },
+    //{ id: "reminder_credit_001", name: "Custom Reminder Credit", description: "Allows sending one custom reminder to a friend.", cost: 80, rarity: ItemRarity.Mainstream, imageUrl: ALL_ITEM_IMAGE_URLS["reminder_credit_001"], type: "reminder" },
 
     // Avatars (Using URLs from the centralized object)
     // --- Mainstream (15 items) ---
@@ -218,6 +212,8 @@ const allAvailableShopItems: ShopItem[] = [
 ];
 
 
+
+
 // --- Pool of Mystery Boxes ---
 
 
@@ -281,9 +277,9 @@ function selectRandomByRarity<T extends { rarity: ItemRarity }>(items: T[]): T |
     const selectableItems = items.filter(item => RARITY_PROBABILITIES[item.rarity] !== undefined);
 
     if (selectableItems.length === 0) {
-         console.warn("No selectable items with defined rarity probabilities found.");
-         // Fallback: if no items have defined probabilities, just pick one randomly
-         return shuffleArray(items)[0];
+        console.warn("No selectable items with defined rarity probabilities found.");
+        // Fallback: if no items have defined probabilities, just pick one randomly
+        return shuffleArray(items)[0];
     }
 
 
@@ -291,8 +287,8 @@ function selectRandomByRarity<T extends { rarity: ItemRarity }>(items: T[]): T |
     const totalWeight = selectableItems.reduce((sum, item) => sum + RARITY_PROBABILITIES[item.rarity], 0);
 
     if (totalWeight === 0) {
-         console.warn("Total weight of selectable items is zero. Falling back to random selection.");
-         return shuffleArray(selectableItems)[0] || null;
+        console.warn("Total weight of selectable items is zero. Falling back to random selection.");
+        return shuffleArray(selectableItems)[0] || null;
     }
 
 
@@ -307,23 +303,23 @@ function selectRandomByRarity<T extends { rarity: ItemRarity }>(items: T[]): T |
         }
     }
 
-     // Fallback: Should not be reached if totalWeight > 0, but return a random item just in case
-     console.warn("Weighted selection did not select an item. Falling back to random selection.");
-     return shuffleArray(selectableItems)[0] || null;
+    // Fallback: Should not be reached if totalWeight > 0, but return a random item just in case
+    console.warn("Weighted selection did not select an item. Falling back to random selection.");
+    return shuffleArray(selectableItems)[0] || null;
 }
 
 
-function generateMysteryBoxes(allItems: ShopItem[]): MysteryBoxConfig[] {
+function generateMysteryBoxes(allItems: GiftItem[]): MysteryBoxConfig[] {
     const mysteryBoxes: MysteryBoxConfig[] = [];
 
     // Group items by rarity for easier access
-    const itemsByRarity: Record<ItemRarity, ShopItem[]> = allItems.reduce((acc, item) => {
+    const itemsByRarity: Record<ItemRarity, GiftItem[]> = allItems.reduce((acc, item) => {
         if (!acc[item.rarity]) {
             acc[item.rarity] = [];
         }
         acc[item.rarity].push(item);
         return acc;
-    }, {} as Record<ItemRarity, ShopItem[]>);
+    }, {} as Record<ItemRarity, GiftItem[]>);
 
     console.log("Items by Rarity:", itemsByRarity);
 
@@ -338,7 +334,7 @@ function generateMysteryBoxes(allItems: ShopItem[]): MysteryBoxConfig[] {
         const itemsOfNextRarity = nextRarity ? (itemsByRarity[nextRarity] || []) : [];
 
         // Use the new structure: { item: ShopItem, probability: number }
-        const availableItemsInBox: { item: ShopItem; probability: number }[] = [];
+        const availableItemsInBox: { item: GiftItem; probability: number }[] = [];
         const itemIdsAdded: string[] = []; // Keep track of item IDs added to avoid duplicates
 
 
@@ -347,32 +343,32 @@ function generateMysteryBoxes(allItems: ShopItem[]): MysteryBoxConfig[] {
         // 1. Item from the rarity above (5% probability)
         if (itemsOfNextRarity.length > 0 && currentRarity !== ItemRarity.Unique) {
             const itemFromAbove = shuffleArray(itemsOfNextRarity)[0];
-             if (!itemIdsAdded.includes(itemFromAbove.id)) { // Prevent adding duplicate IDs
+            if (!itemIdsAdded.includes(itemFromAbove.id)) { // Prevent adding duplicate IDs
                 availableItemsInBox.push({ item: itemFromAbove, probability: 0.05 });
                 itemIdsAdded.push(itemFromAbove.id);
-             }
+            }
         } else if (currentRarity === ItemRarity.Unique && itemsByRarity[ItemRarity.Legendary]?.length > 0) {
-             const itemFromLegendary = shuffleArray(itemsByRarity[ItemRarity.Legendary])[0];
-             if (!itemIdsAdded.includes(itemFromLegendary.id)) {
-                 availableItemsInBox.push({ item: itemFromLegendary, probability: 0.05 });
-                 itemIdsAdded.push(itemFromLegendary.id);
-             }
+            const itemFromLegendary = shuffleArray(itemsByRarity[ItemRarity.Legendary])[0];
+            if (!itemIdsAdded.includes(itemFromLegendary.id)) {
+                availableItemsInBox.push({ item: itemFromLegendary, probability: 0.05 });
+                itemIdsAdded.push(itemFromLegendary.id);
+            }
         }
 
 
         // 2. Item from the rarity below (35% probability)
         if (itemsOfPreviousRarity.length > 0 && currentRarity !== ItemRarity.Mainstream) {
-             const itemFromBelow = shuffleArray(itemsOfPreviousRarity)[0];
-             if (!itemIdsAdded.includes(itemFromBelow.id)) {
+            const itemFromBelow = shuffleArray(itemsOfPreviousRarity)[0];
+            if (!itemIdsAdded.includes(itemFromBelow.id)) {
                 availableItemsInBox.push({ item: itemFromBelow, probability: 0.35 });
                 itemIdsAdded.push(itemFromBelow.id);
-             }
+            }
         } else if (currentRarity === ItemRarity.Mainstream && itemsByRarity[ItemRarity.QuiteCommon]?.length > 0) {
-             const itemFromQuiteCommon = shuffleArray(itemsByRarity[ItemRarity.QuiteCommon])[0];
-             if (!itemIdsAdded.includes(itemFromQuiteCommon.id)) {
+            const itemFromQuiteCommon = shuffleArray(itemsByRarity[ItemRarity.QuiteCommon])[0];
+            if (!itemIdsAdded.includes(itemFromQuiteCommon.id)) {
                 availableItemsInBox.push({ item: itemFromQuiteCommon, probability: 0.35 });
                 itemIdsAdded.push(itemFromQuiteCommon.id);
-             }
+            }
         }
 
 
@@ -387,24 +383,24 @@ function generateMysteryBoxes(allItems: ShopItem[]): MysteryBoxConfig[] {
             }
         }
 
-         // --- Adjust probabilities if fewer than 5 items were added ---
-         // Distribute remaining probability among added items to sum up to 1
-         const totalCurrentProbability = availableItemsInBox.reduce((sum, entry) => sum + entry.probability, 0);
+        // --- Adjust probabilities if fewer than 5 items were added ---
+        // Distribute remaining probability among added items to sum up to 1
+        const totalCurrentProbability = availableItemsInBox.reduce((sum, entry) => sum + entry.probability, 0);
 
-         if (availableItemsInBox.length > 0 && totalCurrentProbability < 1) {
-             const remainingProbability = 1 - totalCurrentProbability;
-             const probabilityPerItem = remainingProbability / availableItemsInBox.length;
+        if (availableItemsInBox.length > 0 && totalCurrentProbability < 1) {
+            const remainingProbability = 1 - totalCurrentProbability;
+            const probabilityPerItem = remainingProbability / availableItemsInBox.length;
 
-             availableItemsInBox.forEach(entry => {
-                 entry.probability += probabilityPerItem;
-             });
-         } else if (availableItemsInBox.length > 0 && totalCurrentProbability > 1) {
-              // Should not happen with the current probabilities, but as a safeguard
-              console.warn(`Probabilities sum to more than 1 (${totalCurrentProbability}) for ${currentRarity} box. Normalizing.`);
-              availableItemsInBox.forEach(entry => {
-                  entry.probability /= totalCurrentProbability; // Normalize probabilities
-              });
-         }
+            availableItemsInBox.forEach(entry => {
+                entry.probability += probabilityPerItem;
+            });
+        } else if (availableItemsInBox.length > 0 && totalCurrentProbability > 1) {
+            // Should not happen with the current probabilities, but as a safeguard
+            console.warn(`Probabilities sum to more than 1 (${totalCurrentProbability}) for ${currentRarity} box. Normalizing.`);
+            availableItemsInBox.forEach(entry => {
+                entry.probability /= totalCurrentProbability; // Normalize probabilities
+            });
+        }
 
 
         // --- Create the Mystery Box Config ---
@@ -419,7 +415,7 @@ function generateMysteryBoxes(allItems: ShopItem[]): MysteryBoxConfig[] {
             const finalBoxCost = Math.max(boxCost, getMinimumMysteryBoxCost(currentRarity));
 
             let image_url = ""
-            switch (currentRarity){
+            switch (currentRarity) {
                 case ItemRarity.Mainstream:
                     image_url = MysterBoxImageUrls.Mainstream
                     break
@@ -474,7 +470,7 @@ function getMysteryBoxCostMultiplier(rarity: ItemRarity): number {
 
 // Helper function to determine minimum cost based on rarity
 function getMinimumMysteryBoxCost(rarity: ItemRarity): number {
-     switch (rarity) {
+    switch (rarity) {
         case ItemRarity.Mainstream: return 50;
         case ItemRarity.QuiteCommon: return 100;
         case ItemRarity.Uncommon: return 200;
@@ -488,9 +484,9 @@ function getMinimumMysteryBoxCost(rarity: ItemRarity): number {
 
 
 
-function getDailyShopInventory(allItems: ShopItem[], allBoxes: MysteryBoxConfig[]): { dailyItems: ShopItem[], dailyMysteryBoxes: MysteryBoxConfig[] } {
+function getDailyShopInventory(allItems: GiftItem[], allBoxes: MysteryBoxConfig[]): { dailyItems: GiftItem[], dailyMysteryBoxes: MysteryBoxConfig[] } {
 
-    const dailyItems: ShopItem[] = [];
+    const dailyItems: GiftItem[] = [];
     const dailyMysteryBoxes: MysteryBoxConfig[] = [];
 
     // Select 5 unique items based on rarity probability
@@ -499,11 +495,11 @@ function getDailyShopInventory(allItems: ShopItem[], allBoxes: MysteryBoxConfig[
         if (selectedItem && !dailyItems.find(item => item.id === selectedItem.id)) {
             dailyItems.push(selectedItem);
         }
-         // Add a safeguard to prevent infinite loops if there are fewer than 5 unique items with defined probabilities
-         if (dailyItems.length === allItems.filter(item => RARITY_PROBABILITIES[item.rarity] !== undefined).length) {
-              console.warn("Could not find 5 unique items with defined probabilities. Adding all available unique items.");
-              break;
-         }
+        // Add a safeguard to prevent infinite loops if there are fewer than 5 unique items with defined probabilities
+        if (dailyItems.length === allItems.filter(item => RARITY_PROBABILITIES[item.rarity] !== undefined).length) {
+            console.warn("Could not find 5 unique items with defined probabilities. Adding all available unique items.");
+            break;
+        }
     }
 
     // Select 2 unique mystery boxes based on rarity probability
@@ -512,33 +508,58 @@ function getDailyShopInventory(allItems: ShopItem[], allBoxes: MysteryBoxConfig[
         if (selectedBox && !dailyMysteryBoxes.find(box => box.id === selectedBox.id)) {
             dailyMysteryBoxes.push(selectedBox);
         }
-         // Add a safeguard for mystery boxes
-         if (dailyMysteryBoxes.length === allBoxes.filter(box => RARITY_PROBABILITIES[box.rarity] !== undefined).length) {
-              console.warn("Could not find 2 unique mystery boxes with defined probabilities. Adding all available unique boxes.");
-              break;
-         }
+        // Add a safeguard for mystery boxes
+        if (dailyMysteryBoxes.length === allBoxes.filter(box => RARITY_PROBABILITIES[box.rarity] !== undefined).length) {
+            console.warn("Could not find 2 unique mystery boxes with defined probabilities. Adding all available unique boxes.");
+            break;
+        }
     }
 
     console.log("dailyItems (randomly selected):", dailyItems.map(item => item.name));
     console.log("dailyMysteryBoxes (randomly selected):", dailyMysteryBoxes.map(box => box.name));
 
-    
+
 
     return { dailyItems, dailyMysteryBoxes };
+}
+
+function expandShopItemsWithGifts() {
+    let giftItems: GiftItem[] = []
+    for (let item of allAvailableShopItems) {
+        let relatedGiftItem: GiftItem = {
+            ...item,
+            name : "Gift "+item.name+" 🎁",
+            id: "gift_" + item.id+"originalType:"+item.type,
+            originalItemId: item.id,
+            type: "gift",
+        }
+
+        let itemAsGift: GiftItem = {
+            ...item,
+            originalItemId: item.id,
+        }
+
+        giftItems.push(relatedGiftItem)
+        giftItems.push(itemAsGift)
+    }
+
+    return giftItems
 }
 
 // --- Function to update the shop inventory for the current day ---
 export async function updateDailyShop(): Promise<void> {
     const today = new Date();
 
-     // Generate all possible mystery boxes first (this depends on allAvailableShopItems)
-    const allPossibleMysteryBoxes = generateMysteryBoxes(allAvailableShopItems);
-     console.log("All possible mystery boxes generated:", allPossibleMysteryBoxes.map(box => box.name));
+    const allItemsPlusGifts = expandShopItemsWithGifts()
+
+    // Generate all possible mystery boxes first (this depends on allAvailableShopItems)
+    const allPossibleMysteryBoxes = generateMysteryBoxes(allItemsPlusGifts);
+    console.log("All possible mystery boxes generated:", allPossibleMysteryBoxes.map(box => box.name));
 
 
     // Get the daily selection based on rarity probabilities
     const { dailyItems, dailyMysteryBoxes } = getDailyShopInventory(
-        allAvailableShopItems,
+        allItemsPlusGifts,
         allPossibleMysteryBoxes // Use the generated mystery boxes
     );
 

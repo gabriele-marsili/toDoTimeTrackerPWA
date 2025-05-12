@@ -12,7 +12,7 @@ export type notificationDocData = {
 }
 
 export type TTT_Notification = {
-    id: string, //the same of the related event/todo/time tracker rule
+    notificationID: string, //the same of the related event/todo/time tracker rule
     body: string,
     scheduleAt_timestamp: Date,
     imagePath: string,

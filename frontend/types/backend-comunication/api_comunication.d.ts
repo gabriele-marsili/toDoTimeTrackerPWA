@@ -1,11 +1,11 @@
 import { User, UserCredential } from "firebase/auth";
 import { baseResponse } from "../types/utilityTypes.js";
-import { userDBentry } from "../types/userTypes.js";
+import { friendRequest, userDBentry } from "../types/userTypes.js";
 import { ToDoAction, ToDoObj } from "../engine/toDoEngine.js";
 import { CalendarEvent, CalendarObj } from "../engine/calendarEvent.js";
 import { TimeTrackerRule, TimeTrackerRuleObj } from "../engine/timeTracker.js";
 import { TTT_Notification } from "../engine/notification.js";
-import { MysteryBoxConfig, ShopItem, UserInventory } from "../types/shopTypes.js";
+import { GiftItem, MysteryBoxConfig, ShopItem, UserInventory } from "../types/shopTypes.js";
 /**
  * singleton class to interact with the backend via API
  */
@@ -156,4 +156,21 @@ export declare class API_gestor {
         errorMessage: string;
         userInventory: UserInventory;
     }>;
+    loadFriends(friendLicenseKeys: string[]): Promise<{
+        success: boolean;
+        errorMessage: string;
+        friends: userDBentry[];
+    }>;
+    removeFriend(userInfoToUpdate: userDBentry, friendLicenseKey: string): Promise<baseResponse>;
+    loadFriendRequests(licenseKey: string): Promise<{
+        success: boolean;
+        errorMessage: string;
+        friendRequests: friendRequest[];
+    }>;
+    sendFriendRequest(userNameOfFriendToAdd: string, userUsername: string, userLK: string): Promise<baseResponse>;
+    acceptFriendRequest(requestAccepted: friendRequest, userInfo: userDBentry): Promise<baseResponse>;
+    sendGiftToFriend(gift: GiftItem, friendLicenseKey: string, userInfo: userDBentry): Promise<baseResponse>;
+    private removeFriendRequest;
+    rejectFriendRequest(requestRejected: friendRequest, userLK: string, username: string): Promise<baseResponse>;
+    setAvatarImage(avatarImage: string, licenseKey: string): Promise<baseResponse>;
 }

@@ -30,9 +30,7 @@ messaging.onBackgroundMessage(function (payload) {
     const notificationTag = payload.data.tag || 'default_tag';
     const notificationId = payload.data.notificationID;
     const customData = payload.data;
-
-
-    
+ 
     const options = {
         body: notificationBody,
         icon: notificationIcon,
@@ -71,6 +69,10 @@ self.addEventListener('notificationclick', function (event) {
         if(url.includes("event")||url.includes("to do")){
             url = "home"
         }
+        if(url.toLowerCase().includes("friend request")||url.toLowerCase().includes("gift")){
+            url = "profile_page"
+        }
+
         // Previene l'azione di default del browser
         event.waitUntil(
             clients.matchAll({

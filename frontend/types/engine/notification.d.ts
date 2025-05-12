@@ -11,7 +11,7 @@ export type notificationDocData = {
     sent: boolean;
 };
 export type TTT_Notification = {
-    id: string;
+    notificationID: string;
     body: string;
     scheduleAt_timestamp: Date;
     imagePath: string;

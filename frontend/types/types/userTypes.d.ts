@@ -35,8 +35,11 @@ export type category = {
     points: number;
 };
 export type friend = {
-    username: string;
-    email: string;
+    licenseKey: string;
+};
+export type friendRequest = {
+    by_username: string;
+    by_licenseKey: string;
 };
 export type userDBentry = {
     age: number;

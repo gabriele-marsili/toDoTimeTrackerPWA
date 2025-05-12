@@ -514,7 +514,7 @@ grigio : #1e1e1e
 
 /* Footer (Calendario/Eventi): occupa quasi tutta la larghezza del main content */
 .footer {
-    margin-top: 10px;
+    margin-top: 5%;
     background-color: var(--background-dark);
     padding: 15px;
     border-radius: 8px;
@@ -523,6 +523,7 @@ grigio : #1e1e1e
     box-sizing: border-box;
     width: 100%;
     overflow-y: auto;
+    margin-left: 0%;    
 }
 
 .footer::-webkit-scrollbar {

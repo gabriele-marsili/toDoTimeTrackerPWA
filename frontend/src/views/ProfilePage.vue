@@ -8,52 +8,57 @@
 
         <div class="main-content">
 
-            <header class="header-section box elevated shadow-lg rounded-2xl">
-
-                <div class="header-item">
-                    <span class="material-symbols-outlined icon">paid</span>
-                    <span>Karma Points : </span>
-                    <span class="value"> {{ userInfo.karmaCoinsBalance }}</span>
-                </div>
-
-                <div class="header-buttons">
-                    <button class="baseButton" @click="addNewFriend">
-                        <span class="material-symbols-outlined icon">person_add</span>
-                        Add Friend
-                    </button>
-                    <button class="baseButton" @click="sendGiftNotification">
-                        <span class="material-symbols-outlined icon">card_giftcard</span>
-                        Send Gift / Notify
-                    </button>
-                </div>
-
-            </header>
 
             <div class="profile-page-content">
                 <div class="left-column">
                     <div class="profile-info-box box elevated shadow-lg rounded-2xl">
                         <h3>User Profile</h3>
-                        <div class="avatar-section">
-                            <img :src="userInfo.avatarImagePath || defaultImagePath" alt="User Avatar"
-                                class="user-avatar">
+                        <div class="user-info-container">
+                            <!-- Colonna sinistra: dettagli utente -->
                             <div class="user-details">
-                                <p class="username">{{ userInfo.username }}</p>
-                                <div class="badges">
-                                    <span class="badge">Pro User</span>
-                                    <span class="badge">Achiever</span>
+                                <div class="username">{{ userInfo.username }}</div>
+                                <div class="info-grid">
+
+                                    <div class="prestige-badge">
+                                        <span class="material-symbols-outlined badge-icon">star</span>
+                                        <span class="prestige-text">{{
+                                            userHandler.getUserPrestigeTitle(todoCompletedQuantity).title }}</span>
+                                    </div>
+
+                                    <div class="todo-count">
+                                        <span class="material-symbols-outlined todo-icon">task</span>
+                                        <span>{{ totalToDoQuantity }} Todos</span>
+                                    </div>
+                                    <div class="event-count">
+                                        <span class="material-symbols-outlined events-count-coins-icon">event</span>
+                                        <span>{{ totalEventsQuantity }} Events</span>
+                                    </div>
+
                                 </div>
-                                <p class="prestige">Prestige: {{ calculatePrestige() }}</p>
+                            </div>
+                            <!-- Colonna destra: avatar e friend count -->
+                            <div class="avatar-container">
+                                <div class="avatar-wrapper">
+                                    <img :src="userInfo.avatarImagePath" alt="User Avatar" class="avatar" />
+                                </div>
+                                <div class="friend-count">
+                                    <span class="material-symbols-outlined friend-icon">people</span>
+                                    <span>{{ userInfo.friends.length }} Friends</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="inventory-box box elevated shadow-lg rounded-2xl">
-                        <InventoryDisplay :userLicenseKey="userInfo.licenseKey" @apply-item="handleApplyItem"
-                            @use-item="handleUseItem" @show-notification="sendNotify" />
+                        <InventoryDisplay :userInventoryNeedUpdate="uInventoryNeedUpdate"
+                            :userLicenseKey="userInfo.licenseKey" @apply-item="handleApplyItem"
+                            @use-item="handleUseItem" @show-notification="sendNotify" @update-user="askUserInfo" />
                     </div>
                 </div>
+
                 <div class="right-column">
                     <div class="friends-list-box box elevated shadow-lg rounded-2xl">
-                        <FriendList :friends="userInfo.friends" @remove-friend="handleRemoveFriend" />
+                        <FriendList :user_Info="userInfo" @notify="sendNotify" @user_info_update="askUserInfo"
+                            @update-inventory="changeUinvNeedUpdate" />
                     </div>
                 </div>
             </div>
@@ -75,6 +80,10 @@ import { userDBentry } from '../types/userTypes';
 import { useRouter } from 'vue-router';
 import { delay } from '../utils/generalUtils';
 import { ShopItem } from '../types/shopTypes';
+import { ToDoAction, ToDoHandler, ToDoObj } from '../engine/toDoEngine';
+import InventoryDisplay from '../components/InventoryDisplay.vue';
+import FriendList from '../components/FriendList.vue';
+
 
 const notificationManager = ref(null);
 const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
@@ -100,7 +109,12 @@ const userInfo = ref<userDBentry>({
     friends: [],
     fcmToken: ""
 });
-
+const uInventoryNeedUpdate = ref(false)
+const todoHandler = ToDoHandler.getInstance(api_gestor)
+const genericToDoActions = ref<ToDoAction[]>([]);
+const todoCompletedQuantity = ref(0);
+const totalToDoQuantity = ref(genericToDoActions.value.length);
+const totalEventsQuantity = ref(0);
 const router = useRouter();
 
 function sendNotify(type: "info" | "warning" | "error" | "success", text: string) {
@@ -111,6 +125,50 @@ function sendNotify(type: "info" | "warning" | "error" | "success", text: string
         })
     } else {
         console.log("notification manager not found")
+    }
+}
+
+function changeUinvNeedUpdate() {
+    uInventoryNeedUpdate.value = true
+    setTimeout(() => uInventoryNeedUpdate.value = false, 1500)
+}
+
+async function askToDo() {
+    try {
+        const toDOres = await todoHandler.loadAllToDos(userInfo.value.licenseKey)
+        if (toDOres.success) {
+            const todoList = toDOres.toDos
+            console.log("todoList:\n", todoList)
+            const countToDoQuantity = (todo_list: ToDoObj[]): number => {
+                let q = 0;
+                for (let to_do of todo_list.filter(t => !t.completed)) { //scorro to do non completate 
+                    q += 1 //incremento quantity q
+                    if (to_do.subActions.length > 0) { //se to do ha sub actions 
+                        //incremento q sfruttando ricorsione su sub actions 
+                        q += countToDoQuantity(to_do.subActions)
+                    }
+                }
+                return q;
+            }
+
+            totalToDoQuantity.value = countToDoQuantity(toDOres.toDos);
+
+
+            todoCompletedQuantity.value = 0
+            for (let to_do of todoList) {
+                if (to_do.completed) {
+                    todoCompletedQuantity.value++
+                }
+                const toDoAction = todoHandler.fromToDoObj(to_do)
+                console.log("toDoAction:\n", toDoAction)
+
+                genericToDoActions.value.push(toDoAction)
+            }
+        } else {
+            throw new Error(toDOres.errorMessage);
+        }
+    } catch (error: any) {
+        sendNotify("error", `Error obtaining todo actions : ${error.message} `)
     }
 }
 
@@ -136,21 +194,6 @@ const handleSectionChange = (newSection: any) => {
 };
 
 
-const calculatePrestige = () => {
-    // Example: Prestige based on Karma Points (or completed todos if you fetch that data)
-    return userInfo.value.karmaCoinsBalance * 10; // Simple calculation
-};
-
-const addNewFriend = () => {
-    sendNotify("info", "Add new friend functionality not yet implemented.");
-    // Implement logic to add a new friend (e.g., open a modal, navigate to a page)
-};
-
-const sendGiftNotification = () => {
-    sendNotify("info", "Send gift/notification functionality not yet implemented.");
-    // Implement logic to send a gift or notification to a friend
-};
-
 const handleApplyItem = (item: ShopItem) => {
     sendNotify("success", `Applied item: ${item.name}`);
     // Logic to apply the item (e.g., update avatar, etc.)
@@ -165,12 +208,6 @@ const handleUseItem = (item: ShopItem) => {
     // Logic to use the item (e.g., consume, activate effect)
 };
 
-const handleRemoveFriend = (friendId: any) => {
-    // Implement logic to remove friend from userInfo.value.friends
-    //userInfo.value.friends = userInfo.value.friends.filter(friend => friend.id !== friendId);
-    sendNotify("success", `Friend with ID ${friendId} removed.`);
-    // Also update this in the backend
-};
 
 onMounted(async () => {
     if (isDarkMode.value) {
@@ -182,6 +219,7 @@ onMounted(async () => {
     }
 
     await askUserInfo()
+    await askToDo()
 
 });
 </script>
@@ -197,41 +235,6 @@ onMounted(async () => {
     /* Space between header and content */
 }
 
-.profile-header-section {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    /* Distribute items along the main axis */
-    align-items: center;
-    padding: 15px 30px;
-    /* Adjust padding for a better look */
-    margin-bottom: 20px;
-    /* Space below header */
-    width: 100%;
-    /* Full width for the header */
-    box-sizing: border-box;
-    /* Include padding in the width calculation */
-}
-
-.profile-header-section .header-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1.1em;
-    color: var(--text-color);
-}
-
-.header-buttons {
-    display: flex;
-    gap: 15px;
-    /* Space between buttons */
-}
-
-.header-buttons .baseButton {
-    padding: 8px 15px;
-    font-size: 0.95em;
-}
-
 .profile-page-content {
     display: flex;
     gap: 20px;
@@ -239,6 +242,7 @@ onMounted(async () => {
     flex-grow: 1;
     /* Allows content area to grow */
     min-height: 0;
+    margin-left: 2%;
     /* Required for flex-grow to work correctly with scrolling children */
 }
 
@@ -249,23 +253,28 @@ onMounted(async () => {
     /* Space between the two left boxes */
     flex: 1;
     /* Takes up 1 part of the available space */
-    min-width: 300px;
+    min-width: 550px;
     /* Minimum width for the left column */
-    max-width: 35%;
+    max-width: 50%;
     /* Max width for the left column */
+    min-height: 50%;
+    max-height: 98.5%;
 }
 
 .right-column {
     flex: 2;
     /* Takes up 2 parts of the available space (larger) */
-    min-width: 600px;
-    /* Minimum width for the right column */
+    min-width: 52%;
+    max-width: 52%;
+    min-height: 50%;
+    max-height: 98%;
+
 }
 
 .profile-info-box {
     flex-grow: 1;
     /* Shares space equally with inventory-box */
-    max-height: 48%;
+    max-height: 35%;
     /* Allows it to be slightly shorter than inventory-box, if space permits */
     display: flex;
     flex-direction: column;
@@ -273,7 +282,7 @@ onMounted(async () => {
     justify-content: center;
     text-align: center;
     padding: 20px;
-    min-height: 200px;
+    min-height: 150px;
     /* Ensure a minimum height */
 }
 
@@ -283,61 +292,10 @@ onMounted(async () => {
     font-size: 1.3em;
 }
 
-.avatar-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-}
-
-.user-avatar {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid var(--accent-color);
-    box-shadow: var(--shadow);
-}
-
-.user-details {
-    margin-top: 10px;
-}
-
-.username {
-    font-size: 1.2em;
-    font-weight: bold;
-    color: var(--color);
-    margin-bottom: 5px;
-}
-
-.badges {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-    /* Allow badges to wrap */
-    justify-content: center;
-}
-
-.badge {
-    background-color: var(--accent-color);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 15px;
-    font-size: 0.8em;
-    font-weight: 600;
-}
-
-.prestige {
-    font-size: 1em;
-    color: var(--text-color);
-}
-
-
 .inventory-box {
     flex-grow: 1;
     /* Allows inventory box to fill remaining space, now sharing equally */
-    max-height: 52%;
+    max-height: 61%;
     /* Allows it to be slightly taller than profile-info-box, if space permits */
     overflow-y: auto;
     /* Enable scrolling for inventory */
@@ -345,7 +303,7 @@ onMounted(async () => {
     /* Remove padding from the box itself, let InventoryDisplay handle it */
     display: flex;
     flex-direction: column;
-    min-height: 300px;
+    min-height: 200px;
     /* Ensure a minimum height */
 }
 
@@ -356,6 +314,7 @@ onMounted(async () => {
     /* Enable scrolling for friends list */
     padding: 20px;
     /* Padding for the friends list box */
+    min-height: 100%;
 }
 
 /* Base styles for boxes, elevated, shadow-lg are already defined in style.css */
@@ -364,6 +323,102 @@ onMounted(async () => {
     background-color: var(--background-dark);
     color: var(--color);
     /* Inherit text color from theme */
+}
+
+
+.user-info-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--background-dark, #212121);
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    min-width: 100%;
+    min-height: 85%;
+}
+
+.user-details {
+    flex: 1;
+    text-align: left;
+}
+
+
+
+.info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-start;
+}
+
+
+.avatar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 40%;
+    min-height: 100%;
+}
+
+/* Se non sono già presenti, puoi mantenere o aggiornare i seguenti stili per avatar-wrapper e avatar */
+.avatar-wrapper {
+    /* Assicurati che l'avatar sia in un cerchio con cornice personalizzabile */
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 3px solid var(--avatar-border-color, #10B981);
+    overflow: hidden;
+}
+
+.avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.info-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    color: #fff;
+}
+
+
+
+.username {
+    font-size: 1.2em;
+    font-weight: 600;
+}
+
+.badge-icon,
+.todo-icon,
+.friend-icon,
+.karma-coins-icon,
+.events-count-coins-icon {
+    font-size: 1em;
+    margin-right: 4px;
+    color: #FFD700;
+    /* colore oro per il badge, personalizzabile */
+}
+
+.event-count,
+.todo-count,
+.prestige-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.9em;
+    color: #fff;
+}
+
+.friend-count {
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: #aaa;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Responsive adjustments */
@@ -384,19 +439,6 @@ onMounted(async () => {
     .inventory-box {
         height: 500px;
         /* Give a fixed height to inventory on smaller screens */
-    }
-}
-
-@media (max-width: 768px) {
-    .profile-header-section {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
-
-    .header-buttons {
-        width: 100%;
-        justify-content: center;
     }
 }
 </style>

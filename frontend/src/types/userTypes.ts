@@ -156,7 +156,13 @@ export const prestigeLevels: UserPrestigeLevel[] = [
 ];
 
 export type category = { name: string, points: number }
-export type friend = { username: string, email: string }
+export type friend = { 
+    licenseKey : string,
+}
+export type friendRequest = {
+    by_username : string,
+    by_licenseKey : string
+}
 export type userDBentry = {
     age: number,
     categories: category[],
