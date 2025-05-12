@@ -42,7 +42,7 @@
                             <p v-if="inventoryItem.quantity > 1">Quantity: {{ inventoryItem.quantity }}</p>
                         </div>
                         <button class="baseButton apply-button"
-                            @click="emitApplyItem(inventoryItem.item)">Apply</button>
+                            @click="applyCosmetic(inventoryItem.item)">Apply</button>
                     </div>
                 </div>
             </div>
@@ -262,8 +262,18 @@ const hasInventoryItems = computed(() => {
 
 
 // Emit events for parent component
-const emitApplyItem = (item: ShopItem) => {
-    emit('apply-item', item);
+const applyCosmetic = async (item: ShopItem) => {
+    if(item.type == "cosmetic"){
+        try {            
+            const res = await api_gestor.setAvatarFrame(item.id, props.userLicenseKey)
+            if(!res.success)throw new Error(res.errorMessage);
+            emit("show-notification","success",`Item ${item.name} applied successfully`)
+        } catch (error:any) {
+            emit("show-notification","error",error.message);
+        }
+    }else{
+        emit("show-notification","error",`Item ${item.name} is not a cosmetic`);
+    }
 };
 
 const emitUseItem = (item: ShopItem) => {

@@ -39,7 +39,9 @@
                     <div class="header-item user-info-display">
                         <span class="user-name">{{ userInfo.username }}</span>
                         <span class="prestige-title">Prestige: {{ userHandler.getUserPrestigeTitle(todoCompletedQuantity).title  }}</span>
-                        <img :src="userInfo.avatarImagePath || defaultImagePath" alt="User Avatar" class="avatar-image">
+                        <div class="avatar-wrapper" :class="selectedFrameClass">
+                            <img :src="userInfo.avatarImagePath  || defaultImagePath" alt="User Avatar" class="avatar-image" />
+                        </div>                        
                     </div>
                 </div>
             </header>
@@ -122,7 +124,9 @@ const userInfo = ref<userDBentry>({
     timeTrackerActive: false,
     karmaCoinsBalance: 0,
     friends: [],
-    fcmToken: ""
+    fcmToken: "",
+    frame : "",
+    karmaBoost : 0
 });
 
 const router = useRouter();
@@ -136,6 +140,16 @@ const remainingPoints = computed(() => {
     return 100 - totalPoints;
 });
 
+const selectedFrameClass = computed(() => {
+    return getFrameClass(userInfo.value.frame);
+});
+
+const getFrameClass = (frameId: string) => {
+    if(frameId == ""){
+        return 'no-frame'
+    }
+    return `frame-${frameId.replace(/_/g, '-')}`; // Sostituisce underscore con trattino per nomi di classe CSS validi
+};
 
 async function askToDo() {
     try {
@@ -412,7 +426,11 @@ onMounted(async () => {
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--accent-color-dark); /* Bordo intorno all'avatar */
+}
+
+.avatar-wrapper{
+    width: 40px;
+    height: 40px;
 }
 
 /* Stili per gli switcher (ispirati a un design pulito) */

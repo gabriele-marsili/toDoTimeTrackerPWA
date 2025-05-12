@@ -108,7 +108,7 @@
                 <div class="form-group">
                     <label for="Notices">Notices:</label>
                     <div v-if="currentEvent.notices.length > 0">
-                        <div v-for="(notice, idx) in currentEvent.notices" :key="notice.id"
+                        <div v-for="(notice, idx) in currentEvent.notices" :key="notice.notificationID"
                             class="flex items-end space-x-2 mb-2">
                             <!-- Schedule At -->
                             <div class="flex-1">
@@ -245,7 +245,7 @@ const currentNotice = ref<TTT_Notification>({
     title: "",
     scheduleAt_timestamp: new Date(),
     body: "",
-    id: "",
+    notificationID: "",
     imagePath: "",
     fcmToken: "",
     tag: ""
@@ -348,7 +348,7 @@ function canceladdNotice() {
         title: "",
         scheduleAt_timestamp: new Date(),
         body: "",
-        id: "",
+        notificationID: "",
         imagePath: "",
         fcmToken: "",
         tag: ""
@@ -361,7 +361,7 @@ function addNotice() {
     const idx = currentEvent.value.notices.length + 1;
     console.log("adding notice (calendar.vue) with scheduled at: ",currentNoticeDateInput.value);
     const notice: TTT_Notification = {
-        id: `${currentEvent.value.id}_notices_${idx}_${Date.now()}`,
+        notificationID: `${currentEvent.value.id}_notices_${idx}_${Date.now()}`,
         body: currentNotice.value.body,
         scheduleAt_timestamp: currentNoticeDateInput.value,
         imagePath: 'default logo',
@@ -377,9 +377,9 @@ function addNotice() {
 async function removeNotice(index: number) {
     const deletedNotices = currentEvent.value.notices.splice(index, 1);
     if (deletedNotices.length > 0) {
-        const deletedNoticeID = deletedNotices[0].id
+        const deletedNoticeID = deletedNotices[0].notificationID
         //check that the notice is related to an event already saved in db (otherwhise trying to delete a notice for an event not saved will throw an error)
-        const index = events.value.findIndex(x => x.notices.findIndex(n => n.id == deletedNoticeID))
+        const index = events.value.findIndex(x => x.notices.findIndex(n => n.notificationID == deletedNoticeID))
         if (index != -1) {
 
             const r = await api_gestor.deleteNotification(deletedNoticeID, userInfo.value.licenseKey)

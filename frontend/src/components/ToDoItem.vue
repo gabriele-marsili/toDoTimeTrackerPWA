@@ -244,7 +244,7 @@ async function onCompletedChange() {
       karmaCoinsChange = relatedCategory.points
       emit("sendNotify", { type: "success", text: `Completed to do ${localTodo.value.title}, +${karmaCoinsChange} karma coins` })
     } else { // => user ha settato to do come non completata      
-      karmaCoinsChange = -relatedCategory.points
+      karmaCoinsChange =- relatedCategory.points
       emit("sendNotify", { type: "warning", text: `Un-completed to do ${localTodo.value.title}, ${karmaCoinsChange} karma coins` })
     }
   }

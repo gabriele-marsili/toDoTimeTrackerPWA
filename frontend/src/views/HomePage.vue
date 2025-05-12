@@ -59,7 +59,7 @@
                             </div>
                             <!-- Colonna destra: avatar e friend count -->
                             <div class="avatar-container">
-                                <div class="avatar-wrapper">
+                                <div class="avatar-wrapper" :class="selectedFrameClass">
                                     <img :src="userInfo.avatarImagePath" alt="User Avatar" class="avatar" />
                                 </div>
                                 <div class="friend-count">
@@ -89,7 +89,7 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted, toRaw } from 'vue';
+import { ref, onMounted, toRaw, computed } from 'vue';
 import Sidebar from '../components/Sidebar.vue';
 import NotificationManager from '../gestors/NotificationManager.vue';
 import ConnectionStatus from '../components/ConnectionStatus.vue';
@@ -138,11 +138,24 @@ export default {
             timeTrackerActive: false,
             karmaCoinsBalance: 0,
             friends: [],
-            fcmToken: ""
+            fcmToken: "",
+            frame: "",
+            karmaBoost: 0
         });
 
         const router = useRouter();
         const notificationManager = ref(null); // Riferimento per NotificationManager
+
+        const selectedFrameClass = computed(() => {
+            return getFrameClass(userInfo.value.frame);
+        });
+
+        const getFrameClass = (frameId: string) => {
+            if (frameId == "") {
+                return 'no-frame'
+            }
+            return `frame-${frameId.replace(/_/g, '-')}`; // Sostituisce underscore con trattino per nomi di classe CSS validi
+        };
 
         const handleSectionChange = (newSection: any) => {
             console.log(`Navigating to section: ${newSection}`);
@@ -270,12 +283,12 @@ export default {
 
             const timeTrackerHandler = TimeTrackerHandler.getInstance(api_gestor)
             const extComunicator = ExtComunicator.getInstance(timeTrackerHandler, userInfo.value.licenseKey)
-            
+
             const rawUserInfo = toRaw(userInfo.value)
-            extComunicator.notifyPwaReady(rawUserInfo);  
-            
-            
-                       
+            extComunicator.notifyPwaReady(rawUserInfo);
+
+
+
         });
 
         return {
@@ -294,7 +307,8 @@ export default {
             todoCompletedQuantity,
             totalToDoQuantity,
             totalEventsQuantity,
-            triggerAddToDo
+            triggerAddToDo,
+            selectedFrameClass
         };
     },
 };
@@ -523,7 +537,7 @@ grigio : #1e1e1e
     box-sizing: border-box;
     width: 100%;
     overflow-y: auto;
-    margin-left: 0%;    
+    margin-left: 0%;
 }
 
 .footer::-webkit-scrollbar {
@@ -580,21 +594,6 @@ grigio : #1e1e1e
     justify-content: center;
 }
 
-/* Se non sono già presenti, puoi mantenere o aggiornare i seguenti stili per avatar-wrapper e avatar */
-.avatar-wrapper {
-    /* Assicurati che l'avatar sia in un cerchio con cornice personalizzabile */
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    border: 3px solid var(--avatar-border-color, #10B981);
-    overflow: hidden;
-}
-
-.avatar {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
 
 .info-details {
     display: flex;

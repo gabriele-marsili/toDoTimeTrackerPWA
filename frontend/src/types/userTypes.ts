@@ -180,5 +180,7 @@ export type userDBentry = {
     karmaCoinsBalance: number,
     friends: friend[],
     avatarImagePath: string,
-    fcmToken : string
+    fcmToken : string,
+    karmaBoost : number,
+    frame : string
 }

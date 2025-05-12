@@ -23,7 +23,9 @@
                 class="friend-card box elevated shadow-md rounded-lg">
 
                 <div class="friend-info">
-                    <img :src="friend.avatarImagePath || defaultFriendAvatar" alt="Friend Avatar" class="friend-avatar">
+                    <div class="avatar-wrapper" :class="getFrameClass(friend.frame)">
+                        <img :src="friend.avatarImagePath|| defaultFriendAvatar" alt="Friend Avatar" class="avatar" />
+                    </div>
                     <p class="friend-name">{{ friend.username }}</p>
                 </div>
 
@@ -122,7 +124,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, toRaw, watch } from 'vue';
+import { computed, onMounted, ref, toRaw, watch } from 'vue';
 import { friendRequest, userDBentry } from '../types/userTypes';
 import { API_gestor } from '../backend-comunication/api_comunication';
 import { GiftItem, UserInventory } from '../types/shopTypes';
@@ -142,7 +144,7 @@ const userInventory = ref<UserInventory | null>(null); // Allow null for initial
 const avaibleGiftItems = ref<{ item: GiftItem, quantity: number }[]>([]); // Allow null for initial loading state
 const defaultFriendAvatar = "../../public/user.avif"; // Default avatar for friends
 const api_gestor = API_gestor.getInstance();
-const emit = defineEmits(["notify", "user_info_update","update-inventory"])
+const emit = defineEmits(["notify", "user_info_update", "update-inventory"])
 function notifyWithEmit(type: "info" | "warning" | "error" | "success", text: string) {
     emit("notify", type, text);
 }
@@ -212,6 +214,14 @@ const addNewFriend = async () => {
     }
 };
 
+const getFrameClass = (frameId: string) => {
+    if(frameId == ""){
+        return 'no-frame'
+    }
+    return `frame-${frameId.replace(/_/g, '-')}`; // Sostituisce underscore con trattino per nomi di classe CSS validi
+};
+
+
 function resetSendGiftValue() {
     friendToSendGiftLK.value = ""
     giftToSend.value = null;
@@ -249,7 +259,7 @@ async function sendGift() {
         if (!giftToSend.value) throw new Error("No gift selected")
         if (friendToSendGiftLK.value == "") throw new Error("Invalid user to send the gift to")
         const rawGift = toRaw(giftToSend.value)
-        
+
         const sendRes = await api_gestor.sendGiftToFriend(rawGift, friendToSendGiftLK.value, props.user_Info)
         if (!sendRes.success) throw new Error(sendRes.errorMessage)
         emit("notify", "success", `Gift ${giftToSend.value.name} sent successfully`)
@@ -503,7 +513,7 @@ watch(() => props.user_Info, async (newVal, oldVal) => {
 }
 
 .friend-card {
-    min-height: 60%;
+    min-height: 65%;
 
 }
 

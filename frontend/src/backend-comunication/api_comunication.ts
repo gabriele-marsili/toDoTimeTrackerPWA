@@ -6,7 +6,7 @@ import { delay, generateLicenseKey, getDeviceId, hashPassword, MAIN_LOGO_URL, pa
 import { baseResponse } from "../types/utilityTypes.js";
 import { Timestamp as firestoreTimestamp } from "firebase/firestore";
 import sodium from 'libsodium-wrappers';
-import { friend, friendRequest, userDBentry } from "../types/userTypes.js";
+import { friendRequest, userDBentry } from "../types/userTypes.js";
 import { ToDoAction, ToDoObj } from "../engine/toDoEngine.js";
 import { CalendarEvent, CalendarObj } from "../engine/calendarEvent.js";
 import { TimeTrackerRule, TimeTrackerRuleObj } from "../engine/timeTracker.js";
@@ -2130,7 +2130,7 @@ export class API_gestor {
         }
     }
 
-    // --- handle set avatar image
+    // --- handle set avatar image / frame
 
     public async setAvatarImage(avatarImage: string, licenseKey: string): Promise<baseResponse> {
         try {
@@ -2157,4 +2157,28 @@ export class API_gestor {
         }
     }
 
+    public async setAvatarFrame(frame: string, licenseKey: string): Promise<baseResponse> {
+        try {
+            const q = query(collection(this.db, "users"), where("licenseKey", "==", licenseKey))
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
+            if (snapshot.empty) {
+                throw new Error("No user found")
+            } else {
+                const userDocRef = snapshot.docs[0].ref;
+                await updateDoc(userDocRef, {
+                    frame: frame 
+                });
+            }
+
+            return {
+                success: true,
+                errorMessage: ""
+            }
+        } catch (error: any) {
+            return {
+                success: false,
+                errorMessage: error.message
+            }
+        }
+    }
 }
