@@ -37,6 +37,7 @@
                 :userInfo="userInfo"
                 @update-karma="askUserInfo"
                 @show-notification="sendNotify"
+                @update-user-info="askUserInfo"
             />
 
             <InventoryDisplay

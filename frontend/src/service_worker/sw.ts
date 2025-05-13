@@ -16,7 +16,7 @@ import { TimeTrackerHandler, TimeTrackerRuleObj } from '../engine/timeTracker.js
 declare const self: ServiceWorkerGlobalScope;
 
 //messages via broadcast channel:
-const broadcast = new BroadcastChannel(SW_BROADCAST_CHANNEL);
+
 const apiGestor: API_gestor = API_gestor.getInstance();
 const timeTrackerHandler = TimeTrackerHandler.getInstance(apiGestor)
 let rules: TimeTrackerRuleObj[] = []

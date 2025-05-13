@@ -6,7 +6,7 @@ onMounted(() => {
     channel.addEventListener("message", (event) => {
         console.log("new message on sw broadcast channel | event:\n", event);
         if (event.data.type == "offline" && event.data.content == "load offline-redirect page") {
-            // to do -> load offline page by router
+           
             let routes = router.getRoutes();
             console.log("routes:\n", routes);
             for (let r of routes) {

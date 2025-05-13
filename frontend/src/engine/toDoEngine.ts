@@ -204,7 +204,7 @@ export class ToDoHandler {
                 if (!res.success) return res;
                 res = await this.apiGestor.scheduleNotification(reminderNotification, licenseKey);
                 return res;
-            }else{ //to do completed => try to delete notifications
+            }else{ 
                 await this.apiGestor.deleteNotification(todo.id+"_expiration",licenseKey)
                 await this.apiGestor.deleteNotification(todo.id+"_reminder",licenseKey)
             }

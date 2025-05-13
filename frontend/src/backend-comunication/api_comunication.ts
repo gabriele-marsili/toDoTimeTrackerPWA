@@ -102,6 +102,7 @@ export class API_gestor {
     private async init() {
 
         this.machineID = "";
+        
         this.API_BASE_URL = "http://localhost:3042" // to do : spostare da qui
         this.JWT_KEY_USERS = "jU(TTT-app)%8/*+-.-+*![00]"
         this.JWT_KEY = "jwtTTT-%42-=ç-%42°?!372-1092-947019-[[[]-T-È€-à>"

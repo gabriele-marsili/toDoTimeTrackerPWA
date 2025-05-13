@@ -21,14 +21,14 @@ export default (await import('vue')).defineComponent({
         const navigateTo = async (section) => {
             console.log("going to navigate to ", section);
             try {
-                //to do
+                
             }
             catch (error) {
                 console.error('Errore nella navigazione:', error);
             }
         };
         const logout = async () => {
-            // to do
+            
             console.log("logout res = ", r);
         };
         return {

@@ -37,7 +37,7 @@ function addNewRule() {
         sendNotify("error", errors[0]);
         return;
     }
-    const id = "Rule " + Date.now().toString(); // to do (get by backend)
+    const id = "Rule " + Date.now().toString(); 
     const newRule = new TimeTrackerRule(id, currentRule.value.site_or_app_name, hours.value * 60 + minutes.value, currentRule.value.rule, currentRule.value.category);
     rules.value.push(newRule);
 }

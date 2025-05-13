@@ -344,7 +344,7 @@ async function onItemUpdate(content: { updated: ToDoAction, karmaCoinsChange: 0 
 function handleSendNotifyByToDoItem(notifyContent: { type: "success" | "info" | "warning" | "error", text: string }) {
     if (props.isSubList) { //pass to parent component (to do item)
         emit("subToDoNotify", notifyContent)
-    } else { //to do list = root component => send notify 
+    } else { 
         sendNotify(notifyContent.type, notifyContent.text);
     }
 }

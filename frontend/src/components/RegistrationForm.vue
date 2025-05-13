@@ -278,12 +278,12 @@ const submitForm = async () => {
                 type: "success",
                 message: "Successfully registered as " + form.username,
             });
-            await delay(1500)
+            await delay(2000)
             notificationManager.value?.showNotification({
                 type: "info",
                 message: "We've sent you the license key via email, please check also the spam",
             });
-            await delay(1500)
+            await delay(2500)
             router.push("/login") //load login page 
 
         } else {

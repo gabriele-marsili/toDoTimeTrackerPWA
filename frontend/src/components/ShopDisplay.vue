@@ -53,7 +53,7 @@ const props = defineProps<{
     userInfo: userDBentry;
 }>();
 const userInventory = ref<UserInventory>({ licenseKey: '', items: [] }) // Initialize with empty licenseKey
-
+const itemAlreadyFound = ref(false);
 // State for the animation
 const isAnimationVisible = ref(false);
 const defaultGrantedItem = ref<ShopItem>({
@@ -75,7 +75,7 @@ const boxToAnimate = ref<MysteryBoxConfig>({
 });
 
 
-const emit = defineEmits(['update-karma', 'show-notification']);
+const emit = defineEmits(['update-karma', 'show-notification',"update-user-info"]);
 
 // Helper function to check if an item is in the user's inventory
 function isItemOwned(itemId: string): boolean {
@@ -220,7 +220,8 @@ async function buyMysteryBox(box: MysteryBoxConfig) {
     // Check if the granted item is already in the user's inventory
     const existingItemInInventory = userInventory.value.items.find(invItem => invItem.item.id === itemReceived.id);
 
-    if (existingItemInInventory && (itemReceived.type == "avatar" || itemReceived.type == "cosmetic" )) {
+    if (existingItemInInventory && (itemReceived.type == "avatar" || itemReceived.type == "cosmetic" || itemReceived.type == "gift")) {
+        itemAlreadyFound.value = true
         // User already owns the item, grant karma points instead
         const karmaRefund = itemReceived.cost; // Amount of karma to grant (cost of the item)
         updatedUserInfo.karmaCoinsBalance += karmaRefund; // Add karma points
@@ -233,7 +234,6 @@ async function buyMysteryBox(box: MysteryBoxConfig) {
         // Set the granted item. The animation component will watch this prop and proceed.
         grantedItem.value = itemReceived;
         // Notification will be shown after animation complete
-        // emit('show-notification', 'info', `You already own "${itemReceived.name}". You received ${karmaRefund} Karma Points instead.`);
 
     } else {
         // User does not own the item, add it to inventory
@@ -253,12 +253,7 @@ async function buyMysteryBox(box: MysteryBoxConfig) {
 
 
     if (inventoryUpdateRes?.success && userUpdateRes?.success) {
-        //emit("update-karma")
-        // Do NOT hide animation or show final notification here.
-        // The animation component will handle showing the result based on grantedItem.value
-        // The final notification is handled in handleAnimationComplete.
-        // The parent will handle updating the main userInfo prop, triggering the inventory update.
-
+        emit("update-user-info")
     } else {
         // Consider rolling back the changes if an update failed
         emit('show-notification', 'error', 'Failed to complete mystery box transaction.');
@@ -300,19 +295,16 @@ function selectRandomItemFromBox(box: MysteryBoxConfig): ShopItem | null {
 // Handle animation completion (item revealed)
 function handleAnimationComplete(item: ShopItem) {
     console.log("Mystery box animation complete. Item received:", item);
-    // Now show the appropriate notification based on if it was a duplicate or new
-    const existingItemInInventory = userInventory.value.items.find(invItem => invItem.item.id === item.id);
 
-    if (existingItemInInventory && (item.type == "avatar" || item.type == "cosmetic" )) { // Need a flag to track if it was a duplicate
+    
+    if (itemAlreadyFound.value) {
         const karmaRefund = item.cost; // Assuming item cost is available
         emit('show-notification', 'info', `You already own "${item.name}". You received ${karmaRefund} Karma Points instead.`);
     } else if(item && item.name != ""){
         emit('show-notification', 'success', `You opened a mystery box and found: ${item.name}!`);
     }
 
-    // The watcher on props.userInfo in this component should handle updating
-    // the local userInventory ref after the backend update in buyMysteryBox completes.
-    // This will automatically disable the buy button if the item was new and single-purchase.
+    itemAlreadyFound.value = false;//reset flag
 }
 
 // Handle animation closed by user

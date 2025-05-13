@@ -31,7 +31,12 @@ const routes = [
     { path: "/shop", component : ShopPage},
     { path: "/time_tracker", component : TimeTrackerPage},
     { path: "/calendar_and_todo", component : ToDoCalendarPage},
-    { path: "/stats", component : StatsPage},
+    { path: "/stats", component : StatsPage},    
+    { //fallback:      
+      path: '/:pathMatch(.*)*', // qualsiasi path
+      name: 'FallbackRoute',
+      redirect: '/home' 
+    },
 ];
 
 const router = createRouter({

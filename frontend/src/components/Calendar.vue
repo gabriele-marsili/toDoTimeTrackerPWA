@@ -89,15 +89,21 @@
                     <input class="baseInputField" id="title" type="text" v-model="currentEvent.title"
                         placeholder="Event Title" />
                 </div>
+
                 <div class="form-group">
                     <label for="description">Description:</label>
                     <textarea class="baseInputField" id="description" v-model="currentEvent.description"
                         placeholder="Event Description"></textarea>
                 </div>
+
                 <div class="form-group">
-                    <label for="category">Category:</label>
-                    <input class="baseInputField" id="category" type="text" v-model="currentEvent.category"
-                        placeholder="Event Category" />
+                    <label for="category">Category:</label>                
+                    <select class="selettore" name="catgory" id="category" v-model="currentEvent.category">
+                        <option v-for="category in userInfo.categories" :key="category.name" :value="category.name">{{
+                            category.name }} ({{ category.points }} points)</option>
+                    </select>
+
+
                 </div>
                 <div class="form-group">
                     <label for="duration">Duration (hours):</label>
