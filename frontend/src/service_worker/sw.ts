@@ -15,7 +15,6 @@ import { TimeTrackerHandler, TimeTrackerRuleObj } from '../engine/timeTracker.js
 
 declare const self: ServiceWorkerGlobalScope;
 
-//messages via broadcast channel:
 
 const apiGestor: API_gestor = API_gestor.getInstance();
 const timeTrackerHandler = TimeTrackerHandler.getInstance(apiGestor)
@@ -25,11 +24,6 @@ const manifest = self.__WB_MANIFEST;
 console.log("manifest :\n", manifest)
 // Pre-cache file statici
 precacheAndRoute(manifest);
-/*precacheAndRoute([
-    { url: '/offline.html', revision: null },
-    { url: '/main_offline.js', revision: null },
-    { url: '/style_offline.css', revision: null },
-]);*/
 
 let allowlist: undefined | RegExp[]
 if (import.meta.env.DEV) {
@@ -111,20 +105,6 @@ registerRoute(
     })
 );
 
-// Gestione di altre API esterne
-/*registerRoute(
-    /^https:\/\/api\.tuodominio\.com/,
-    new NetworkFirst({
-        cacheName: 'api-cache',
-        plugins: [
-            new ExpirationPlugin({
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 // 1 giorno
-            })
-        ]
-    })
-)*/
-
 
 //router navigazioni + fallback
 registerRoute(
@@ -183,20 +163,7 @@ setCatchHandler(async ({ request }) => {
         }
     }
 
-    // Per altri tipi di risorsa, restituisci una response "benigna" in base al destination
     console.log("request.destination = ", request.destination)
-    /*switch (request.destination) {
-      case "script":
-        return new Response("", { headers: { "Content-Type": "application/javascript" } });
-      case "style":
-        return new Response("", { headers: { "Content-Type": "text/css" } });
-      case "image":
-        // Potresti restituire anche un placeholder in formato base64 se ne hai uno
-        return new Response("", { headers: { "Content-Type": "image/png" } });
-      default:
-        // Per le richieste che non rientrano nei casi sopra, restituisci una response vuota
-        return new Response("", { headers: { "Content-Type": "text/plain" } });
-    }*/
     return Response.error();
 });
 

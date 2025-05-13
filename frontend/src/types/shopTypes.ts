@@ -10,16 +10,14 @@ export enum ItemRarity {
     Unique = 'unique',
 }
 
-// Base class for any item in the shop or inventory
 export interface ShopItem {
     id: string;
     name: string;
     description: string;
     cost: number; // in Karma Points
     rarity: ItemRarity;
-    imageUrl?: string; // Optional image for the item
-    type: 'cosmetic' | 'utility' | 'mystery_box' | 'gift' | 'reminder' | 'avatar'; // Categorize item types
-    // Add other properties specific to item type if needed
+    imageUrl?: string; 
+    type: 'cosmetic' | 'utility' | 'mystery_box' | 'gift' | 'reminder' | 'avatar'; 
 }
 
 // Interface for user inventory
@@ -28,7 +26,6 @@ export interface UserInventory {
     items: {
         item: ShopItem;
         quantity: number;
-        // Potentially add acquisition date or other relevant info
     }[];
 }
 

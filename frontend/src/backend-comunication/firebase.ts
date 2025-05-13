@@ -30,7 +30,7 @@ const db = initializeFirestore(app, { //uso di persistenza multi tab
 let analytics: ReturnType<typeof getAnalytics> | null = null;
 
 if (typeof window !== 'undefined') {
-  // siamo nel browser
+
   isSupported().then((yes) => {
     if (yes) {
       analytics = getAnalytics(app);

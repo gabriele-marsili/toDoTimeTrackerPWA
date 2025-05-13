@@ -70,9 +70,9 @@ const notificationManager = ref(null);
 const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
 const api_gestor = API_gestor.getInstance()
 const userHandler = UserHandler.getInstance(api_gestor)
-const userInfo = ref<userDBentry>({ // State per le info utente
+const userInfo = ref<userDBentry>({ 
     username: "",
-    avatarImagePath: "", // Usa defaultImagePath se necessario in rendering
+    avatarImagePath: "",
     age: 0,
     categories: [],
     createdAt: new Date(),
@@ -82,9 +82,9 @@ const userInfo = ref<userDBentry>({ // State per le info utente
     licenseIsValid: false,
     licenseKey: "",
     notifications: false,
-    permissions: false, // Assumendo che permissions sia booleano o simile
+    permissions: false, 
     phone: "",
-    timeTrackerActive: false, // Assumendo che questa proprietà esista
+    timeTrackerActive: false, 
     karmaCoinsBalance: 0,
     friends: [],
     fcmToken: "",
@@ -93,13 +93,12 @@ const userInfo = ref<userDBentry>({ // State per le info utente
 
 });
 
-const rules = ref<TimeTrackerRule[]>([]); // State per la lista delle regole
+const rules = ref<TimeTrackerRule[]>([]);
 const router = useRouter();
 const timeTrackerHandler = TimeTrackerHandler.getInstance(api_gestor)
 const extComunicator = ExtComunicator.getInstance(timeTrackerHandler, userInfo.value.licenseKey)
 
 
-// Computed properties per le statistiche dell'header
 const totalRules = computed(() => rules.value.length);
 
 const totalConcededTime = computed(() =>
@@ -112,7 +111,6 @@ const totalRemainingTime = computed(() =>
 );
 const totalRemainingTimeParsed = computed(() => minToParsedTime(totalRemainingTime.value));
 
-// Computed property per il toggle Time Tracker (se implementato)
 const isTimeTrackerActive = computed({
     get: () => userInfo.value?.timeTrackerActive ?? false,
     set: async (value: boolean) => {
@@ -133,9 +131,8 @@ const isTimeTrackerActive = computed({
             } else {
                 sendNotify("error", "Error updating value : user info not found in db")
             }
-        } catch (error: any) {
-            // Gestisci errori di rete o altri errori imprevisti
-            if (userInfo.value) userInfo.value.timeTrackerActive = !value; // Revert UI state
+        } catch (error: any) { 
+            if (userInfo.value) userInfo.value.timeTrackerActive = !value; 
             console.error("Error updating Time Tracker status:", error);
             sendNotify('error', `An unexpected error occurred while updating Time Tracker status: ${error.message}`);
         }
@@ -318,13 +315,10 @@ onMounted(async () => {
     font-size: 0.9em;
 }
 
-/* Stile specifico per l'item che contiene il toggle */
 .header-item.toggle-item {
     display: flex;
-    /* Assicura flexbox per icona, label e switch */
     align-items: center;
     gap: 8px;
-    /* Spazio tra gli elementi nell'item toggle */
 }
 
 .header-item .value {
@@ -336,34 +330,23 @@ onMounted(async () => {
     display: none;
 }
 
-/* Stile per il label (lo "switch") */
 .toggle-label {
     display: block;
     width: 40px;
-    /* Larghezza dello switch */
     height: 20px;
-    /* Altezza dello switch */
-    /* Usa variabile per colore spento, potrebbe essere un colore neutro del tema */
     background-color: var(--input-field-border);
-    /* Esempio: usa il colore del bordo input come colore spento */
     border-radius: 20px;
-    /* Rendi lo switch arrotondato */
     position: relative;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
-/* Stile per il "pomello" (pseudo-elemento) */
 .toggle-label::before {
     content: '';
     display: block;
     width: 16px;
-    /* Dimensione del pomello */
     height: 16px;
-    /* Dimensione del pomello */
-    /* Usa variabile per il colore del pomello */
     background-color: var(--background);
-    /* Il pomello ha il colore dello sfondo (nero o bianco) */
     border-radius: 50%;
     position: absolute;
     top: 2px;
@@ -371,16 +354,12 @@ onMounted(async () => {
     transition: left 0.3s ease;
 }
 
-/* Stato "acceso": cambia colore sfondo e posizione pomello */
 .toggle-checkbox:checked+.toggle-label {
     background-color: var(--accent-color);
-    /* Colore acceso (verde del tema) */
 }
 
-/* Stato "acceso": posizione pomello */
 .toggle-checkbox:checked+.toggle-label::before {
     left: 22px;
-    /* Posizione orizzontale (stato acceso) */
 }
 
 .icon {
@@ -411,14 +390,12 @@ onMounted(async () => {
 /* Stili per il box delle regole */
 .rules-box {
     flex: 1;
-    /* Permette al box regole di crescere */
     background-color: var(--background);
     padding: 15px;
     border-radius: 8px;
     color: var(--text-color);
     box-sizing: border-box;
     min-width: 0;
-    /* Importante per flex items */
     display: flex;
     flex-direction: column;
 }

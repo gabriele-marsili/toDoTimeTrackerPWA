@@ -1,10 +1,6 @@
 <template>
     <NotificationManager ref="notificationManager" />
-    <div class="todo-list-container" :class="viewMode">
-        <!--<button @click="toggleViewMode" class="toggle-btn">
-            {{ viewMode === 'list' ? 'Grid View' : 'List View' }}
-        </button>
-        -->
+    <div class="todo-list-container" :class="viewMode">       
         <div v-for="todo in filteredTodos" :key="todo.id" class="todo-item-wrapper">
             <ToDoItem :karmaBoost="userInfo.karmaBoost" :user-categories="userInfo.categories" :viewMode="viewMode" :todo="todo"
                 @todoEvent="passToDoEvent" @update="onItemUpdate" @delete="onItemDelete" @copy="onItemCopy"
@@ -87,8 +83,6 @@ import DatePicker from './DatePicker.vue';
 
 export interface Props {
     todos: ToDoAction[];
-    // viewMode: 'list' mostra ogni item in una riga,
-    // viewMode: 'grid' mostra ogni item in un piccolo box
     viewMode: 'list' | 'grid';
     isSubList: boolean;
     triggerAddToDo: boolean;
@@ -123,8 +117,6 @@ const userInfo = ref<userDBentry>({
 const router = useRouter();
 const emit = defineEmits(["subToDoNotify", "todoEvent", "subToDoEvent", "todoAdded"])
 const viewMode = ref<'list' | 'grid'>('list');
-//const toggleViewMode = () => viewMode.value = viewMode.value === 'list' ? 'grid' : 'list';
-
 const props = defineProps<Props>();
 
 const parentToDoId = ref("")
@@ -423,6 +415,5 @@ onMounted(async () => {
 
 input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     filter: invert(1);
-    /* Eventuali altre proprietà per modificare colore, dimensioni, margini dell’icona */
 }
 </style>

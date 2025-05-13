@@ -275,7 +275,7 @@ import DatePicker from '../components/DatePicker.vue';
 
 
 interface SortOption {
-    key: keyof ToDoAction | 'dateWithTime'; // Use 'dateWithTime' for creation date
+    key: keyof ToDoAction | 'dateWithTime'; 
     label: string;
     order: 'asc' | 'desc';
     priority: number;
@@ -284,7 +284,7 @@ interface SortOption {
 interface FilterOptions {
     textSearch: string | null;
     category: string | null;
-    priorityOperator: string | null; // e.g., '>=', '==', '<='
+    priorityOperator: string | null;
     priorityValue: number | null;
     completed: boolean | null;
     expirationDateStart: string | null; // Using string for date inputs
@@ -334,7 +334,7 @@ const backSortOptions = ref<SortOption[]>([]);
 const tempFilterOptions = ref<FilterOptions>({
     textSearch: null,
     category: null,
-    priorityOperator: '>=', // Default operator
+    priorityOperator: '>=', 
     priorityValue: null,
     completed: null,
     expirationDateStart: null,
@@ -379,7 +379,7 @@ const filteredToDosComputed = computed(() => {
     if (filters.priorityValue !== null && filters.priorityOperator) {
         console.log("filtering for priority value")
         filtered = filtered.filter(todo => {
-            const todoPriority = todo.priority || 0; // Assume 0 if priority is null/undefined
+            const todoPriority = todo.priority || 0;
             switch (filters.priorityOperator) {
                 case '>=': return todoPriority >= filters.priorityValue!;
                 case '>': return todoPriority > filters.priorityValue!;
@@ -395,25 +395,24 @@ const filteredToDosComputed = computed(() => {
     // Filtro per Stato di completamento
     if (filters.completed !== null) {
         console.log("filtering for completed status")
-        filtered = filtered.filter(todo => !!todo.completed === filters.completed); // Ensure boolean comparison
+        filtered = filtered.filter(todo => !!todo.completed === filters.completed); 
     }
 
     // Filtro per Data di Scadenza
     if (filters.expirationDateStart || filters.expirationDateEnd) {
         console.log("filtering for expiration date")
         filtered = filtered.filter(todo => {
-            if (!todo.expiration) return false; // Exclude items without a expiration date if date filter is active
+            if (!todo.expiration) return false; 
             const expirationDate = todo.expiration
 
             let isInRange = true;
             if (filters.expirationDateStart) {
                 const startDate = parseISO(filters.expirationDateStart);
-                // Consider the whole day for the start date
+
                 isInRange = isInRange && (expirationDate >= startDate || isSameDay(expirationDate, startDate));
             }
             if (filters.expirationDateEnd) {
                 const endDate = parseISO(filters.expirationDateEnd);
-                // Consider the whole day for the end date
                 const endOfDay = new Date(endDate);
                 endOfDay.setHours(23, 59, 59, 999);
                 isInRange = isInRange && (expirationDate <= endOfDay || isSameDay(expirationDate, endOfDay));
@@ -425,7 +424,7 @@ const filteredToDosComputed = computed(() => {
     if (filters.dateStart || filters.dateEnd) {
         console.log("filtering for date")
         filtered = filtered.filter(todo => {
-            if (!todo.dateWithTime) return false; // Assuming dateWithTime is creation date
+            if (!todo.dateWithTime) return false; 
             try {
                 const creationDate = todo.dateWithTime;
                 if (isNaN(creationDate.getTime())) return false;
@@ -471,25 +470,21 @@ const filteredToDosComputed = computed(() => {
                 return false;
             }
         });
-    }
-
-
-
-    // Aggiungi qui la logica per gli altri filtri
-    console.log("Filtered ToDos count:", filtered.length); // Debugging line
+    }    
+    console.log("Filtered ToDos count:", filtered.length);
     return filtered;
 });
 
 const sortedFilteredToDosComputed = computed(() => {
     const sorted = [...filteredToDosComputed.value]; // Crea una copia per non modificare l'originale
 
-    // Ordina le opzioni di sort per priorità (decrescente) (7 ha più priorità di 1)
+    // Ordina le opzioni di sort per priorità (decrescente) 
     const sortedSortOptions = [...appliedSortOptions.value].sort((a, b) => b.priority - a.priority);
     console.log("sortedSortOptions:\n", sortedSortOptions)
     // Funzione di comparazione personalizzata che considera le priorità
     sorted.sort((a, b) => {
         for (const option of sortedSortOptions) {
-            const key = option.key as keyof ToDoAction; // Type assertion
+            const key = option.key as keyof ToDoAction; 
             let valA = a[key] || null;
             let valB = b[key] || null;
 
@@ -533,7 +528,7 @@ const sortedFilteredToDosComputed = computed(() => {
         return 0; // Se tutti i criteri sono uguali, l'ordine non cambia (stabile)
     });
 
-    console.log("Sorted (Filtered) ToDos:\n", sorted); // Debugging line
+    console.log("Sorted (Filtered) ToDos:\n", sorted); 
     return sorted;
 });
 const todayToDoActionsComputed = computed(() => {
@@ -621,8 +616,6 @@ function resetSortOptions() {
 }
 
 function applySortOptions() {
-    // Applica le opzioni di sort correnti salvandole in appliedSortOptions
-    // La computed property sortedFilteredToDosComputed si aggiornerà automaticamente
     appliedSortOptions.value = JSON.parse(JSON.stringify(tempSortOptions.value));
     sortBoxOpened.value = false;
     sendNotify("success", "Sorting options applied");
@@ -653,8 +646,6 @@ function resetFilterOptions() {
 }
 
 function applyFilterOptions() {
-    // Applica le opzioni di filter correnti salvandole in appliedFilterOptions
-    // La computed property filteredToDosComputed (e di conseguenza sortedFilteredToDosComputed) si aggiornerà automaticamente
     appliedFilterOptions.value = JSON.parse(JSON.stringify(tempFilterOptions.value));
     filterBoxOpened.value = false;
     sendNotify("success", "Filtering options applied");
@@ -671,21 +662,18 @@ function nextWeek() {
     currentWeekStart.value = addDays(currentWeekStart.value, 7);
 }
 
-// Questa funzione ora filtra dalla lista ordinata e filtrata globale
 const todosForDay = (day: Date) => {
-    const dayList = sortedFilteredToDosComputed.value.filter(todo => {
-        // Assumiamo che `dateWithTime` sia la data rilevante per la visualizzazione nella griglia settimanale
-        if (!todo.dateWithTime) return false; // Non mostrare to-do senza data nella griglia settimanale
+    const dayList = sortedFilteredToDosComputed.value.filter(todo => {        
+        if (!todo.dateWithTime) return false;
         try {
             const todoDate = todo.dateWithTime;
-            if (isNaN(todoDate.getTime())) return false; // Data non valida
+            if (isNaN(todoDate.getTime())) return false;
             return isSameDay(todoDate, day);
         } catch (e) {
             console.error("Error parsing dateWithTime for todosForDay:", todo.dateWithTime, e);
-            return false; // Esclude To-Do con date malformate
+            return false; 
         }
     });
-    // console.log(`ToDos for ${format(day, 'yyyy-MM-dd')} count:`, dayList.length); // Debugging line
     return dayList;
 };
 
@@ -977,7 +965,6 @@ onMounted(async () => {
 }
 
 .grid-todo-header {
-    /* di default non è flexibile */
     flex: 0 0 auto;
 }
 
@@ -1003,11 +990,8 @@ onMounted(async () => {
 
 .todos-wrapper {
     flex: 1 1 auto;
-    /* occupa tutto lo spazio sotto la testata */
     overflow-y: auto;
-    /* abilita scroll verticale */
     min-height: 0;
-    /* importantissimo */
 }
 
 .hide-scrollbar::-webkit-scrollbar {
@@ -1026,16 +1010,12 @@ onMounted(async () => {
     padding: 20px;
     border-radius: 8px;
     width: 90%;
-    /* Rendi il modal più responsive */
     max-width: 650px;
-    /* Larghezza massima aumentata leggermente */
     max-height: 80%;
-    /* Altezza massima */
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     overflow: hidden;
-    /* Gestito dalle singole sezioni con custom scrollbar */
     text-align: center;
     border: 1px solid #15b680d4;
     box-sizing: border-box;
@@ -1044,8 +1024,7 @@ onMounted(async () => {
 
 .content h2 {
     margin-bottom: 20px;
-    color: var(--primary-color);
-    /* Colore primario per i titoli */
+    color: var(--primary-color); 
 }
 
 /* Stili per le opzioni di sort/filter container */
@@ -1055,13 +1034,10 @@ onMounted(async () => {
     flex-direction: column;
     gap: 15px;
     flex-grow: 1;
-    /* Permette alle opzioni di occupare spazio disponibile */
     overflow-y: auto;
-    /* Aggiunge scroll se necessario */
     padding-right: 10px;
-    /* Spazio per la scrollbar custom */
     margin-bottom: 20px;
-    /* Spazio tra opzioni e azioni */
+
 }
 
 /* Stili per la scrollbar custom */
@@ -1088,10 +1064,8 @@ onMounted(async () => {
 .sorting_option,
 .filtering_option {
     display: grid;
-    /* Definisce due colonne: una per la label (auto) e una per il gruppo di input (1fr) */
     grid-template-columns: auto 1fr;
     gap: 15px;
-    /* Spazio tra label e input group */
     align-items: center;
     text-align: left;
     padding: 10px;
@@ -1104,28 +1078,21 @@ onMounted(async () => {
 
 .sorting_option label,
 .filtering_option label {
-    font-size: 1em;
-    /* Aumenta leggermente la dimensione della label */
-    white-space: nowrap;
-    /* Evita che la label vada a capo */
+    font-size: 1em;    
+    white-space: nowrap;    
     min-width: 40px;
-    max-width: 80px;
-    /* Larghezza minima per le label per un migliore allineamento */
+    max-width: 80px;    
 }
 
-/* Wrapper per gli input/select per allinearli a destra */
 .input-group {
     display: flex;
     gap: 8px;
-    /* Spazio tra gli elementi nel gruppo */
     align-items: center;
     justify-content: flex-end;
-    /* Allinea gli elementi a destra */
     flex-wrap: wrap;
-    /* Permette agli elementi di andare a capo se non c'è spazio */
 }
 
-/* Stili per i controlli di input/select */
+
 .sort_selector,
 .priority_input,
 .filter_selector,
@@ -1138,12 +1105,9 @@ onMounted(async () => {
     border: 2px solid #15b680d4;
     color: var(--text-color);
     height: 32px;
-    /* Aumenta l'altezza */
     padding: 0 10px;
-    /* Aumenta il padding */
     border-radius: 4px;
     font-size: 0.95rem;
-    /* Aumenta la dimensione del font */
     cursor: pointer;
     outline: none;
     box-sizing: border-box;
@@ -1151,29 +1115,23 @@ onMounted(async () => {
 
 .sort_selector {
     width: 120px;
-    /* Larghezza fissa per il selettore order */
 }
 
 .priority_input {
     width: 100px;
-    /* Larghezza per input numerico priority */
     text-align: center;
 }
 
 .filter_selector {
     width: 140px;
-    /* Larghezza per i selettori filtro */
 }
 
 .filter_input {
     width: 120px;
-    /* Larghezza per input testo/numero */
 }
 
-/* Permette all'input testo di occupare più spazio */
 .text-input-grow {
     flex-grow: 1;
-    /* Permette all'input di espandersi */
     min-width: 100px;
     max-width: 400px;
 
@@ -1182,7 +1140,6 @@ onMounted(async () => {
 
 .filter_input_date {
     width: 130px;
-    /* Larghezza per input data */
     font-size: 0.95rem;
 }
 
@@ -1197,41 +1154,33 @@ input[type=number]::-webkit-outer-spin-button {
     margin: 0;
 }
 
-/* Stili per i bottoni delle azioni */
 .sorting_actions,
 .filtering_actions {
     margin-top: 10px;
-    /* Riduci spazio sopra */
     display: flex;
     justify-content: flex-end;
     gap: 30px;
     padding-top: 10px;
     border-top: 1px solid rgba(128, 128, 128, 0.3);
     flex-wrap: wrap;
-    /* Permette ai bottoni di andare a capo su schermi piccoli */
     justify-content: center;
-    /* Centra i bottoni quando vanno a capo */
 }
 
 
 .reset_button,
 .apply_button,
 .cancel_button {
-    height: 38px;
-    /* Aumenta l'altezza dei bottoni */
+    height: 38px;    
     padding: 0 18px;
-    /* Aumenta il padding orizzontale */
     display: flex;
     gap: 0.5rem;
     color: var(--color);
     background: #ffffff00;
     border: 2px solid;
-    /* Definisce lo stile del bordo qui */
     cursor: pointer;
     border-radius: 4px;
     align-items: center;
     font-size: 1rem;
-    /* Aumenta dimensione font bottone */
     transition: background-color 0.3s ease, border-color 0.3s ease;
     box-sizing: border-box;
 }

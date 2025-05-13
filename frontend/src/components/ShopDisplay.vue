@@ -40,9 +40,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, defineProps, defineEmits, watch } from 'vue';
-import { API_gestor } from '../backend-comunication/api_comunication'; // Adjust the import path if needed
-import { ShopItem, MysteryBoxConfig, UserInventory, ItemRarity } from '../types/shopTypes'; // Adjust the import path if needed
-import { userDBentry } from '../types/userTypes'; // Assuming userDBentry is in userTypes.ts
+import { API_gestor } from '../backend-comunication/api_comunication'; 
+import { ShopItem, MysteryBoxConfig, UserInventory, ItemRarity } from '../types/shopTypes'; 
+import { userDBentry } from '../types/userTypes'; 
 import MysteryBoxOpeningAnimation from './MysteryBoxOpeningAnimation.vue';
 
 const api_gestor = API_gestor.getInstance();
@@ -52,9 +52,9 @@ const mysteryBoxes = ref<MysteryBoxConfig[]>([]);
 const props = defineProps<{
     userInfo: userDBentry;
 }>();
-const userInventory = ref<UserInventory>({ licenseKey: '', items: [] }) // Initialize with empty licenseKey
+const userInventory = ref<UserInventory>({ licenseKey: '', items: [] }) 
 const itemAlreadyFound = ref(false);
-// State for the animation
+
 const isAnimationVisible = ref(false);
 const defaultGrantedItem = ref<ShopItem>({
     id: "default granted item",
@@ -77,7 +77,6 @@ const boxToAnimate = ref<MysteryBoxConfig>({
 
 const emit = defineEmits(['update-karma', 'show-notification',"update-user-info"]);
 
-// Helper function to check if an item is in the user's inventory
 function isItemOwned(itemId: string): boolean {
     return userInventory.value.items.some(item => item.item.id === itemId);
 }
@@ -86,12 +85,12 @@ function isItemOwned(itemId: string): boolean {
 watch(() => props.userInfo, async (updated_info) => { // Watch for changes in props.userInfo
     console.log("new user info shop display:\n", updated_info)
     if (updated_info && updated_info.licenseKey !== "") { // Ensure licenseKey is loaded
-        // Update userInventory ref with the new licenseKey before fetching
+        
         userInventory.value.licenseKey = updated_info.licenseKey;
         await updateLocalUserInventory();
         console.log("local inventory updated");
     }
-}, { immediate: true }); // Immediate: true runs the watcher immediately on component mount
+}, { immediate: true }); 
 
 
 async function updateLocalUserInventory() {
@@ -106,8 +105,6 @@ async function updateLocalUserInventory() {
     }
     else {
         if (userInventoryRes.errorMessage.includes('No user inventory found')) {
-            // If no inventory found, it means this is a new user or an issue.
-            // Let's create a default empty inventory for the user if it doesn't exist.
             const newInventory: UserInventory = { licenseKey: userInventory.value.licenseKey, items: [] };
             const r = await api_gestor.updateUserInventory(newInventory);
             if (r.success) {
@@ -126,14 +123,11 @@ async function updateLocalUserInventory() {
 
 onMounted(async () => {
     await fetchShopContent();
-    // updateLocalUserInventory is now called by the watcher with immediate: true
 });
 
 async function fetchShopContent() {
-    // Use api_gestor.getShopItems() which should handle server/cache logic
     const response = await api_gestor.getShopItems();
     if (response.success) {
-        // For the carousel, let's take up to the first 5 items as requested
         shopItems.value = response.items.slice(0, 5);
         mysteryBoxes.value = response.mysteryBoxes;
 
@@ -183,7 +177,6 @@ async function buyItem(item: ShopItem) {
         emit('show-notification', 'success', `${item.name} purchased successfully!`);
         emit("update-karma")
     } else {
-        // Consider rolling back the changes if one update failed
         emit('show-notification', 'error', 'Failed to purchase item.');
         console.log("Purchase failed:", inventoryUpdateRes.errorMessage, userUpdateRes.errorMessage);
     }
@@ -248,14 +241,12 @@ async function buyMysteryBox(box: MysteryBoxConfig) {
         // Set the granted item. The animation component will watch this prop and proceed.
         grantedItem.value = itemReceived;
         // Notification will be shown after animation complete
-        // emit('show-notification', 'success', `You opened a ${box.name} and found: ${itemReceived.name}!`);
     }
 
 
     if (inventoryUpdateRes?.success && userUpdateRes?.success) {
         emit("update-user-info")
     } else {
-        // Consider rolling back the changes if an update failed
         emit('show-notification', 'error', 'Failed to complete mystery box transaction.');
         console.log("Mystery box transaction failed:", inventoryUpdateRes?.errorMessage, userUpdateRes?.errorMessage);
         isAnimationVisible.value = false;
@@ -278,8 +269,6 @@ function selectRandomItemFromBox(box: MysteryBoxConfig): ShopItem | null {
     for (const entry of box.availableItems) {
         randomValue -= entry.probability;
         if (randomValue <= 0) {
-            // The selected item is directly available in the entry object
-            // We no longer need to look it up by ID
             console.log("Selected item from mystery box:", entry.item.name);
             return entry.item;
         }
@@ -295,16 +284,14 @@ function selectRandomItemFromBox(box: MysteryBoxConfig): ShopItem | null {
 // Handle animation completion (item revealed)
 function handleAnimationComplete(item: ShopItem) {
     console.log("Mystery box animation complete. Item received:", item);
-
-    
     if (itemAlreadyFound.value) {
-        const karmaRefund = item.cost; // Assuming item cost is available
+        const karmaRefund = item.cost; 
         emit('show-notification', 'info', `You already own "${item.name}". You received ${karmaRefund} Karma Points instead.`);
     } else if(item && item.name != ""){
         emit('show-notification', 'success', `You opened a mystery box and found: ${item.name}!`);
     }
 
-    itemAlreadyFound.value = false;//reset flag
+    itemAlreadyFound.value = false;
 }
 
 // Handle animation closed by user
@@ -338,21 +325,16 @@ function handleAnimationClosed() {
 .items-carousel {
     display: flex;
     overflow-x: auto;
-    /* Enable horizontal scrolling */
     gap: 20px;
     padding-bottom: 15px;
-    /* Add some padding for the scrollbar */
 }
 
 .shop-item-card,
 .mystery-box-card {
-    flex: 0 0 auto;
-    /* Prevent shrinking */
-    width: 200px;
-    /* Fixed width for carousel items */
+    flex: 0 0 auto;    
+    width: 200px;    
     background-color: var(--background);
-    border: 2px solid transparent;
-    /* Base border */
+    border: 2px solid transparent;    
     border-radius: 8px;
     padding: 15px;
     display: flex;
@@ -361,16 +343,12 @@ function handleAnimationClosed() {
     text-align: center;
     box-shadow: var(--shadow);
     position: relative;
-    /* Needed for absolute positioning of the button */
     padding-bottom: 50px;
-    /* Add padding to make space for the button */
     transition: opacity 0.3s ease;
-    /* Add transition for opacity */
 }
 
 .mystery-box-card {
     width: 250px;
-    /* Slightly larger width for mystery boxes */
 }
 
 
@@ -389,9 +367,7 @@ function handleAnimationClosed() {
     align-items: center;
     justify-content: flex-start;
     flex-grow: 1;
-    /* Allow item-info to take up available space */
     margin-bottom: 10px;
-    /* Add space above the button */
 }
 
 
@@ -405,34 +381,23 @@ function handleAnimationClosed() {
     margin-bottom: 5px;
 }
 
-/* Absolute positioned Buy Button */
 .buy-button {
     position: absolute;
     bottom: 10px;
-    /* Adjust distance from the bottom */
     left: 50%;
     transform: translateX(-50%);
-    /* Center the button horizontally */
     width: 80%;
-    /* Adjust button width */
 }
 
-/* Style for disabled button */
 .buy-button:disabled {
     cursor: not-allowed;
     opacity: 0.6;
-    /* Make it slightly transparent */
 }
 
-/* Visual indication for owned items */
 .owned-item {
     opacity: 0.7;
-    /* Slightly dim the card */
-    /* You can add more styles, e.g., a border or an "Owned" badge */
 }
 
-
-/* Rarity Borders (Keeping your existing border colors) */
 .rarity-mainstream {
     border-color: gray;
 }

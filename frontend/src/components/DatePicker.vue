@@ -23,7 +23,7 @@ export default {
   emits: ["update:modelValue"],
   data() {
     return {
-      fp: null // Istanza di Flatpickr
+      fp: null 
     };
   },
   computed: {
@@ -34,14 +34,13 @@ export default {
     }
   },
   mounted() {
-    // Inizializza Flatpickr sull'input referenziato
     this.fp = flatpickr(this.$refs.dateInput, {
       enableTime: true,
       time_24hr: true,
       dateFormat: "d/m/Y H:i",
       defaultDate: this.modelValue,
       onChange: this.onChange,
-      onOpen: this.updateCalendarPosition,  // Aggiungiamo la callback per il posizionamento
+      onOpen: this.updateCalendarPosition, 
     });
     this.updateDarkMode(this.isDarkMode);
   },
@@ -73,19 +72,13 @@ export default {
         }
       }
     },
-    updateCalendarPosition(selectedDates, dateStr, instance) {
-      // Calcola la posizione dell'input relativamente al viewport
+    updateCalendarPosition(selectedDates, dateStr, instance) {      
       const inputRect = instance.input.getBoundingClientRect();
-      const calendar = instance.calendarContainer;
-      // Assicurati che il calendario sia visibile
-      calendar.style.position = "fixed";
-      // Calcola l'altezza del calendario (potrebbe non essere immediata, quindi si può usare un valore approssimato oppure ricalcolarlo al successivo repaint)
-      const calHeight = calendar.offsetHeight || 300; // 300px come fallback
-      // Imposta il calendario sopra l'input con un margine di 10px
+      const calendar = instance.calendarContainer;      
+      calendar.style.position = "fixed";      
+      const calHeight = calendar.offsetHeight || 300;       
       calendar.style.top = `${inputRect.top - calHeight - 10}px`;
-      calendar.style.left = `${inputRect.left}px`;
-      // Se il contenitore ha una larghezza fissa o vuoi forzarla, puoi impostarla:
-      // calendar.style.width = `${inputRect.width}px`;
+      calendar.style.left = `${inputRect.left}px`;      
     }
   },
   watch: {
@@ -124,7 +117,7 @@ export default {
   box-shadow: 0px 4px 6px rgba(16, 185, 129, 0.37);
 }
 
-/* Personalizza ulteriormente il calendario in modalità dark */
+
 .flatpickr-calendar.flatpickr-dark {
   background: #333;
   color: var(--color);

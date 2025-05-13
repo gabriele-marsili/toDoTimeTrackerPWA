@@ -167,7 +167,7 @@ onMounted(async () => {
     flex-direction: column;
     align-items: center;
     padding: 20px;
-    overflow-y: auto; /* Enable scrolling for shop content */
+    overflow-y: auto;
 }
 
 </style>

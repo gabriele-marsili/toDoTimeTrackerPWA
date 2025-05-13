@@ -2,7 +2,6 @@
     <BackgroundEffect>
         <ConnectionStatus />
         <div :class="themeClass" class="flex flex-col items-center justify-center max-h-screen p-6">
-            <!-- Contenitore con altezza massima e scroll interno -->
             <div class="w-full max-w-5xl p-8 rounded-2xl elevated max-h-screen overflow-y-auto invisible-scrollbar">
                 <div class="flex justify-center max-h-95">
                     <RegistrationForm />

@@ -111,19 +111,16 @@
 
 <script setup lang="ts">
 import { ref, defineEmits, computed, watch } from 'vue';
-import { UserInventory, ShopItem, ItemRarity } from '../types/shopTypes'; // Adjust path
-import { API_gestor } from '../backend-comunication/api_comunication'; // Adjust the import path if needed
+import { UserInventory, ShopItem, ItemRarity } from '../types/shopTypes'; 
+import { API_gestor } from '../backend-comunication/api_comunication';
 
 const api_gestor = API_gestor.getInstance();
-
-// Local state for user inventory and loading
-const userInventory = ref<UserInventory | null>(null); // Allow null for initial loading state
+const userInventory = ref<UserInventory | null>(null); 
 const loadingInventory = ref(true);
 const loadingError = ref<string | null>(null);
 
 const emit = defineEmits(["show-notification", "update-user"]);
 
-// Props - Now only receiving licenseKey and allItems
 const props = defineProps<{
     userLicenseKey: string;
     userInventoryNeedUpdate: boolean;
@@ -145,13 +142,11 @@ const rarityOrder = [
 async function updateLocalUserInventory() {
     loadingInventory.value = true;
     loadingError.value = null;
-    userInventory.value = null; // Reset inventory while loading
+    userInventory.value = null; 
 
     if (props.userLicenseKey === "") {
         console.warn("License key is empty, cannot fetch inventory.");
         loadingInventory.value = false;
-        // You might want to show a message or handle this state in the UI
-        // loadingError.value = "User not logged in or license key missing.";
         return;
     }
 
@@ -162,8 +157,6 @@ async function updateLocalUserInventory() {
             console.log("User inventory loaded:", userInventory.value);
         } else {
             if (userInventoryRes.errorMessage.includes('No user inventory found')) {
-                // If no inventory found, it means this is a new user or an issue.
-                // Let's create a default empty inventory for the user if it doesn't exist.
                 const newInventory: UserInventory = { licenseKey: props.userLicenseKey, items: [] };
                 const r = await api_gestor.updateUserInventory(newInventory);
                 if (r.success) {
@@ -195,33 +188,29 @@ async function updateLocalUserInventory() {
 const categorizedInventory = computed(() => {
     const categories: Record<string, { item: ShopItem; quantity: number }[]> = {
         cosmetic: [],
-        utility: [],
-        // mystery_box: [], // Mystery boxes are not kept in inventory
+        utility: [],      
         gift: [],
         reminder: [],
         avatar: [],
     };
 
-    // Ensure both userInventory and allItems are available before processing
+    
     if (!userInventory.value) {
-        return categories; // Return empty categories if data is not ready
+        return categories; 
     }
 
 
     userInventory.value.items.forEach(ownedItem => {
-        // Find the full item details from the allItems prop
         const itemDetails = ownedItem.item
 
         // Only include items that exist in the allItems pool and are not mystery boxes
         if (itemDetails && itemDetails.type !== 'mystery_box') {
-            // Assuming itemDetails.type corresponds to the category keys
             if (categories[itemDetails.type]) {
                 categories[itemDetails.type].push({
                     item: itemDetails,
                     quantity: ownedItem.quantity
                 });
             } else {
-                // Handle unexpected item types if necessary
                 console.warn(`Item with ID ${itemDetails.id} has unexpected type: ${itemDetails.type}`);
             }
         } else if (!itemDetails) {
@@ -233,15 +222,14 @@ const categorizedInventory = computed(() => {
     for (const category in categories) {
         // Only sort if the category has items
         if (categories[category].length > 0) {
-            categories[category].sort((a, b) => {
-                // Check if rarity exists before comparing
+            categories[category].sort((a, b) => {              
                 const rarityAIndex = rarityOrder.indexOf(a.item.rarity);
                 const rarityBIndex = rarityOrder.indexOf(b.item.rarity);
 
                 // Handle cases where rarity might not be in rarityOrder (shouldn't happen if ItemRarity is strict)
                 if (rarityAIndex === -1 || rarityBIndex === -1) {
                     console.warn(`Item with unexpected rarity found: ${a.item.id} or ${b.item.id}`);
-                    return 0; // Don't sort if rarity is unknown
+                    return 0; 
                 }
 
                 return rarityAIndex - rarityBIndex;
@@ -255,7 +243,6 @@ const categorizedInventory = computed(() => {
 
 // Check if there are any items in the categorized inventory to display
 const hasInventoryItems = computed(() => {
-    // Check categorizedInventory.value after it has been computed
     return Object.values(categorizedInventory.value).some(categoryItems => categoryItems.length > 0);
 });
 
@@ -320,19 +307,19 @@ watch(() => props.userLicenseKey, async (newLicenseKey, oldLicenseKey) => {
         console.log("License key changed, fetching inventory...");
         await updateLocalUserInventory();
     } else if (newLicenseKey === "" && userInventory.value !== null) {
-        // Clear inventory if license key becomes empty (e.g., user logs out)
+        // Clear inventory if license key becomes empty
         console.log("License key became empty, clearing inventory...");
         userInventory.value = null;
         loadingInventory.value = false; // Stop loading state
         loadingError.value = null;
     }
-}, { immediate: true }); // Fetch inventory immediately if license key is available on mount
+}, { immediate: true }); 
 
 watch(() => props.userInventoryNeedUpdate, async (newUserInventoryNeedUpdate, oldUserInventoryNeedUpdate) => {
     if (newUserInventoryNeedUpdate !== oldUserInventoryNeedUpdate && newUserInventoryNeedUpdate) {
         await updateLocalUserInventory();
     }
-}, { immediate: true }); // Fetch inventory immediately if license key is available on mount
+}, { immediate: true });
 
 
 
@@ -347,7 +334,7 @@ watch(() => props.userInventoryNeedUpdate, async (newUserInventoryNeedUpdate, ol
     flex-direction: column;
     align-items: center;
     height: 100%;
-    /* Fill parent height */
+    
     box-sizing: border-box;
     width: 100%;
 }
@@ -357,7 +344,6 @@ watch(() => props.userInventoryNeedUpdate, async (newUserInventoryNeedUpdate, ol
     color: var(--accent-color);
 }
 
-/* Loading and Error Messages */
 .loading-message,
 .error-message {
     text-align: center;
@@ -368,15 +354,13 @@ watch(() => props.userInventoryNeedUpdate, async (newUserInventoryNeedUpdate, ol
 
 .loading-message .spinner {
     border: 4px solid #f3f3f3;
-    /* Light grey */
     border-top: 4px solid var(--accent-color);
-    /* Accent color */
     border-radius: 50%;
     width: 30px;
     height: 30px;
     animation: spin 1s linear infinite;
     margin: 15px auto;
-    /* Center spinner */
+    
 }
 
 @keyframes spin {
@@ -392,46 +376,32 @@ watch(() => props.userInventoryNeedUpdate, async (newUserInventoryNeedUpdate, ol
 
 .inventory-categories-container {
     flex-grow: 1;
-    /* Allow container to take up available vertical space */
     width: 95%;
-    /* Adjust width as needed */
     overflow-y: auto;
-    /* Enable vertical scrolling */
     padding-right: 10px;
-    /* Space for scrollbar */
-    /* Add custom scrollbar styling if using custom-scrollbar class */
-    /* Only apply overflow/padding if not loading/error/empty */
-    /* You might need conditional classes or v-if/v-else around this div */
 }
 
 .inventory-category {
     margin-bottom: 30px;
-    /* Space between categories */
 }
 
 .inventory-category h3 {
     margin-bottom: 15px;
     color: var(--color);
-    /* Or a different color for category titles */
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    /* Separator line */
     padding-bottom: 5px;
 }
 
 .inventory-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    /* Responsive grid */
     gap: 20px;
-    /* Space between items */
     padding-bottom: 20px;
-    /* Space at the bottom of the grid */
 }
 
 .inventory-item-card {
     background-color: var(--background);
     border: 2px solid transparent;
-    /* Base border */
     border-radius: 8px;
     padding: 15px;
     display: flex;
@@ -440,14 +410,11 @@ watch(() => props.userInventoryNeedUpdate, async (newUserInventoryNeedUpdate, ol
     text-align: center;
     box-shadow: var(--shadow);
     position: relative;
-    /* For button positioning */
     padding-bottom: 60px;
-    /* Space for the button */
 }
 
 .item-image {
     width: 70px;
-    /* Slightly smaller image than shop */
     height: 70px;
     object-fit: cover;
     border-radius: 4px;
@@ -460,26 +427,21 @@ watch(() => props.userInventoryNeedUpdate, async (newUserInventoryNeedUpdate, ol
     align-items: center;
     justify-content: flex-start;
     flex-grow: 1;
-    /* Allow item-info to take up available space */
     margin-bottom: 15px;
-    /* Space above the button */
     gap: 2px;
 }
 
 .item-info h4 {
     font-size: 1em;
-    /* Smaller title */
     margin-bottom: 5px;
 }
 
 .item-info p {
     font-size: 0.8em;
-    /* Smaller text */
     color: var(--text-color);
     margin-bottom: 5px;
 }
 
-/* Action Buttons (Apply/Use/Gift) */
 .baseButton.apply-button,
 .baseButton.use-button {
     position: absolute;
@@ -487,14 +449,12 @@ watch(() => props.userInventoryNeedUpdate, async (newUserInventoryNeedUpdate, ol
     left: 50%;
     transform: translateX(-50%);
     width: 90%;
-    /* Button width */
     font-size: 0.9em;
-    /* Smaller button text */
     padding: 8px 12px;
 }
 
 
-/* Rarity Borders (matching ShopDisplay.vue) */
+/* Rarity Borders */
 .rarity-mainstream {
     border-color: gray;
 }
@@ -523,10 +483,9 @@ watch(() => props.userInventoryNeedUpdate, async (newUserInventoryNeedUpdate, ol
 .rarity-unique {
     border-color: #8B0000;
     box-shadow: 0 0 10px 5px #8B0000;
-    /* Consider keeping the unique background/animation if applicable */
 }
 
-/* Rarity Text Colors (matching ShopDisplay.vue) */
+/* Rarity Text Colors */
 .rarity-text-mainstream {
     color: gray;
 }
@@ -564,28 +523,22 @@ watch(() => props.userInventoryNeedUpdate, async (newUserInventoryNeedUpdate, ol
 }
 
 
-/* Custom Scrollbar (if using the custom-scrollbar class) */
 .custom-scrollbar::-webkit-scrollbar {
     width: 8px;
-    /* Vertical scrollbar width */
     height: 8px;
-    /* Horizontal scrollbar height (not used here, but good to have) */
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.1);
-    /* Track color */
     border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
     background: var(--accent-color);
-    /* Thumb color */
     border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: var(--accent-color-dark);
-    /* Darker thumb on hover */
 }
 </style>

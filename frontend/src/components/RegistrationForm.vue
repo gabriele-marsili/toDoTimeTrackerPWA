@@ -316,7 +316,7 @@ const submitForm = async () => {
 </script>
 
 <style scoped>
-/* Carosello a swipe con scroll-snap */
+
 .carousel-container {
     overflow: hidden;
     width: 100%;
@@ -337,7 +337,7 @@ const submitForm = async () => {
     padding: 1rem;
 }
 
-/* Nasconde la scrollbar su desktop */
+
 .carousel::-webkit-scrollbar {
     display: none;
 }
@@ -346,28 +346,22 @@ const submitForm = async () => {
     -moz-appearance: textfield;
 }
 
-/* STILE PER L'INDICATORE DI SCORRIMENTO */
+
 .swipe-indicator {
     margin-top: auto;
-    /* Spinge l'indicatore in fondo nel contenitore flex */
     text-align: center;
-    /* Centra il testo */
     font-size: 0.9rem;
     color: var(--text-color-secondary, gray);
-    /* Colore discreto */
     padding: 10px 0;
-    /* Spazio sopra e sotto */
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 5px; /* Spazio tra testo e icona */
-    /* Puoi aggiungere una leggera animazione se vuoi che lampeggi o si muova */
+    gap: 5px;
 }
 
 .swipe-indicator .material-symbols-outlined {
-    font-size: 1.2em; /* Dimensione dell'icona */
-    /* Opzionale: animazione per far muovere l'icona */
-     animation: swipe-arrow 1.5s infinite ease-in-out;
+    font-size: 1.2em;     
+    animation: swipe-arrow 1.5s infinite ease-in-out;
 }
 
 @keyframes swipe-arrow {
@@ -375,7 +369,7 @@ const submitForm = async () => {
         transform: translateX(0);
     }
     50% {
-        transform: translateX(5px); /* Sposta l'icona a destra */
+        transform: translateX(5px);
     }
 }
 </style>

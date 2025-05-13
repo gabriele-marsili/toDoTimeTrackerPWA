@@ -65,9 +65,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, defineEmits, computed, watch, reactive } from 'vue';
-import { UserInventory, ShopItem, ItemRarity } from '../types/shopTypes'; // Adjust path
-import { API_gestor } from '../backend-comunication/api_comunication'; // Adjust the import path
-import dayjs from 'dayjs'; // Using dayjs for easier date/time handling
+import { UserInventory, ShopItem, ItemRarity } from '../types/shopTypes'; 
+import { API_gestor } from '../backend-comunication/api_comunication'; 
+import dayjs from 'dayjs'; 
 import { userDBentry } from '../types/userTypes';
 
 // Extend ShopItem to include sell price and status
@@ -78,9 +78,9 @@ interface SellableItem extends ShopItem {
 
 const api_gestor = API_gestor.getInstance();
 
-// Props
+
 const props = defineProps<{
-    userLicenseKey: string; // User's license key
+    userLicenseKey: string;
     userInfo: userDBentry
 }>();
 
@@ -100,7 +100,7 @@ const itemToConfirmSell = ref<SellableItem | null>(null);
 const currentTime = ref(dayjs());
 // Timer to update the displayed time until next refresh
 let refreshTimer: any = null;
-// Emits
+
 const emit = defineEmits(['update-karma', 'show-notification']);
 
 // --- Computed Properties ---
@@ -127,7 +127,6 @@ const timeUntilNextRefresh = computed(() => {
         // Ensure the countdown doesn't show negative time
         if (diffSeconds <= 0) {
             // If the time has passed, the interval check should trigger regeneration soon.
-            // Display a message indicating this.
             return 'Refreshing soon...';
         }
 
@@ -155,24 +154,13 @@ function calculateSellPrice(originalCost: number): number {
     return Math.max(0, Math.round(sellPrice)); // Ensure sell price is not negative and round
 }
 
-// Get a random item from a list, excluding specific IDs
-function getRandomShopItem(ShopItems: ShopItem[], excludeIds: string[] = []): ShopItem | undefined {
-    const availableItems = ShopItems.filter(item => !excludeIds.includes(item.id));
-    if (availableItems.length === 0) {
-        return undefined;
-    }
-    const randomIndex = Math.floor(Math.random() * availableItems.length);
-    return availableItems[randomIndex];
-}
-
-
 // Load sellable items from localStorage or generate new ones
 async function loadSellableItemsFromStorageOrGenerate() {
     loadingState.value = 'loading';
     loadingError.value = null;
-    sellableItems.value = []; // Clear previous items
+    sellableItems.value = []; 
 
-    // Always fetch fresh inventory first to compare against stored items
+    
     await fetchUserInventory();
 
     if (!userInventory.value) {
@@ -180,7 +168,6 @@ async function loadSellableItemsFromStorageOrGenerate() {
             loadingError.value = "Could not fetch inventory";
         }
         loadingState.value = 'error';
-        // Ensure timer is stopped if fetching inventory failed
         if (refreshTimer) clearInterval(refreshTimer);
         return;
     }
@@ -198,23 +185,10 @@ async function loadSellableItemsFromStorageOrGenerate() {
                 const parsedItems: SellableItem[] = JSON.parse(storedItems);
                 const validSellableItems: SellableItem[] = [];
 
-                // Filter stored items:
-                // 1. Ensure item details still exist (optional but good practice if allItems list changes)
-                // 2. Ensure the user still *owns* the item in their current inventory,
-                //    UNLESS it was already marked as sold in the stored data.
-                //    If it was *not* sold in the stored data, the user must still own at least 1 quantity.
                 for (const storedItem of parsedItems) {
-                    // Find the corresponding owned item in the current inventory
                     const ownedItemInCurrentInventory = userInventory.value.items.find(owned => owned.item.id === storedItem.id);
 
-                    // Keep the item if:
-                    // A) It was already marked as sold in localStorage OR
-                    // B) It is NOT marked as sold in localStorage AND the user currently owns at least 1 quantity.
                     if (storedItem.isSold || (ownedItemInCurrentInventory && ownedItemInCurrentInventory.quantity >= 1)) {
-                        // Also find the latest item details from the full inventory if needed
-                        // (In this structure, the full item is stored in SellableItem, so this lookup isn't strictly needed
-                        // unless item details can change between sessions).
-                        // Let's just use the stored item details as they are part of the SellableItem interface.
                         validSellableItems.push(storedItem);
                     }
                 }
@@ -222,15 +196,13 @@ async function loadSellableItemsFromStorageOrGenerate() {
                 sellableItems.value = validSellableItems;
                 console.log("Loaded sellable items from localStorage:", sellableItems.value);
                 loadingState.value = 'loaded';
-                startRefreshTimer(); // Start the timer for the existing cycle
-                return; // Found valid data, no need to generate
+                startRefreshTimer(); 
+                return; 
             } catch (e) {
-                console.error("Failed to parse sellable items from localStorage:", e);
-                // Fall through to generate new items if parsing fails
+                console.error("Failed to parse sellable items from localStorage:", e);             
             }
         } else {
-            console.log("Stored sellable items are older than 24 hours, generating new ones.");
-            // Fall through to generate new items
+            console.log("Stored sellable items are older than 24 hours, generating new ones.");            
         }
     }
 

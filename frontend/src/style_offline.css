@@ -2,184 +2,680 @@
 
 /* global variables for the theme */
 :root {
-    --background-light: #fefefed7;
-    --background-dark: #131212;
-    --color-light: black;
-    --color-dark: white;
-    --accent-color-light: #10B981;
-    --accent-color-dark: #34D399;
-    --button-background-light: #ffffff00;
-    --button-background-dark: #131212;
-    --button-border-light: #15b680d4;
-    --button-border-dark: #15b680d4;
-    --input-field-border-dark: rgba(255, 255, 255, 0.329);
-    --input-field-border-light: rgba(11, 11, 11, 0.457);
-    /*shadows*/
-    --shadow-light: 0px 4px 6px rgba(0, 0, 0, 0.352);
-    --shadow-dark: 0px 4px 6px rgba(255, 255, 255, 0.375);
-    /*checkbox*/
-    --checkbox-border-dark: rgba(255, 255, 255, 0.5);
-    --checkbox-border-light: rgba(52, 48, 48, 0.5);
+  --background-light: #fefefed7;
+  --background-dark: #131212;
+  --sidebar-background-light: white;
+  --sidebar-background-dark: #131212;
+  --color-light: black;
+  --color-dark: white;
+  --accent-color-light: #10B981;
+  --accent-color-dark: #34D399;
+  --button-background-light: #ffffff00;
+  --button-background-dark: #131212;
+  --button-border-light: #15b680d4;
+  --button-border-dark: #15b680d4;
+  --input-field-border-dark: rgba(255, 255, 255, 0.329);
+  --input-field-border-light: rgba(11, 11, 11, 0.457);
+  /*shadows*/
+  --shadow-light: 0px 4px 6px rgba(0, 0, 0, 0.352);
+  --shadow-dark: 0px 4px 6px rgba(255, 255, 255, 0.375);
+  /*checkbox*/
+  --checkbox-border-dark: rgba(255, 255, 255, 0.5);
+  --checkbox-border-light: rgba(52, 48, 48, 0.5);
+
+  --container-background-color-dark:#212121;
+  --container-background-color-light:#eceaea;
+
+  --charts-background-color-light: #e7e4e4f4;
+  --charts-background-color-dark: #212121;
+  
 }
 
 
 /* Applicazione del tema light */
 .light {
-    --background: var(--background-light);
-    --color: var(--color-light);
-    --accent-color: var(--accent-color-light);
-    --button-background: var(--button-background-light);
-    --button-border: var(--button-border-light);
-    --shadow: var(--shadow-light);
-    --input-field-border: var(--input-field-border-light);
-    --checkbox-border: var(--checkbox-border-light)
+  --sidebar-background : var(--sidebar-background-light);
+  --background: var(--background-light);
+  --color: var(--color-light);
+  --accent-color: var(--accent-color-light);
+  --button-background: var(--button-background-light);
+  --button-border: var(--button-border-light);
+  --shadow: var(--shadow-light);
+  --input-field-border: var(--input-field-border-light);
+  --checkbox-border: var(--checkbox-border-light);
+  --text-color: black;
+  --container-background-color : var(--container-background-color-light);
+  --charts-background-color : var(--charts-background-color-light);
 }
 
 /* Applicazione del tema dark */
 .dark {
-    --background: var(--background-dark);
-    --color: var(--color-dark);
-    --accent-color: var(--accent-color-dark);
-    --button-background: var(--button-background-dark);
-    --button-border: var(--button-border-dark);
-    --shadow: var(--shadow-dark);
-    --input-field-border: var(--input-field-border-dark);
-    --checkbox-border: var(--checkbox-border-dark)
+  --sidebar-background : var(--sidebar-background-dark);
+  --background: var(--background-dark);
+  --color: var(--color-dark);
+  --accent-color: var(--accent-color-dark);
+  --button-background: var(--button-background-dark);
+  --button-border: var(--button-border-dark);
+  --shadow: var(--shadow-dark);
+  --input-field-border: var(--input-field-border-dark);
+  --checkbox-border: var(--checkbox-border-dark);
+  --text-color: white;
+  --container-background-color : var(--container-background-color-dark);
+  --charts-background-color : var(--charts-background-color-dark);
 }
 
 /* Usa le variabili nelle regole CSS */
 body {
-    background-color: var(--background);
-    color: var(--color);
-    overflow-y: hidden;
+  background-color: var(--background);
+  color: var(--color);
+  overflow-y: hidden;
 }
 
 ::selection {
-    background-color: var(--accent-color);
-    color: var(--color);
+  background-color: var(--accent-color);
+  color: var(--color);
 }
 
 .blurred {
-    filter: blur(5px);
+  filter: blur(5px);
 }
 
 .row-disposition {
-    display: flex;
-    align-items: center;
-    flex-direction: row;
-    gap: 20px;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 20px;
 }
 
 .baseButton,
 .baseButtonHigher {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.3rem;
-    color: var(--color);
-    background: var(--button-background);
-    border: 2px solid var(--button-border);
-    height: 36px;
-    padding: 0 15px;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-    text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  color: var(--text-color);
+  background: var(--button-background);
+  border: 2px solid var(--button-border);
+  height: 36px;
+  padding: 0 15px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  text-align: center;
 }
 
 .baseButtonHigher {
-    height: 40px;
+  height: 40px;
 }
 
 .baseButton:hover,
 .baseButtonHigher:hover {
-    background-color: rgba(16, 185, 129, 0.305);
+  background-color: rgba(16, 185, 129, 0.305);
 }
 
 
 /*rilievo dinamico */
 .elevated {
-    box-shadow: var(--shadow);
-    transition: box-shadow 0.3s ease-in-out;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.3s ease-in-out;
 }
 
 .elevated:hover {
-    box-shadow: 0px 4px 6px rgba(16, 185, 129, 0.369)
+  box-shadow: 0px 4px 6px rgba(16, 185, 129, 0.369)
 }
 
 
 /*input fields*/
 .baseInputField {
-    width: 85%;
-    border: 0.7px solid var(--input-field-border);
-
-    padding: 8px 12px;
-    border-radius: 6px;
-    background-color: transparent;
-    outline: none;
-    transition: border-color 0.3s ease, border-width 0.3s ease;
-    display: block;
-    margin: 0 auto;
+  width: 85%;
+  border: 0.7px solid var(--input-field-border);
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: transparent;
+  outline: none;
+  transition: border-color 0.3s ease, border-width 0.3s ease;
+  display: block;
+  margin: 0 auto;
+  color: var(--color);
 }
+
+
 
 .baseInputField:focus {
-    border-color: var(--button-border);
+  border-color: var(--button-border);
 }
+
 
 
 /*border*/
 .border {
-    border: 0.7px solid var(--input-field-border);
+  border: 0.7px solid var(--input-field-border);
 }
 
 .g-icon {
-    font-size: 18px;
-    display: inline-flex;
+  font-size: 18px;
+  display: inline-flex;
 }
 
-/* Rimuove le frecce nei browser basati su WebKit (Chrome, Safari, Edge) */
 .no-spin::-webkit-outer-spin-button,
 .no-spin::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-/* Rimuove le frecce nei browser basati su Firefox */
 .no-spin {
-    -moz-appearance: textfield;
+  -moz-appearance: textfield;
 }
 
-/**checkbox/
-/* Nasconde il checkbox originale */
+.selettore {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: #ffffff00;
+  border: 2px solid #15b680d4;
+  color: var(--text-color);
+  height: 36px;
+  padding: 0 30px 0 10px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  outline: none;
+  width: 90px;
+
+}
+
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+
+
+.form-group {
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.9em;
+}
+
+.form-group input:not([type="checkbox"]),
+.form-group select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: var(--container-background-color);
+  color: var(--color);
+}
+
+.form-group input:not([type="checkbox"]) {
+  border: 0.7px solid var(--input-field-border);
+  transition: border-color 0.3s ease, border-width 0.3s ease;
+}
+
+.form-group input:focus {
+  border-color: var(--button-border);
+  box-shadow: 0px 4px 6px rgba(16, 185, 129, 0.369)
+}
+
+
 .baseCheckbox {
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--checkbox-border);
-    /* Bordi fini e semitrasparenti */
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: transparent;
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
+  appearance: none;
+  width: 20px;
+  max-width: 20px;
+  height: 20px;
+  border: 2px solid var(--checkbox-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
 }
 
-/* Stile quando è attivo */
 .baseCheckbox:checked {
-    border-color: rgba(16, 185, 129, 1);
-    /* Bordi verdi più visibili */
+  border-color: rgba(16, 185, 129, 1);
 }
 
-/* Pallina verde interna quando selezionato */
 .baseCheckbox:checked::before {
-    content: "";
-    width: 10px;
-    height: 10px;
-    background-color: rgba(16, 185, 129, 0.369);
-    /* Verde semitrasparente */
-    border-radius: 50%;
-    transition: background-color 0.2s ease-in-out;
+  content: "";
+  width: 10px;
+  height: 10px;
+  background-color: rgba(16, 185, 129, 0.369);
+  border-radius: 50%;
+  transition: background-color 0.2s ease-in-out;
+}
+
+
+/* Custom Scrollbar for Webkit browsers within charts-grid */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 12px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--background);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--accent-color);
+  border-radius: 10px;
+  border: 3px solid var(--background);
+}
+
+/*invisible scroll bar */
+.invisible-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+
+
+
+/*base templates for pages*/
+.main-app {
+  display: flex;
+  width: 100vw;
+  height: 102vh;
+  overflow-y: hidden;
+  overflow: hidden;
+  border: 2px solid #1e1e1e;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 5%;
+  box-sizing: border-box;
+  overflow: hidden;
+  font-family: 'Poppins', sans-serif;
+  height: auto;
+  min-height: 0;
+}
+
+.content-row {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  gap: 3%;
+  height: 20%;
+  min-height: 0;
+  margin-left: 2%;
+  width: 100%;
+  margin-bottom: 1%;
+}
+
+
+.box {
+  background-color: var(--background);
+  padding: 15px;
+  border-radius: 8px;
+  color: #ffffff;
+  box-sizing: border-box;
+  height: 10%;
+  width: 95%;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-row .box {
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  min-width: 47%;
+}
+
+.header-area {
+  flex: 1;
+  min-width: 100%;
+  display: flex;
+  flex-direction: row;
+  box-sizing: border-box;
+  overflow-y: auto;
+  font-family: 'Poppins', sans-serif;
+  height: 20%;
+}
+
+.header-section {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2%;
+  width: 97%;
+  background-color: var(--background);
+  color: var(--text-color);
+  flex-wrap: wrap;
+  gap: 0.5%;
+  margin-left: 2%;
+  margin-bottom: 1%;
+}
+
+
+.header-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-size: 0.9em;
+}
+
+.header-item .value {
+  font-weight: bold;
+  margin-left: 3px;
+}
+
+.icon {
+  font-size: 1.4em;
+  margin-right: 2px;
+  color: #FFD700;
+}
+
+.footer {
+  margin-top: 10px;
+  background-color: var(--background);
+  padding: 15px;
+  border-radius: 8px;
+  color: #ffffff;
+  height: 35vh;
+  box-sizing: border-box;
+  width: 97%;
+  margin-left: 2%;
+  overflow-y: auto;
+  margin-bottom: 2%;
+}
+
+.footer::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
+
+/*frames : */
+.avatar-wrapper {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  box-sizing: border-box;
+  transition: all 0.3s ease-in-out;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.no-frame {
+  border-radius: 50%;
+  border: 3px solid var(--avatar-border-color, #10B981);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.no-frame:hover {
+  border-color: var(--accent-color-dark, #34D399); 
+  box-shadow: 0 0 10px var(--accent-color-dark, #34D399); 
+}
+
+
+/* Cornice Base - Basic Frame (Mainstream - gray) */
+.frame-cosmetic-frame-001 {
+  border: 3px solid gray;
+  box-shadow: 0 0 5px rgba(128, 128, 128, 0.5);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.frame-cosmetic-frame-001:hover {
+  border-color: #a0a0a0;
+  box-shadow: 0 0 8px rgba(160, 160, 160, 0.7);
+  transform: scale(1.02);
+}
+
+.frame-cosmetic-frame-002 {
+  border: 4px solid #a4e4a4;
+  box-shadow: 0 0 8px rgba(164, 228, 164, 0.6);
+  transition: border-width 0.3s ease, box-shadow 0.3s ease;
+}
+
+.frame-cosmetic-frame-002:hover {
+  border-width: 5px; 
+  box-shadow: 0 0 12px rgba(164, 228, 164, 0.9); 
+}
+
+
+.frame-cosmetic-frame-003 {
+  border: 5px dashed lightgreen;
+  box-shadow: 0 0 10px lightgreen, 0 0 15px rgba(144, 238, 144, 0.4);
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.frame-cosmetic-frame-003:hover {
+  box-shadow: 0 0 15px lightgreen, 0 0 25px rgba(144, 238, 144, 0.6); 
+  transform: rotate(2deg); 
+}
+
+.frame-cosmetic-frame-007 {
+  border: 6px solid dodgerblue;
+  box-shadow: 0 0 15px dodgerblue, 0 0 25px rgba(30, 144, 255, 0.6);
+  animation: electric-glow 1.5s infinite alternate;
+  transition: box-shadow 0.3s ease; 
+}
+
+@keyframes electric-glow {
+  from {
+    box-shadow: 0 0 15px dodgerblue, 0 0 25px rgba(30, 144, 255, 0.6);
+  }
+
+  to {
+    box-shadow: 0 0 20px dodgerblue, 0 0 35px rgba(30, 144, 255, 0.8);
+  }
+}
+
+.frame-cosmetic-frame-007:hover {
+  
+  box-shadow: 0 0 25px dodgerblue, 0 0 40px rgba(30, 144, 255, 0.9);
+}
+
+
+
+.frame-cosmetic-frame-004 {
+  border: 5px double violet;
+  background: radial-gradient(circle at center, rgba(238, 130, 238, 0.3) 0%, transparent 70%);
+  box-shadow: 0 0 12px violet, 0 0 20px rgba(238, 130, 238, 0.5);
+  transition: all 0.3s ease;
+}
+
+.frame-cosmetic-frame-004:hover {
+  border-color: #ee82ee; 
+  box-shadow: 0 0 18px violet, 0 0 30px rgba(238, 130, 238, 0.8);
+  background: radial-gradient(circle at center, rgba(238, 130, 238, 0.5) 0%, transparent 80%); 
+  transform: translateY(-3px); 
+}
+
+
+.frame-cosmetic-frame-005 {
+  border: 6px solid transparent;
+  background-image: linear-gradient(to bottom right, gold, darkgoldenrod, gold);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 0 20px gold, 0 0 30px rgba(255, 215, 0, 0.7);
+  animation: golden-shimmer 2s infinite linear;
+  transition: box-shadow 0.3s ease, transform 0.2s ease; 
+}
+
+@keyframes golden-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+.frame-cosmetic-frame-005:hover {  
+  box-shadow: 0 0 30px gold, 0 0 50px rgba(255, 215, 0, 1); 
+  transform: scale(1.03); 
+  
+}
+
+
+
+.frame-cosmetic-frame-006 {
+  
+  border: 4px solid #8B0000;
+
+  
+  background: radial-gradient(circle at center,
+      rgba(139, 0, 0, 0.9) 0%,
+  
+      rgba(100, 0, 0, 0.8) 40%,
+  
+      rgba(50, 0, 0, 0.8) 70%,
+  
+      rgba(0, 0, 0, 0.9) 100%);
+  
+  box-shadow:
+
+    0 0 25px rgba(139, 0, 0, 0.95),
+
+    0 0 45px rgba(0, 0, 0, 0.7),
+  
+    inset 0 0 8px rgba(255, 255, 255, 0.15);
+
+  
+  animation: unique-mystic-pulse 2.5s infinite alternate ease-in-out;
+  position: relative;
+  box-sizing: border-box;
+  
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+
+.frame-cosmetic-frame-006::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  transition: all 0.3s ease; 
+}
+
+.frame-cosmetic-frame-006::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  border: 2px solid rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  transition: all 0.3s ease; 
+}
+
+@keyframes unique-mystic-pulse {
+  0% {
+    box-shadow:
+      0 0 25px rgba(139, 0, 0, 0.95),
+      0 0 45px rgba(0, 0, 0, 0.7),
+      inset 0 0 8px rgba(255, 255, 255, 0.15);
+  }
+
+  50% {
+    box-shadow:
+      0 0 40px rgba(139, 0, 0, 1),
+      0 0 70px rgba(0, 0, 0, 0.9),
+      inset 0 0 12px rgba(255, 255, 255, 0.25);
+  }
+
+  100% {
+    box-shadow:
+      0 0 25px rgba(139, 0, 0, 0.95),
+      0 0 45px rgba(0, 0, 0, 0.7),
+      inset 0 0 8px rgba(255, 255, 255, 0.15);
+  }
+}
+
+
+.frame-cosmetic-frame-006:hover {
+  box-shadow:
+    0 0 35px rgba(139, 0, 0, 1), 
+    0 0 60px rgba(0, 0, 0, 0.9), 
+    inset 0 0 15px rgba(255, 255, 255, 0.3); 
+  transform: scale(1.03);
+}
+
+
+.frame-cosmetic-frame-006:hover::before {
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.03);
+}
+
+.frame-cosmetic-frame-006:hover::after {
+  border-color: rgba(0, 0, 0, 0.9); 
+  transform: scale(0.97); 
+}
+
+
+/* Stili responsive */
+@media (max-width: 768px) {
+  .frame-options-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+  }
+
+  .frame-option-card {
+    padding: 10px;
+  }
+
+  .frame-preview-wrapper {
+    width: 40px;
+    height: 40px;
+  }
 }

@@ -1,18 +1,8 @@
 <template>
     <NotificationManager ref="notificationManager" />
     <form @submit.prevent="login">
-        <div class="flex flex-col items-center justify-center ">
-
-            <!--
-            <div class="mb-4 w-80">
-                
-                <input v-model="email" class="baseInputField" autocomplete="off"
-                    placeholder="Email">
-            </div>
-            -->
-
-            <div class="mb-4 w-80">
-                <!--<label class="block text-sm font-medium mb-1">License Key</label>-->
+        <div class="flex flex-col items-center justify-center ">         
+            <div class="mb-4 w-80">         
                 <input v-model="licensekey" class="baseInputField" placeholder="License Key">
             </div>
 
@@ -43,11 +33,9 @@ export default {
                 type: "info",
                 message: "Logging in...",
             });
-
-            // Rimuove eventuali spazi vuoti iniziali e finali
+            
             const licenseKeyValue = licensekey.value.trim();
 
-            // Controllo se i campi sono vuoti
             if (!licenseKeyValue) {
                 notificationManager.value.showNotification({
                     type: "error",
@@ -56,7 +44,7 @@ export default {
                 return;
             }
 
-            // Controllo validità license key (adatta la regex al formato desiderato)
+            // Controllo validità license key 
             const licenseKeyRegex = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
             if (!licenseKeyRegex.test(licenseKeyValue)) {
                 notificationManager.value.showNotification({

@@ -43,17 +43,14 @@ export default {
         function updateOnlineStatus() {
             isOnline.value = navigator.onLine            
         }
-
-        // Watch for changes to the online status to control the visibility of the box.
+        
         watch(isOnline, (val) => {
             if (val) {
-                // Show the box when connection is restored, then hide it after 5 seconds.
                 showBox.value = true
                 setTimeout(() => {
                     showBox.value = false
                 }, 5000)
-            } else {
-                // Immediately show the box if connection is lost.
+            } else {                
                 showBox.value = true
             }
         })

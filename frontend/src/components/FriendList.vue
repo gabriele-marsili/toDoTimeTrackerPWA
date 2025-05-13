@@ -140,9 +140,9 @@ const friends = ref<userDBentry[]>([]);
 const friendToAddUsername = ref("")
 const friendToSendGiftLK = ref("")
 const incomingFriendRequests = ref<friendRequest[]>([]);
-const userInventory = ref<UserInventory | null>(null); // Allow null for initial loading state
-const avaibleGiftItems = ref<{ item: GiftItem, quantity: number }[]>([]); // Allow null for initial loading state
-const defaultFriendAvatar = "../../public/user.avif"; // Default avatar for friends
+const userInventory = ref<UserInventory | null>(null); 
+const avaibleGiftItems = ref<{ item: GiftItem, quantity: number }[]>([]); 
+const defaultFriendAvatar = "../../public/user.avif"; 
 const api_gestor = API_gestor.getInstance();
 const emit = defineEmits(["notify", "user_info_update", "update-inventory"])
 function notifyWithEmit(type: "info" | "warning" | "error" | "success", text: string) {
@@ -152,7 +152,7 @@ const giftToSend = ref<null | GiftItem>(null)
 
 // Function to fetch and update local user inventory
 async function updateLocalUserInventory() {
-    userInventory.value = null; // Reset inventory while loading
+    userInventory.value = null;
 
     if (props.user_Info.licenseKey === "") {
         console.warn("License key is empty, cannot fetch inventory.");
@@ -166,8 +166,6 @@ async function updateLocalUserInventory() {
             console.log("User inventory loaded:", userInventory.value);
         } else {
             if (userInventoryRes.errorMessage.includes('No user inventory found')) {
-                // If no inventory found, it means this is a new user or an issue.
-                // Let's create a default empty inventory for the user if it doesn't exist.
                 const newInventory: UserInventory = { licenseKey: props.user_Info.licenseKey, items: [] };
                 const r = await api_gestor.updateUserInventory(newInventory);
                 if (r.success) {
@@ -218,7 +216,7 @@ const getFrameClass = (frameId: string) => {
     if(frameId == ""){
         return 'no-frame'
     }
-    return `frame-${frameId.replace(/_/g, '-')}`; // Sostituisce underscore con trattino per nomi di classe CSS validi
+    return `frame-${frameId.replace(/_/g, '-')}`; 
 };
 
 
@@ -274,8 +272,7 @@ async function sendGift() {
 async function loadFriends() {
     try {
         if (!props.user_Info || !props.user_Info.friends || props.user_Info.friends.length === 0) {
-            friends.value = []; // Nessun amico, resetta la lista
-            // Non è necessariamente un errore, ma un messaggio informativo.
+            friends.value = [];             
             console.log("You don't have any friends yet (or user_Info is not fully loaded).");
             return;
         }
@@ -295,8 +292,7 @@ async function loadFriends() {
 }
 
 const removeFriend = async (friendLicenseKey: string) => {
-    try {
-        // Chiamata API per rimuovere l'amicizia
+    try {      
         const removeRes = await api_gestor.removeFriend(props.user_Info, friendLicenseKey);
 
         if (!removeRes.success) {
@@ -319,12 +315,10 @@ const removeFriend = async (friendLicenseKey: string) => {
 
 async function loadIncomingFriendRequests() {
     try {
-        // Assumi che api_gestor.loadFriendRequests prenda la licenseKey dell'utente corrente
         const loadRequestsRes = await api_gestor.loadFriendRequests(props.user_Info.licenseKey);
 
         if (!loadRequestsRes.success) {
-            // Se non ci sono richieste, non è un errore critico, ma una condizione.
-            if (loadRequestsRes.errorMessage === "No friend request") { // Assumendo questo messaggio
+            if (loadRequestsRes.errorMessage === "No friend request") { 
                 incomingFriendRequests.value = [];
                 console.log("No new friend requests found.");
             } else {
@@ -347,7 +341,6 @@ const acceptFriendRequest = async (request: friendRequest) => {
             throw new Error(acceptRes.errorMessage);
         }
 
-        // Rimuovi la richiesta dalla lista
         incomingFriendRequests.value = incomingFriendRequests.value.filter(req => req.by_licenseKey !== request.by_licenseKey);
 
         // Aggiorna la lista amici localmente (tramite componente padre che aggiorna user info)
@@ -367,7 +360,6 @@ const rejectFriendRequest = async (request: friendRequest) => {
             throw new Error(rejectRes.errorMessage);
         }
 
-        // Rimuovi la richiesta dalla lista
         incomingFriendRequests.value = incomingFriendRequests.value.filter(req => req.by_licenseKey !== request.by_licenseKey);
         emit("user_info_update")
         notifyWithEmit("info", `Rejected friend request from ${request.by_username}.`);
@@ -385,7 +377,6 @@ onMounted(async () => {
 })
 
 
-// Watch user_Info changes if it can be updated dynamically from parent
 watch(() => props.user_Info, async (newVal, oldVal) => {
     if (newVal && newVal.licenseKey !== oldVal?.licenseKey) {
         console.log("user_Info changed, reloading friends and requests...");
@@ -393,7 +384,8 @@ watch(() => props.user_Info, async (newVal, oldVal) => {
         await loadIncomingFriendRequests();
         await updateLocalUserInventory()
     }
-}, { deep: true }); // Deep watch for changes within the user_Info object
+}, { deep: true }); 
+
 </script>
 
 
@@ -402,16 +394,11 @@ watch(() => props.user_Info, async (newVal, oldVal) => {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    /* Distribute items along the main axis */
     align-items: center;
     padding: 15px 30px;
-    /* Adjust padding for a better look */
     margin-bottom: 20px;
-    /* Space below header */
     width: 100%;
-    /* Full width for the header */
     box-sizing: border-box;
-    /* Include padding in the width calculation */
 }
 
 .profile-header-section .header-item {
@@ -425,7 +412,6 @@ watch(() => props.user_Info, async (newVal, oldVal) => {
 .header-buttons {
     display: flex;
     gap: 45px;
-    /* Space between buttons */
 }
 
 .header-buttons .baseButton {
@@ -454,7 +440,6 @@ watch(() => props.user_Info, async (newVal, oldVal) => {
 
 .requests-heading {
     margin-top: 40px;
-    /* Spazio tra le sezioni */
 }
 
 .empty-friends-message,
@@ -492,7 +477,6 @@ watch(() => props.user_Info, async (newVal, oldVal) => {
 
 .friends-column {
     margin-bottom: 20px;
-    /* Spazio prima della sezione richieste */
 }
 
 .friend-card,
@@ -509,7 +493,6 @@ watch(() => props.user_Info, async (newVal, oldVal) => {
     position: relative;
     padding-bottom: 60px;
      min-height: 90%;
-    /* Spazio per i bottoni */
 }
 
 .friend-avatar {
@@ -540,7 +523,6 @@ watch(() => props.user_Info, async (newVal, oldVal) => {
     margin-bottom: 5px;
 }
 
-/* Bottoni Amici */
 .remove-button {
     position: absolute;
     bottom: 10px;
@@ -559,7 +541,6 @@ watch(() => props.user_Info, async (newVal, oldVal) => {
     border-color: #bd2130;
 }
 
-/* Bottoni Richieste di Amicizia */
 .request-actions {
     position: absolute;
     bottom: 10px;
@@ -568,7 +549,7 @@ watch(() => props.user_Info, async (newVal, oldVal) => {
     width: 90%;
     display: flex;
     gap: 5px;
-    /* Spazio tra i bottoni */
+    
 }
 
 .accept-button,
@@ -576,7 +557,7 @@ watch(() => props.user_Info, async (newVal, oldVal) => {
     flex: 1;
     font-size: 0.85em;
     padding: 8px 5px;
-    /* Adattato per 2 bottoni */
+    
 }
 
 .reject-button {

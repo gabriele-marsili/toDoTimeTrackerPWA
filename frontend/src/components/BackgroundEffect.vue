@@ -2,8 +2,7 @@
     <div class="relative w-full h-full overflow-hidden">
         <!-- Effetto particelle nel background -->
         <canvas ref="canvas" class="absolute inset-0 pointer-events-none"></canvas>
-
-        <!-- Contenuto principale della pagina -->
+        
         <slot></slot>
     </div>
 </template>
@@ -55,7 +54,7 @@ export default {
 
             ctx.clearRect(0, 0, canvas.width, canvas.height); // Pulisce il canvas
 
-            // Disegno delle connessioni tra particelle (con ritardo)
+            
             const currentTime = Date.now();
             if (currentTime - this.lastConnectionTime > this.connectionDelay) {
                 for (let i = 0; i < this.particles.length; i++) {
@@ -64,7 +63,7 @@ export default {
                         const dy = this.particles[i].y - this.particles[j].y;
                         const distance = Math.sqrt(dx * dx + dy * dy);
                         if (distance < this.maxConnectionDistance) {
-                            // Se le particelle sono abbastanza vicine, connettile
+                           
                             if (!this.particles[i].connections.includes(j)) {
                                 this.particles[i].connections.push(j);
                                 this.particles[j].connections.push(i);
@@ -82,7 +81,7 @@ export default {
                 this.lastConnectionTime = currentTime;
             }
 
-            // Disegno delle particelle
+            // Disegno particelle
             for (let i = 0; i < this.particles.length; i++) {
                 const p = this.particles[i];
                 ctx.beginPath();
@@ -98,7 +97,7 @@ export default {
                 p.x += Math.cos((p.direction * Math.PI) / 180) * p.speed;
                 p.y += Math.sin((p.direction * Math.PI) / 180) * p.speed;
 
-                // Rendi ciclico il movimento delle particelle
+                // movimento ciclico delle particelle
                 if (p.x < 0) p.x = window.innerWidth;
                 if (p.x > window.innerWidth) p.x = 0;
                 if (p.y < 0) p.y = window.innerHeight;

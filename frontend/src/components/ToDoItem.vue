@@ -195,7 +195,7 @@ const subTaskProgress = computed(() => {
 });
 
 const isExpired = computed(() => {
-  // ToDo è scaduta se ha una data di scadenza valida ed è nel passato (fine giornata inclusa)
+  // ToDo è considerata scaduta se ha una data di scadenza valida ed è nel passato (fine giornata inclusa)
   if (!localTodo.value.expiration) return false;
   try {
     const expirationDate = localTodo.value.expiration instanceof Date ? localTodo.value.expiration : parseISO(localTodo.value.expiration as any);
@@ -301,27 +301,24 @@ function openReplan() {
     expiration: localTodo.value.expiration,
     notifyDate: localTodo.value.notifyDate,
   };
-  replanMode.value = true; // Apri il riquadro
-  editing.value = false; // Assicurati che il modal di edit sia chiuso
+  replanMode.value = true; 
+  editing.value = false; 
 }
 
 function handleReplanCancel() {
-  // Ripristina le date originali e chiudi il riquadro
+  // Ripristina le date originali 
   if (originalReplanDates.value) {
     localTodo.value.dateWithTime = originalReplanDates.value.dateWithTime || localTodo.value.dateWithTime;
     localTodo.value.expiration = originalReplanDates.value.expiration || localTodo.value.expiration;
     localTodo.value.notifyDate = originalReplanDates.value.notifyDate || localTodo.value.notifyDate;
   }
   replanMode.value = false;
-  originalReplanDates.value = null; // Resetta lo stato salvato
+  originalReplanDates.value = null;
 }
 
 function handleReplanConfirm() {
-  // Applica le modifiche (le date sono già modificate tramite v-model nel riquadro)
-  // Emetti l'evento di update. Nessun cambiamento di karma previsto qui.
   updateToDo(0); // Passa 0 per karmaCoinsChange
-  // Il riquadro viene chiuso da updateToDo
-  originalReplanDates.value = null; // Resetta lo stato salvato
+  originalReplanDates.value = null;
 }
 
 function setReplanDate(option: 'today' | 'tomorrow') {
@@ -335,7 +332,7 @@ function setReplanDate(option: 'today' | 'tomorrow') {
       newDate = startOfDay(addDays(now, 1));
       break;
     default:
-      return; // Non fare nulla per opzioni non riconosciute
+      return; 
   }
 
   // Applica la nuova data all'inizio del giorno selezionato per tutte le date della ToDo
@@ -343,7 +340,6 @@ function setReplanDate(option: 'today' | 'tomorrow') {
   localTodo.value.expiration = newDate;
   localTodo.value.notifyDate = newDate;
 
-  // Nota: questo non salva immediatamente, l'utente deve cliccare "Confirm"
 }
 
 
@@ -413,13 +409,9 @@ function handleSubToDoEvent(eventContent: { type: "delete" | "copy" | "update", 
 /* Wrapper per la checkbox per lo styling del bordo */
 .checkbox-wrapper {
   display: inline-block;
-  /* O flex / grid se vuoi centrare la checkbox */
   border: 2px solid transparent;
-  /* Bordo di default trasparente */
   border-radius: 4px;
-  /* Arrotonda gli angoli del bordo */
   padding: 2px;
-  /* Spazio tra bordo e checkbox */
   transition: border-color 0.3s ease, border-width 0.3s ease;
 }
 
@@ -530,14 +522,12 @@ function handleSubToDoEvent(eventContent: { type: "delete" | "copy" | "update", 
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Stili per il riquadro Replan (inline) */
 .replan-section {
   margin-top: 15px;
   padding: 15px;
   border: 1px dashed #15b680d4;
   border-radius: 4px;
   background-color: rgba(21, 182, 128, 0.1);
-  /* Sfondo leggermente colorato */
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -560,7 +550,6 @@ function handleSubToDoEvent(eventContent: { type: "delete" | "copy" | "update", 
 
 .replan-form-group label {
   min-width: 120px;
-  /* Larghezza minima per le label */
   font-size: 0.9em;
   color: var(--text-color);
 }
@@ -572,31 +561,22 @@ function handleSubToDoEvent(eventContent: { type: "delete" | "copy" | "update", 
   margin-top: 10px;
   flex-wrap: wrap;
   justify-content: center;
-  /* Centra bottoni su schermi piccoli */
 }
 
-/* Stili per i bottoni piccoli nel riquadro replan */
 .baseButton.smallButton {
   padding: 5px 10px;
   font-size: 0.8em;
   height: auto;
   min-width: 80px;
-  /* Larghezza minima per i bottoni */
   justify-content: center;
 }
 
-/* Stili per i DatePicker nel riquadro replan */
 .replan-section .v-cal-datepicker {
-  /* Adegua stili DatePicker se necessario */
   width: auto;
-  /* Lascia che il DatePicker si adatti al contenuto/flexbox */
   flex-grow: 1;
-  /* Permetti al datepicker di occupare spazio */
 }
 
 .replan-section .date-range-group {
-  /* Se il DatePicker crea un .date-range-group al suo interno, adegua questi stili */
-  /* Altrimenti, potresti non aver bisogno di questa regola */
   gap: 8px;
 }
 
@@ -635,7 +615,6 @@ function handleSubToDoEvent(eventContent: { type: "delete" | "copy" | "update", 
 
 input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
-  /* Eventuali altre proprietà per modificare colore, dimensioni, margini dell’icona */
 }
 
 .addButton {

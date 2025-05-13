@@ -5,7 +5,6 @@
             <button class="baseButton" @click="prevMonth">
                 <span class="material-symbols-outlined g-icon">arrow_back_ios</span>
             </button>
-            <!-- Bottone che apre il selettore personalizzato -->
             <button class="baseButton month-selector" @click="openMonthPicker">
                 {{ currentMonthYear }}
                 <span class="material-symbols-outlined month-icon">calendar_today</span>
@@ -51,7 +50,6 @@
                 @mouseleave="hoveredDay = null">
                 <div class="day-number">{{ day }}</div>
                 <div class="events-for-day">
-                    <!-- Se non siamo in hover, mostra solo il numero di eventi se > 1 -->
                     <template v-if="hoveredDay !== day">
                         <span v-if="eventsForDay(day).length > 1">
                             {{ eventsForDay(day).length }} events
@@ -60,13 +58,10 @@
                             1 event
                         </span>
                     </template>
-                    <!-- In hover, mostra tutti gli eventi del giorno -->
                     <template v-else>
                         <div v-for="event in eventsForDay(day)" :key="event.title + event.eventDate"
                             class="event-details">
-                            <!-- Se c'è più di uno, mostra elenco; se c'è solo uno, mostra dettaglio aggiuntivo -->
                             <CalendarEvent :event="event" @edit="editEvent" @delete="deleteEvent" />
-                            <!-- Se c'è un solo evento, mostra ad esempio la descrizione sotto -->
                             <div v-if="eventsForDay(day).length === 1" class="event-extra"> {{ event.description }}
                             </div>
                         </div>
@@ -75,14 +70,13 @@
             </div>
         </div>
 
-        <!-- Modal o form per aggiungere/modificare evento (da implementare) -->
+        <!-- Modal o form per aggiungere/modificare evento -->
         <div v-if="showEventForm" class="modal">
             <div class="add-event-content">
                 <h3>{{ isEditEvent ? "Edit" : "Add New" }} Event</h3>
                 <div class="form-group">
                     <label for="eventDate">Event Date:</label>
                     <DatePicker :isDarkMode=isDarkMode v-model="eventDateInput" />
-                    <!-- <input class="baseInputField" id="eventDate" type="datetime-local" v-model="eventDateInput" /> -->
                 </div>
                 <div class="form-group">
                     <label for="title">Title:</label>
@@ -260,7 +254,7 @@ const currentNotice = ref<TTT_Notification>({
 })
 const currentNoticeDateInput = ref<Date>(new Date())
 const notificationManager = ref(null);
-// Stato per il selettore personalizzato
+
 const showMonthPicker = ref(false);
 const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -311,9 +305,7 @@ function nextMonth() {
     selectedYear.value = currentDate.value.getFullYear();
 }
 
-// Funzioni per il selettore personalizzato
-function openMonthPicker() {
-    // Imposta i valori selezionati in base a currentDate
+function openMonthPicker() {    
     selectedMonth.value = currentDate.value.getMonth();
     selectedYear.value = currentDate.value.getFullYear();
     showMonthPicker.value = true;
@@ -328,7 +320,7 @@ function applyMonthPicker() {
     showMonthPicker.value = false;
 }
 
-// Eventi per modificare/ cancellare eventi
+
 function editEvent(event: CalendarEventClass) {
     console.log('Edit event:', event);
     showEventForm.value = true;
@@ -379,14 +371,13 @@ function addNotice() {
     };
     currentEvent.value.notices.push(notice);
     sendNotify("success", "Successfully addedd notice for event " + currentEvent.value.title)
-    canceladdNotice()//close add notice box & reset current notice 
+    canceladdNotice()
 }
 
 async function removeNotice(index: number) {
     const deletedNotices = currentEvent.value.notices.splice(index, 1);
     if (deletedNotices.length > 0) {
         const deletedNoticeID = deletedNotices[0].notificationID
-        //check that the notice is related to an event already saved in db (otherwhise trying to delete a notice for an event not saved will throw an error)
         const index = events.value.findIndex(x => x.notices.findIndex(n => n.notificationID == deletedNoticeID))
         if (index != -1) {
 
@@ -419,7 +410,6 @@ async function addOrUpdateEvent() {
     let errorMessage = '';
 
     try {
-        // Validazione base: titolo non vuoto, data valida e durata > 0
         if (!currentEvent.value.title.trim()) {
             errorMessage = 'Title is required.';
             return;
@@ -545,8 +535,7 @@ onMounted(async () => {
     if (!userInfoRes.userInfo_DB) { // => user not logged 
 
         //redirect to welcome
-        await delay(2000)
-        //redirect to welcome
+        await delay(2000)        
         router.push("/welcome")
         return;
     }
@@ -571,7 +560,7 @@ onMounted(async () => {
 
 
 
-/* Stile per il selettore personalizzato */
+
 .month-selector {
     position: relative;
     padding: 8px 12px;
@@ -669,7 +658,7 @@ onMounted(async () => {
     width: 90px;
 }
 
-/* Calendario */
+
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -702,7 +691,7 @@ onMounted(async () => {
     overflow-y: auto;
 }
 
-/* Nascondi scrollbar in WebKit e Firefox se necessario */
+
 .calendar::-webkit-scrollbar,
 .calendar-grid::-webkit-scrollbar,
 .add-event-content::-webkit-scrollbar {

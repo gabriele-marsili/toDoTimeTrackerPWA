@@ -1,4 +1,3 @@
-<!-- file: CalendarEvent.vue -->
 <template>
     <div class="calendar-event">        
         <div class="event-header">
@@ -7,8 +6,7 @@
         </div>
         <div class="event-body">
             <h4 class="event-title">{{ event.title }}</h4>
-        </div>
-        <!-- Pulsanti di azione (modifica, elimina, ecc.) possono essere aggiunti qui -->
+        </div>        
         <div class="event-actions">
             <button @click="$emit('edit', event)">
                 <span class="material-symbols-outlined g-icon">edit</span>

@@ -31,7 +31,6 @@ export type UserPrestigeLevel = {
     minTasksCompleted: number;
 };
 
-// Esempio di array ordinato di titoli con descrizione e requisito
 export const prestigeLevels: UserPrestigeLevel[] = [
     {
         title: UserPrestigeTitle.TaskPeasant,

@@ -9,7 +9,7 @@ export type CalendarObj = {
     description: string;
     category: string;
     durationInH: number;
-    notices: TTT_Notification[] //avvisi prima dell'evento
+    notices: TTT_Notification[] 
 };
 
 export class CalendarEvent {
@@ -19,7 +19,7 @@ export class CalendarEvent {
     public category: string;
     public durationInH: number;
     public id: string;
-    public notices: TTT_Notification[] //avvisi prima dell'evento
+    public notices: TTT_Notification[]
 
     constructor(
         id: string,

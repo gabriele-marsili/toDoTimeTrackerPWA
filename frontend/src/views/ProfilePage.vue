@@ -126,7 +126,7 @@ const getFrameClass = (frameId: string) => {
     if(frameId == ""){
         return 'no-frame'
     }
-    return `frame-${frameId.replace(/_/g, '-')}`; // Sostituisce underscore con trattino per nomi di classe CSS validi
+    return `frame-${frameId.replace(/_/g, '-')}`; 
 };
 
 function sendNotify(type: "info" | "warning" | "error" | "success", text: string) {
@@ -232,38 +232,36 @@ onMounted(async () => {
     flex-grow: 1;
     padding: 20px;
     gap: 20px;
-    /* Space between header and content */
+    
 }
 
 .profile-page-content {
     display: flex;
     gap: 20px;
-    /* Space between columns */
+
     flex-grow: 1;
-    /* Allows content area to grow */
+    
     min-height: 0;
     margin-left: 2%;
-    /* Required for flex-grow to work correctly with scrolling children */
+    
 }
 
 .left-column {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    /* Space between the two left boxes */
+    
     flex: 1;
-    /* Takes up 1 part of the available space */
+    
     min-width: 550px;
-    /* Minimum width for the left column */
+    
     max-width: 50%;
-    /* Max width for the left column */
     min-height: 50%;
     max-height: 98.5%;
 }
 
 .right-column {
     flex: 2;
-    /* Takes up 2 parts of the available space (larger) */
     min-width: 52%;
     max-width: 52%;
     min-height: 50%;
@@ -273,9 +271,9 @@ onMounted(async () => {
 
 .profile-info-box {
     flex-grow: 1;
-    /* Shares space equally with inventory-box */
+
     max-height: 35%;
-    /* Allows it to be slightly shorter than inventory-box, if space permits */
+ 
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -283,7 +281,7 @@ onMounted(async () => {
     text-align: center;
     padding: 20px;
     min-height: 150px;
-    /* Ensure a minimum height */
+ 
 }
 
 .profile-info-box h3 {
@@ -294,35 +292,29 @@ onMounted(async () => {
 
 .inventory-box {
     flex-grow: 1;
-    /* Allows inventory box to fill remaining space, now sharing equally */
+
     max-height: 61%;
-    /* Allows it to be slightly taller than profile-info-box, if space permits */
+
     overflow-y: auto;
-    /* Enable scrolling for inventory */
+
     padding: 0;
-    /* Remove padding from the box itself, let InventoryDisplay handle it */
     display: flex;
     flex-direction: column;
     min-height: 200px;
-    /* Ensure a minimum height */
 }
 
 .friends-list-box {
     flex-grow: 1;
-    /* Allows friends list box to fill available space */
+
     overflow-y: auto;
-    /* Enable scrolling for friends list */
+
     padding: 20px;
-    /* Padding for the friends list box */
     min-height: 100%;
 }
 
-/* Base styles for boxes, elevated, shadow-lg are already defined in style.css */
-/* Ensure .box background color is applied. For this component, it's defined in style.css */
 .box {
     background-color: var(--background);
     color: var(--color);
-    /* Inherit text color from theme */
 }
 
 
@@ -359,11 +351,6 @@ onMounted(async () => {
     min-height: 100%;
 }
 
-/* Se non sono già presenti, puoi mantenere o aggiornare i seguenti stili per avatar-wrapper e avatar */
-
-
-
-
 .info-details {
     display: flex;
     flex-direction: column;
@@ -386,7 +373,6 @@ onMounted(async () => {
     font-size: 1em;
     margin-right: 4px;
     color: #FFD700;
-    /* colore oro per il badge, personalizzabile */
 }
 
 .event-count,
@@ -413,20 +399,20 @@ onMounted(async () => {
 @media (max-width: 1024px) {
     .profile-page-content {
         flex-direction: column;
-        /* Stack columns on smaller screens */
+       
     }
 
     .left-column,
     .right-column {
         max-width: 100%;
-        /* Full width for both columns */
+       
         min-width: unset;
-        /* Remove min-width constraints */
+       
     }
 
     .inventory-box {
         height: 500px;
-        /* Give a fixed height to inventory on smaller screens */
+       
     }
 }
 </style>

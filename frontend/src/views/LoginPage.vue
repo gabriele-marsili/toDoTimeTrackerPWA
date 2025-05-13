@@ -259,14 +259,11 @@ export default {
 .cancel-button-x {
     position: absolute;
     top: 3%;
-    /* Distanza dall'alto */
     right: 3%;
-    /* Distanza da destra */
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    /* Dimensioni pulsante */
+    width: 30px;    
     height: 30px;
     color: white;
     background: transparent;
@@ -278,7 +275,6 @@ export default {
     border-radius: 80%;
 }
 
-/* Cambia colore al passaggio del mouse */
 .cancel-button-x:hover {
     background-color: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.5);

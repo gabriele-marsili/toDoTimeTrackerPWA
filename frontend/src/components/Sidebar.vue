@@ -41,7 +41,7 @@ export default {
     props: {
         activeSection: {
             type: String,
-            required: true, // Deve essere passato dinamicamente dalla pagina
+            required: true, 
         },
     },
     setup(props, { emit }) {
@@ -156,7 +156,6 @@ export default {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    /* Allinea l'icona e il testo a sinistra */
     padding: 10px;
     margin-left: 50%;
     width: 100%;

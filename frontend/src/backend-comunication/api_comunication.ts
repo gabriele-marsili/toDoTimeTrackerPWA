@@ -65,7 +65,7 @@ export class API_gestor {
         this.userByDB = null;
         this.fcmToken = ""
 
-        // Iscriviti al listener di stato di autenticazione
+        //istener di stato di autenticazione
         onAuthStateChanged(auth, async (user: User | null) => {
             this.user = user;
             console.log("auth state updated, new user:\n", user);
@@ -142,9 +142,9 @@ export class API_gestor {
         const keyPair = await window.crypto.subtle.generateKey(
             {
                 name: "ECDH",
-                namedCurve: "P-256", // "prime256v1" in OpenSSL è "P-256" nel Web Crypto API
+                namedCurve: "P-256",
             },
-            true, // Può essere esportata
+            true, 
             ["deriveKey", "deriveBits"]
         );
 
@@ -158,7 +158,7 @@ export class API_gestor {
     private async loadOrGenerateKeyPair() {
         const mId = await this.getMachineID();
 
-        // Accedi a IndexedDB
+        
         const dbRequest = indexedDB.open("KeyPairDB", 2);
 
         dbRequest.onupgradeneeded = (event) => {
@@ -176,11 +176,11 @@ export class API_gestor {
         dbRequest.onsuccess = async (e) => {
             const db = dbRequest.result;
 
-            // Crea la transazione e accedi allo store
+            // Crea la transazione e acceda allo store
             const transaction = db.transaction(["keys"], "readwrite");
             const store = transaction.objectStore("keys");
 
-            // Ottieni i dati dalla IndexedDB
+            // Ottiene i dati dalla IndexedDB
             const getRequest = store.get(this.keyFilePath);
 
             getRequest.onerror = (event) => {
@@ -188,7 +188,7 @@ export class API_gestor {
             };
 
             getRequest.onsuccess = async (event) => {
-                const data = getRequest.result; // I dati recuperati
+                const data = getRequest.result; 
                 console.log("data:\n", data)
                 if (data) {
                     const encryptedKeyData = data;
@@ -273,7 +273,7 @@ export class API_gestor {
 
                 // Calcola l'hash SHA-256 per ottenere la shared key, come fatto sul server
                 const sharedKeyBuffer = await window.crypto.subtle.digest("SHA-256", sharedSecretBits);
-                // Converti in hex per verificare
+                // Converte in hex per verificare
                 const sharedKeyHex = this.arrayBufferToHex(sharedKeyBuffer);
                 console.log("Shared key (client, hex):", sharedKeyHex);
                 this.sharedKey = sharedKeyHex;
@@ -304,7 +304,6 @@ export class API_gestor {
     }
 
     private encryptMessage(message: string): string {
-        // Il risultato è un Uint8Array
         const sealed = sodium.crypto_box_seal(message, this.serverPubKey);
         return this.unitArrToBase64(sealed);
     }
@@ -364,7 +363,7 @@ export class API_gestor {
 
     // Funzione per convertire ArrayBuffer in stringa esadecimale
     private arrayBufferToHex(buffer: ArrayBuffer): string {
-        const view = new Uint8Array(buffer);  // La vista Uint8Array dell'ArrayBuffer
+        const view = new Uint8Array(buffer);  
         return Array.from(view).map(byte => byte.toString(16).padStart(2, '0')).join('');
     }
 
@@ -883,7 +882,7 @@ export class API_gestor {
                     console.log("Partially created user successfully deleted from Firebase Auth.");
                 } catch (deleteError: any) {
                     console.error("Error deleting partially created user from Firebase Auth:", deleteError);
-                    // Registra l'errore di eliminazione, ma restituisci l'errore originale di registrazione.
+                   
                 }
             }
 
@@ -899,7 +898,7 @@ export class API_gestor {
         try {
             await this.checkInit()
 
-            // Verifica se esiste un documento con la licenseKey
+            
             const userQuery = query(
                 collection(this.db, "users"),
                 where("licenseKey", "==", licenseKey)
@@ -1006,7 +1005,7 @@ export class API_gestor {
         data: userDBentry | null
     }> {
         try {
-            // Verifica se l'email è già presente
+           
             const emailQuery = query(
                 collection(this.db, "users"),
                 where("email", "==", email)
@@ -1019,8 +1018,8 @@ export class API_gestor {
             console.log("emailSnapshot:\n", emailSnapshot)
 
             const users = emailSnapshot.docs.map(doc => ({
-                id: doc.id,  // Include anche l'ID del documento
-                ...doc.data() // I dati reali dell'utente
+                id: doc.id,  
+                ...doc.data()
             }));
 
             if (users.length > 1) {
@@ -1596,7 +1595,6 @@ export class API_gestor {
     }
 
     // ----- handle shop <--> db :
-    // ----- handle shop <--> db :
     public async getShopItems(): Promise<{
         items: ShopItem[],
         mysteryBoxes: MysteryBoxConfig[],
@@ -1627,20 +1625,18 @@ export class API_gestor {
                 shop_items = itemsData?.items || []; // Access the 'items' field
             } else {
                 console.log("Shop items document does not exist.");
-                // Optionally throw an error or return with an error message if items are mandatory
             }
 
             if (mysteryBoxesDocSnap.exists()) {
                 const mysteryBoxesData = mysteryBoxesDocSnap.data();
-                shop_mysteryBoxes = mysteryBoxesData?.mysteryBoxes || []; // Access the 'mysteryBoxes' field
+                shop_mysteryBoxes = mysteryBoxesData?.mysteryBoxes || [];
             } else {
                 console.log("Mystery boxes document does not exist.");
-                // Optionally throw an error or return with an error message if mystery boxes are mandatory
             }
 
-            // You can add a check here if both documents are expected to exist
+            
             if (shop_items.length === 0 && shop_mysteryBoxes.length === 0) {
-                // If neither document existed or they were empty
+            
                 return {
                     success: false,
                     errorMessage: "No shop content found in expected documents.",
@@ -1753,13 +1749,13 @@ export class API_gestor {
 
             const usersCollectionRef = collection(db, "users");
             const fetchedUsers: userDBentry[] = [];
-            const chunkSize = 10; // La limitazione di Firestore per l'operatore 'in'
+            const chunkSize = 10; //limitazione di Firestore per l'operatore 'in'
 
-            // Dividi l'array di licenseKeys in "chunk" (blocchi) di dimensione massima di 10
+            // divisione dell'array di licenseKeys in "chunk" di dimensione massima 
             for (let i = 0; i < friendLicenseKeys.length; i += chunkSize) {
                 const chunk = friendLicenseKeys.slice(i, i + chunkSize);
                 console.log("chunk in load friends:\n", chunk)
-                // Costruisci la query per il chunk corrente
+                //query per il chunk corrente
                 const q = query(
                     usersCollectionRef,
                     where('licenseKey', 'in', chunk)
@@ -2195,18 +2191,11 @@ export class API_gestor {
 * @returns Un oggetto contenente il boost (0-1) e la durata in ore. Restituisce { boost: 0, time: 0 } se la descrizione non corrisponde al pattern atteso.
 */
     private extractKarmaBoostDetails(description: string): {
-        boost: number; // Valore da 0 a 1 (es. 0.10 per 10%)
-        time: number;  // Durata in ore
+        boost: number; 
+        time: number;  
     } {
-        // Espressione regolare per catturare il numero prima del % e il numero prima di "hour" o "hours".
         const regex = /Increases karma earned by (\d+)% for (\d+) hour(s)?\./;
         const match = description.match(regex);
-
-        // match sarà un array se la regex trova una corrispondenza:
-        // match[0] sarà l'intera stringa corrispondente ("Increases karma earned by 10% for 1 hour.")
-        // match[1] sarà la prima cattura (\d+) -> "10"
-        // match[2] sarà la seconda cattura (\d+) -> "1"
-        // match[3] sarà la terza cattura (s)? -> "s" o undefined
 
         if (match && match[1] && match[2]) {
             const boostPercentage = parseInt(match[1], 10); // Estrai e converti la percentuale

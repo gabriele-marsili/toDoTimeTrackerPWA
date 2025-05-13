@@ -696,27 +696,6 @@ export class TTTappServer {
         }
         return searchUserRes
 
-        /*else {
-            const user = searchUserRes.user
-            if (user == null || user.validKey == null) {
-                return {
-                    success: false,
-                    errorMessage: "Invalid user (null)"
-                }
-            }
-            if (!user.validKey) {
-                return {
-                    success: false,
-                    errorMessage: "Invalid key"
-                }
-            } else {
-                return {
-                    success: true,
-                    user: user
-                }
-            }
-        }*/
-
 
     }
 

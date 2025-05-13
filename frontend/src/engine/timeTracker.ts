@@ -166,37 +166,29 @@ export class TimeTrackerHandler {
         interface ttRuleObjChanged extends TimeTrackerRuleObj {
             changed: boolean
         }
-        // Step 1: Create a map of extension rules for efficient lookup by rule ID.
-        // This allows finding an extension rule by its ID in O(1) on average.
+        // Create a map of extension rules for efficient lookup by rule ID.
+        // => allows finding an extension rule by its ID in O(1) on average.
         const extRulesMap = new Map<string, TimeTrackerRuleObj>();
         for (const extRule of ExtRules) {
             extRulesMap.set(extRule.id, extRule);
         }
         // Time Complexity: O(M), where M is the number of rules in ExtRules.
 
-        // Step 2: Iterate through the PWA rules and merge with corresponding extension rules if found.
+        // Iterate through the PWA rules and merge with corresponding extension rules if found.
         // Use .map() to create a new array and transform each PWA rule.
         const mergedRules: ttRuleObjChanged[] = PWArules.map((pwaRule) => {
             // Create a shallow copy of the PWA rule to avoid mutating the original array.
-            // This is good practice unless you specifically intend to mutate the input array.
             const mergedRule: ttRuleObjChanged = { ...pwaRule, changed: false };
 
-            // Look up the corresponding rule in the extension rules map.
-            // This lookup is O(1) on average.
+            // Look up O(1) the corresponding rule in the extension rules map.
             const matchingExtRule = extRulesMap.get(pwaRule.id);
 
-            // If a matching rule is found in the extension rules (by ID),
-            // update the remaining time in the merged rule to be the minimum of the two.
             if (matchingExtRule && matchingExtRule.remainingTimeMin < pwaRule.remainingTimeMin) {
-                // We take the minimum remaining time between the PWA's state and the extension's state.
-                // This ensures the most restrictive (lowest) time is reflected, maintaining coherence.
                 changed = true;
                 mergedRule.changed = true
                 mergedRule.remainingTimeMin = matchingExtRule.remainingTimeMin
             }
 
-            // Return the (potentially updated) rule based on the PWA rule.
-            // Rules only in ExtRules are not processed here and thus not included in the result.
             return mergedRule;
         });
         // Time Complexity: O(N), where N is the number of rules in PWArules,

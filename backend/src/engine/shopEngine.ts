@@ -1,11 +1,10 @@
-// In your backend logic file (where loadShopItems and loadMysteyBoxes are)
-
 import { initializedFirestonAdmin } from "../firebase/firebase";
 import { GiftItem, ItemRarity, MysterBoxImageUrls, MysteryBoxConfig, ShopItem } from "../types/shopTypes"; // Adjust import path
 
+
 const db = initializedFirestonAdmin.firestore();
 
-// Your existing load functions
+//carica gli shop items nel db
 export async function loadShopItems(items: ShopItem[]): Promise<void> {
     try {
         console.log("loading items:\n", items)
@@ -19,6 +18,7 @@ export async function loadShopItems(items: ShopItem[]): Promise<void> {
     }
 }
 
+//carica le mystery boxes nello shop
 export async function loadMysteyBoxes(mysteryBoxes: MysteryBoxConfig[]): Promise<void> {
     try {
         const shopDocRef = db.collection('shop').doc('mysteryBoxes');
@@ -31,8 +31,7 @@ export async function loadMysteyBoxes(mysteryBoxes: MysteryBoxConfig[]): Promise
     }
 }
 
-
-// Centralized image URLs for all shop items
+// image URLs for all shop items
 const ALL_ITEM_IMAGE_URLS: Record<string, string> = {
     // Karma Boosts 
     "utility_karmaboost_001": "https://i.imgur.com/v95NpaP.jpeg", // Small Karma Boost
@@ -115,7 +114,7 @@ const ALL_ITEM_IMAGE_URLS: Record<string, string> = {
 
 };
 
-// --- Larger Pool of Shop Items (using the centralized URLs) ---
+// --- Shop Items 
 const allAvailableShopItems: ShopItem[] = [
     // Cosmetic Items
     { id: "cosmetic_frame_001", name: "Basic Frame", description: "A basic frame, nothing so special.", cost: 20, rarity: ItemRarity.Mainstream, imageUrl: ALL_ITEM_IMAGE_URLS["cosmetic_frame_001"], type: "cosmetic" },
@@ -132,12 +131,12 @@ const allAvailableShopItems: ShopItem[] = [
     { id: "utility_karmaboost_003", name: "Large Karma Boost", description: "Increases karma earned by 25% for 6 hours.", cost: 500, rarity: ItemRarity.Special, imageUrl: ALL_ITEM_IMAGE_URLS["utility_karmaboost_003"], type: "utility" },
     { id: "utility_karmaboost_004", name: "Legendary Karma Boost", description: "Increases karma earned by 35% for 8 hours.", cost: 700, rarity: ItemRarity.Legendary, imageUrl: ALL_ITEM_IMAGE_URLS["utility_karmaboost_004"], type: "utility" }, // Corrected ID
 
-    // Reminder Items (Assuming these are purchasable templates or credits)
-    // Note: You might want specific reminder icons
+    // Reminder Items
+    // for furure version
     //{ id: "reminder_template_001", name: "Motiviation Reminder Template", description: "A template for sending motivational reminders.", cost: 50, rarity: ItemRarity.Mainstream, imageUrl: ALL_ITEM_IMAGE_URLS["reminder_template_001"], type: "reminder" },
     //{ id: "reminder_credit_001", name: "Custom Reminder Credit", description: "Allows sending one custom reminder to a friend.", cost: 80, rarity: ItemRarity.Mainstream, imageUrl: ALL_ITEM_IMAGE_URLS["reminder_credit_001"], type: "reminder" },
 
-    // Avatars (Using URLs from the centralized object)
+    // Avatars 
     // --- Mainstream (15 items) ---
     { id: "avatar_basic_user", name: "Basic User", description: "A simple, default profile icon.", cost: 5, rarity: ItemRarity.Mainstream, imageUrl: ALL_ITEM_IMAGE_URLS["avatar_basic_user"], type: "avatar" },
     { id: "avatar_smile_face", name: "Smile Face", description: "Smile, sometimes.", cost: 10, rarity: ItemRarity.Mainstream, imageUrl: ALL_ITEM_IMAGE_URLS["avatar_smile_face"], type: "avatar" },
@@ -211,12 +210,7 @@ const allAvailableShopItems: ShopItem[] = [
 
 ];
 
-
-
-
 // --- Pool of Mystery Boxes ---
-
-
 const rarityOrder = [
     ItemRarity.Mainstream,
     ItemRarity.QuiteCommon,
@@ -308,7 +302,11 @@ function selectRandomByRarity<T extends { rarity: ItemRarity }>(items: T[]): T |
     return shuffleArray(selectableItems)[0] || null;
 }
 
-
+/**
+ * genera le mystery boxes da inserire nello shop
+ * @param allItems arr di tutti gli items modellati come gift items
+ * @returns 
+ */
 function generateMysteryBoxes(allItems: GiftItem[]): MysteryBoxConfig[] {
     const mysteryBoxes: MysteryBoxConfig[] = [];
 
@@ -483,7 +481,12 @@ function getMinimumMysteryBoxCost(rarity: ItemRarity): number {
 }
 
 
-
+/**
+ * restituisce 5 items e 2 mystery box ottenute casualmente basandosi sulla probabilità associata alla rarità
+ * @param allItems tutti gli items 
+ * @param allBoxes tutte le mistery box
+ * @returns 
+ */
 function getDailyShopInventory(allItems: GiftItem[], allBoxes: MysteryBoxConfig[]): { dailyItems: GiftItem[], dailyMysteryBoxes: MysteryBoxConfig[] } {
 
     const dailyItems: GiftItem[] = [];
@@ -523,6 +526,7 @@ function getDailyShopInventory(allItems: GiftItem[], allBoxes: MysteryBoxConfig[
     return { dailyItems, dailyMysteryBoxes };
 }
 
+//aggiunge agli shop items un gift per ognuno di essi (corrispondenza 1:1)
 function expandShopItemsWithGifts() {
     let giftItems: GiftItem[] = []
     for (let item of allAvailableShopItems) {

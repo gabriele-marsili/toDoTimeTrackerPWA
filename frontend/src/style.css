@@ -158,14 +158,12 @@ body {
   display: inline-flex;
 }
 
-/* Rimuove le frecce nei browser basati su WebKit (Chrome, Safari, Edge) */
 .no-spin::-webkit-outer-spin-button,
 .no-spin::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-/* Rimuove le frecce nei browser basati su Firefox */
 .no-spin {
   -moz-appearance: textfield;
 }
@@ -178,7 +176,6 @@ body {
   border: 2px solid #15b680d4;
   color: var(--text-color);
   height: 36px;
-  /* Altezza standard per allineamento */
   padding: 0 30px 0 10px;
   border-radius: 4px;
   font-size: 0.9rem;
@@ -202,14 +199,12 @@ body {
   z-index: 9999;
 }
 
-/* Rimuove spinner in Chrome, Safari, Edge */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-/* Rimuove spinner in Firefox */
 input[type="number"] {
   -moz-appearance: textfield;
 }
@@ -248,15 +243,12 @@ input[type="number"] {
 }
 
 
-/**checkbox/
-/* Nasconde il checkbox originale */
 .baseCheckbox {
   appearance: none;
   width: 20px;
   max-width: 20px;
   height: 20px;
   border: 2px solid var(--checkbox-border);
-  /* Bordi fini e semitrasparenti */
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -266,19 +258,15 @@ input[type="number"] {
   cursor: pointer;
 }
 
-/* Stile quando è attivo */
 .baseCheckbox:checked {
   border-color: rgba(16, 185, 129, 1);
-  /* Bordi verdi più visibili */
 }
 
-/* Pallina verde interna quando selezionato */
 .baseCheckbox:checked::before {
   content: "";
   width: 10px;
   height: 10px;
   background-color: rgba(16, 185, 129, 0.369);
-  /* Verde semitrasparente */
   border-radius: 50%;
   transition: background-color 0.2s ease-in-out;
 }
@@ -443,15 +431,11 @@ input[type="number"] {
   border-radius: 50%;
   overflow: hidden;
   display: flex;
-  /* Per centrare l'immagine */
   justify-content: center;
   align-items: center;
   position: relative;
-  /* Necessario per gli effetti della cornice */
   box-sizing: border-box;
-  /* Assicura che padding e border siano inclusi nella width/height */
   transition: all 0.3s ease-in-out;
-  /* Transizione per un cambio fluido della cornice */
 }
 
 .avatar {
@@ -467,8 +451,8 @@ input[type="number"] {
 }
 
 .no-frame:hover {
-  border-color: var(--accent-color-dark, #34D399); /* Colore accentuato al passaggio del mouse */
-  box-shadow: 0 0 10px var(--accent-color-dark, #34D399); /* Bagliore leggero */
+  border-color: var(--accent-color-dark, #34D399); 
+  box-shadow: 0 0 10px var(--accent-color-dark, #34D399); 
 }
 
 
@@ -480,12 +464,11 @@ input[type="number"] {
 }
 
 .frame-cosmetic-frame-001:hover {
-  border-color: #a0a0a0; /* Grigio leggermente più chiaro */
-  box-shadow: 0 0 8px rgba(160, 160, 160, 0.7); /* Bagliore più intenso */
-  transform: scale(1.02); /* Lieve ingrandimento */
+  border-color: #a0a0a0;
+  box-shadow: 0 0 8px rgba(160, 160, 160, 0.7);
+  transform: scale(1.02);
 }
 
-/* Cornice Classica - Classic Frame (Quite Common - #a4e4a4) */
 .frame-cosmetic-frame-002 {
   border: 4px solid #a4e4a4;
   box-shadow: 0 0 8px rgba(164, 228, 164, 0.6);
@@ -493,11 +476,11 @@ input[type="number"] {
 }
 
 .frame-cosmetic-frame-002:hover {
-  border-width: 5px; /* Bordo leggermente più spesso */
-  box-shadow: 0 0 12px rgba(164, 228, 164, 0.9); /* Bagliore più forte */
+  border-width: 5px; 
+  box-shadow: 0 0 12px rgba(164, 228, 164, 0.9); 
 }
 
-/* Cornice Insolita - Unusual Frame (Uncommon - lightgreen) */
+
 .frame-cosmetic-frame-003 {
   border: 5px dashed lightgreen;
   box-shadow: 0 0 10px lightgreen, 0 0 15px rgba(144, 238, 144, 0.4);
@@ -505,16 +488,15 @@ input[type="number"] {
 }
 
 .frame-cosmetic-frame-003:hover {
-  box-shadow: 0 0 15px lightgreen, 0 0 25px rgba(144, 238, 144, 0.6); /* Bagliore più intenso */
-  transform: rotate(2deg); /* Rotazione sottile per un effetto "insolito" */
+  box-shadow: 0 0 15px lightgreen, 0 0 25px rgba(144, 238, 144, 0.6); 
+  transform: rotate(2deg); 
 }
 
-/* Cornice Elettrica - Electric Frame (Rare - dodgerblue) */
 .frame-cosmetic-frame-007 {
   border: 6px solid dodgerblue;
   box-shadow: 0 0 15px dodgerblue, 0 0 25px rgba(30, 144, 255, 0.6);
   animation: electric-glow 1.5s infinite alternate;
-  transition: box-shadow 0.3s ease; /* Transizione per il hover del box-shadow */
+  transition: box-shadow 0.3s ease; 
 }
 
 @keyframes electric-glow {
@@ -528,27 +510,27 @@ input[type="number"] {
 }
 
 .frame-cosmetic-frame-007:hover {
-  /* Al passaggio del mouse, intensifica il bagliore elettrico */
+  
   box-shadow: 0 0 25px dodgerblue, 0 0 40px rgba(30, 144, 255, 0.9);
 }
 
 
-/* Cornice Principessa - Princess Frame (Special - violet) */
+
 .frame-cosmetic-frame-004 {
   border: 5px double violet;
   background: radial-gradient(circle at center, rgba(238, 130, 238, 0.3) 0%, transparent 70%);
   box-shadow: 0 0 12px violet, 0 0 20px rgba(238, 130, 238, 0.5);
-  transition: all 0.3s ease; /* Transizione per tutti i cambiamenti */
+  transition: all 0.3s ease;
 }
 
 .frame-cosmetic-frame-004:hover {
-  border-color: #ee82ee; /* Un violetto leggermente più chiaro */
-  box-shadow: 0 0 18px violet, 0 0 30px rgba(238, 130, 238, 0.8); /* Bagliore più intenso */
-  background: radial-gradient(circle at center, rgba(238, 130, 238, 0.5) 0%, transparent 80%); /* Sfumatura più pronunciata */
-  transform: translateY(-3px); /* Lieve sollevamento */
+  border-color: #ee82ee; 
+  box-shadow: 0 0 18px violet, 0 0 30px rgba(238, 130, 238, 0.8);
+  background: radial-gradient(circle at center, rgba(238, 130, 238, 0.5) 0%, transparent 80%); 
+  transform: translateY(-3px); 
 }
 
-/* Cornice Dorata - Golden Frame (Legendary - gold) */
+
 .frame-cosmetic-frame-005 {
   border: 6px solid transparent;
   background-image: linear-gradient(to bottom right, gold, darkgoldenrod, gold);
@@ -556,7 +538,7 @@ input[type="number"] {
   background-clip: padding-box, border-box;
   box-shadow: 0 0 20px gold, 0 0 30px rgba(255, 215, 0, 0.7);
   animation: golden-shimmer 2s infinite linear;
-  transition: box-shadow 0.3s ease, transform 0.2s ease; /* Transizioni per hover */
+  transition: box-shadow 0.3s ease, transform 0.2s ease; 
 }
 
 @keyframes golden-shimmer {
@@ -569,49 +551,45 @@ input[type="number"] {
   }
 }
 
-.frame-cosmetic-frame-005:hover {
-  /* Intensifica il bagliore dorato e crea un effetto di "ricchezza" */
-  box-shadow: 0 0 30px gold, 0 0 50px rgba(255, 215, 0, 1); /* Bagliore dorato più forte */
-  transform: scale(1.03); /* Lieve ingrandimento per risaltare */
-  /* Potresti anche modificare background-position per accelerare lo shimmer o cambiarne la direzione */
+.frame-cosmetic-frame-005:hover {  
+  box-shadow: 0 0 30px gold, 0 0 50px rgba(255, 215, 0, 1); 
+  transform: scale(1.03); 
+  
 }
 
 
-/* Cornice Unica - The Unique Frame (Unique - #8B0000) */
-/* Versione più mistica e profonda, con bordeaux dominante e ombre ottimizzate */
+
 .frame-cosmetic-frame-006 {
-  /* Bordo principale in bordeaux, mantenuto con una buona presenza */
+  
   border: 4px solid #8B0000;
 
-  /* Sfondo con sfumatura più bordeaux: dal bordeaux luminoso al bordeaux scuro, con un tocco di nero profondo ai bordi */
+  
   background: radial-gradient(circle at center,
       rgba(139, 0, 0, 0.9) 0%,
-      /* Bordeoux più intenso al centro */
+  
       rgba(100, 0, 0, 0.8) 40%,
-      /* Transizione a un bordeaux più scuro */
+  
       rgba(50, 0, 0, 0.8) 70%,
-      /* Bordeoux molto scuro */
+  
       rgba(0, 0, 0, 0.9) 100%);
-  /* Nero profondo ai bordi per il mistero */
-
-  /* Ombre ristabilite: bagliore bordeaux potente e ombra esterna profonda. Rimosso il "cerchio nero interno". */
+  
   box-shadow:
-    /* Bagliore esterno bordeaux più diffuso e vibrante */
+
     0 0 25px rgba(139, 0, 0, 0.95),
-    /* Ombra esterna nera più ampia per una profondità avvolgente e misteriosa */
+
     0 0 45px rgba(0, 0, 0, 0.7),
-    /* Lieve bagliore bianco interno per definire il bordo senza creare un cerchio nero */
+  
     inset 0 0 8px rgba(255, 255, 255, 0.15);
 
-  /* Animazione di pulsazione più percettibile ma ancora fluida e "mistica" */
+  
   animation: unique-mystic-pulse 2.5s infinite alternate ease-in-out;
   position: relative;
   box-sizing: border-box;
-  /* Aggiungi transizioni per gli pseudo-elementi se vuoi animarli */
+  
   transition: box-shadow 0.3s ease, transform 0.2s ease;
 }
 
-/* Dettagli bianchi e neri dei pseudo-elementi, leggermente più visibili */
+
 .frame-cosmetic-frame-006::before {
   content: '';
   position: absolute;
@@ -620,11 +598,11 @@ input[type="number"] {
   right: -4px;
   bottom: -4px;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  /* Linea esterna bianca più spessa e visibile */
+  
   border-radius: 50%;
   pointer-events: none;
   z-index: 1;
-  transition: all 0.3s ease; /* Aggiunto per animare il hover */
+  transition: all 0.3s ease; 
 }
 
 .frame-cosmetic-frame-006::after {
@@ -635,11 +613,10 @@ input[type="number"] {
   right: 4px;
   bottom: 4px;
   border: 2px solid rgba(0, 0, 0, 0.7);
-  /* Linea interna nera più spessa e scura per definizione */
   border-radius: 50%;
   pointer-events: none;
   z-index: 1;
-  transition: all 0.3s ease; /* Aggiunto per animare il hover */
+  transition: all 0.3s ease; 
 }
 
 @keyframes unique-mystic-pulse {
@@ -653,11 +630,8 @@ input[type="number"] {
   50% {
     box-shadow:
       0 0 40px rgba(139, 0, 0, 1),
-      /* Bagliore bordeaux ancora più forte al culmine */
       0 0 70px rgba(0, 0, 0, 0.9),
-      /* Ombra esterna nera più estesa e scura */
       inset 0 0 12px rgba(255, 255, 255, 0.25);
-    /* Bagliore bianco interno più visibile */
   }
 
   100% {
@@ -668,24 +642,24 @@ input[type="number"] {
   }
 }
 
-/* Hover per The Unique Frame (Unique) */
+
 .frame-cosmetic-frame-006:hover {
   box-shadow:
-    0 0 35px rgba(139, 0, 0, 1), /* Bagliore bordeaux ancora più intenso */
-    0 0 60px rgba(0, 0, 0, 0.9), /* Ombra esterna nera più profonda */
-    inset 0 0 15px rgba(255, 255, 255, 0.3); /* Bagliore bianco interno più pronunciato */
-  transform: scale(1.03); /* Leggero ingrandimento per un effetto di "emersione" */
+    0 0 35px rgba(139, 0, 0, 1), 
+    0 0 60px rgba(0, 0, 0, 0.9), 
+    inset 0 0 15px rgba(255, 255, 255, 0.3); 
+  transform: scale(1.03);
 }
 
-/* Hover per i pseudo-elementi di The Unique Frame */
+
 .frame-cosmetic-frame-006:hover::before {
-  border-color: rgba(255, 255, 255, 0.5); /* Linea bianca più luminosa */
-  transform: scale(1.03); /* Si espande leggermente con il frame */
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.03);
 }
 
 .frame-cosmetic-frame-006:hover::after {
-  border-color: rgba(0, 0, 0, 0.9); /* Linea nera più scura */
-  transform: scale(0.97); /* Si restringe leggermente per accentuare il bordo interno */
+  border-color: rgba(0, 0, 0, 0.9); 
+  transform: scale(0.97); 
 }
 
 

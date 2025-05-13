@@ -144,7 +144,7 @@ export default {
         });
 
         const router = useRouter();
-        const notificationManager = ref(null); // Riferimento per NotificationManager
+        const notificationManager = ref(null);
 
         const selectedFrameClass = computed(() => {
             return getFrameClass(userInfo.value.frame);
@@ -154,7 +154,7 @@ export default {
             if (frameId == "") {
                 return 'no-frame'
             }
-            return `frame-${frameId.replace(/_/g, '-')}`; // Sostituisce underscore con trattino per nomi di classe CSS validi
+            return `frame-${frameId.replace(/_/g, '-')}`;
         };
 
         const handleSectionChange = (newSection: any) => {
@@ -267,8 +267,6 @@ export default {
             }
 
 
-
-            // Mostra una notifica di benvenuto dopo il montaggio
             setTimeout(() => {
                 if (userInfo.value.username != "") {
                     sendNotify("info", userInfo.value.username + " welcome back in TTT App")
@@ -340,7 +338,6 @@ export default {
 
 
 
-/* Griglia con 3 colonne per i box */
 .content-grid {
     flex: 1;
     display: grid;
@@ -350,7 +347,6 @@ export default {
 }
 
 
-/* Stile base per i box */
 .box {
     background-color: var(--background);
     padding: 15px;
@@ -388,7 +384,6 @@ export default {
     display: none;
 }
 
-/* Footer (Calendario/Eventi): occupa quasi tutta la larghezza del main content */
 .footer {
     margin-top: 5%;
     background-color: var(--background);
@@ -432,7 +427,6 @@ export default {
     gap: 5px;
 }
 
-/* Colonna destra: impila verticalmente i due elementi e li allinea a destra */
 .info-right {
     display: flex;
     flex-direction: column;
@@ -480,7 +474,6 @@ export default {
     font-size: 1em;
     margin-right: 4px;
     color: #FFD700;
-    /* colore oro per il badge, personalizzabile */
 }
 
 .friend-icon {

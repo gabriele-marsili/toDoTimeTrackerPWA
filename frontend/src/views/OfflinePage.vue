@@ -26,7 +26,7 @@
                 <p :class="isDarkMode ? 'text-white' : 'text-black'" class="mb-6">
                     Reconnect for the full experience or explore available offline features.
                 </p>
-                <!-- Illustrazione offline -->
+                
                 <div class="mt-6 flex justify-center">
                     <button @click="tryToReconnect" class="baseButton">
                         <span v-if="isDarkMode" class="text-white">Try To Reconnect</span>
@@ -100,7 +100,6 @@ export default {
             window.addEventListener('online', backOnline)
         });
 
-        // Computed per gestire la classe del tema se necessario
         const themeClass = computed(() => (isDarkMode.value ? 'dark' : 'light'));
 
         return {

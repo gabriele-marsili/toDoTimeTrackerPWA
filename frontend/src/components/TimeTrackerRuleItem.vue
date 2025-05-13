@@ -1,6 +1,6 @@
 <template>
     <div class="rule-item">
-        <!-- Visualizzazione in modalità normale -->
+        
         <div class="rule-display">
 
             <div class="rule-info">
@@ -94,8 +94,8 @@ watch(() => props.rule, (newVal) => {
 }
 
 .info .g-icon {
-     font-size: 1.2em; /* Icone leggermente più grandi */
-     color: var(--primary-color); /* Colore icona primario */
+     font-size: 1.2em; 
+     color: var(--primary-color); 
 }
 
 .rule-info span {
@@ -106,8 +106,8 @@ watch(() => props.rule, (newVal) => {
     display: flex;
     justify-content: center;
     flex-direction: column;
-    gap: 10px; /* Spazio tra i bottoni di azione */
-    flex-shrink: 0; /* Evita che l'action section si riduca */
+    gap: 10px; 
+    flex-shrink: 0; 
 }
 
 .rule-actions button,
@@ -118,8 +118,8 @@ watch(() => props.rule, (newVal) => {
     padding: 5px;
     border-radius: 4px;
     transition: background-color 0.2s ease;
-     color: var(--text-color); /* Colore icone bottoni */
-     display: flex; /* Per centrare l'icona nel bottone */
+     color: var(--text-color); 
+     display: flex; 
      justify-content: center;
      align-items: center;
 }
@@ -132,11 +132,9 @@ watch(() => props.rule, (newVal) => {
 
 .rule-display {
     display: flex;
-    /* Ritorna a flexbox per layout orizzontale */
     flex-direction: row;
     justify-content: space-between;
-    /* Spazio tra info e actions */
-    align-items: center; /* Centra verticalmente le due sezioni */
-    flex-wrap: wrap; /* Permette al layout di andare a capo su schermi piccoli */
+    align-items: center;
+    flex-wrap: wrap; 
 }
 </style>

@@ -1,1 +1,5 @@
 node_modules
+.env
+/src/server/server.env
+/src/server/keyFile.json
+/src/firebase/adminCredentials.json

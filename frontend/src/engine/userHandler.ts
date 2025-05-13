@@ -97,17 +97,14 @@ export class UserHandler {
 
     // Restituisce il livello di prestigio attuale dell'utente
     public getUserPrestigeTitle(tasksCompletedQuantity: number): UserPrestigeLevel {
-        // Ordina i livelli dal più alto al più basso (per trovare il livello massimo raggiunto)
         const sortedLevels = [...prestigeLevels].sort((a, b) => b.minTasksCompleted - a.minTasksCompleted);
 
-        // Trova il primo livello per cui l'utente ha abbastanza task completati
         for (const level of sortedLevels) {
             if (tasksCompletedQuantity >= level.minTasksCompleted) {
                 return level;
             }
         }
 
-        // In caso di errore o valore negativo, ritorna il primo livello (fallback)
         return prestigeLevels[0];
     }
 

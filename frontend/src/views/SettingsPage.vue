@@ -131,9 +131,8 @@ const userInfo = ref<userDBentry>({
 const router = useRouter();
 const timeTrackerHandler = TimeTrackerHandler.getInstance(api_gestor)
 const extComunicator = ExtComunicator.getInstance(timeTrackerHandler, userInfo.value.licenseKey)
-const rules = ref<TimeTrackerRule[]>([]); // State per la lista delle regole
+const rules = ref<TimeTrackerRule[]>([]);
 
-// Stato per la gestione delle categorie
 const newCategoryName = ref('');
 
 // Computed property per calcolare i punti rimanenti
@@ -150,7 +149,7 @@ const getFrameClass = (frameId: string) => {
     if(frameId == ""){
         return 'no-frame'
     }
-    return `frame-${frameId.replace(/_/g, '-')}`; // Sostituisce underscore con trattino per nomi di classe CSS validi
+    return `frame-${frameId.replace(/_/g, '-')}`;
 };
 
 async function askTimeTrackerRules() {
@@ -181,10 +180,10 @@ async function askToDo() {
             console.log("todoList:\n", todoList)
             const countToDoQuantity = (todo_list: ToDoObj[]): number => {
                 let q = 0;
-                for (let to_do of todo_list.filter(t => !t.completed)) { //scorro to do non completate 
-                    q += 1 //incremento quantity q
-                    if (to_do.subActions.length > 0) { //se to do ha sub actions 
-                        //incremento q sfruttando ricorsione su sub actions 
+                for (let to_do of todo_list.filter(t => !t.completed)) { 
+                    q += 1
+                    if (to_do.subActions.length > 0) {
+                       
                         q += countToDoQuantity(to_do.subActions)
                     }
                 }
@@ -219,7 +218,6 @@ const remainingPointsIfEditing = (index: number) => {
 };
 
 
-// Metodi per la gestione delle categorie
 const addCategory = () => {
     if (newCategoryName.value.trim() === '') {
         sendNotify("warning", "The category's name can't be empty");
@@ -234,7 +232,6 @@ const addCategory = () => {
         return;
     }
 
-    // Assegna 1 punto alla nuova categoria, se disponibile, altrimenti il minimo rimanente
     const pointsToAssign = Math.min(1, remainingPoints.value); 
     userInfo.value.categories.push({ name: newCategoryName.value.trim(), points: pointsToAssign });
     newCategoryName.value = '';
@@ -243,15 +240,12 @@ const addCategory = () => {
 const removeCategory = (index: number) => {
     if (userInfo.value.categories.length > 1) {
          userInfo.value.categories.splice(index, 1)[0];
-        // I punti della categoria rimossa sono automaticamente ricalcolati in remainingPoints
-        // Non è necessario aggiungere manualmente i punti.
     } else {
         sendNotify("warning", "There must be at least one category");
     }
 };
 
 const updateCategoryPoints = (index: number) => {
-    // Assicurati che i punti non siano negativi
     if (userInfo.value.categories[index].points < 0) {
         userInfo.value.categories[index].points = 0;
     }
@@ -286,26 +280,6 @@ const saveCategories = async () => {
 };
 
 
-// Metodi per gli switcher dell'header
-const toggleNotifications = async () => {
-    try {
-        // Assumi che userHandler.updateUserInfo possa prendere un oggetto parziale
-        // per aggiornare solo specifici campi. Se richiede l'intero oggetto,
-        // dovrai passare l'intero userInfo.value.
-        const updatedUinfo = toRaw(userInfo.value);
-        const updateRes = await userHandler.updateUserInfo(updatedUinfo);
-        if (updateRes.success) {
-            sendNotify("success", `Notifications ${userInfo.value.notifications ? 'enabled' : 'disabled'} successfully.`);
-        } else {
-            // Ripristina lo stato se l'aggiornamento fallisce
-            userInfo.value.notifications = !userInfo.value.notifications;
-            sendNotify("error", `Error when updating notifications: ${updateRes.errorMessage}`);
-        }
-    } catch (error: any) {
-        userInfo.value.notifications = !userInfo.value.notifications;
-        sendNotify("error", `Unexpected error: ${error.message}`);
-    }
-};
 
 const toggleTimeTracker = async () => {
     try {
@@ -339,7 +313,7 @@ function sendNotify(type: "info" | "warning" | "error" | "success", text: string
 
 async function askUserInfo() {
     const userInfoRes = await userHandler.getUserInfo(true);
-    console.log("userInfoRes (settings page):\n", userInfoRes); // Modificato il log
+    console.log("userInfoRes (settings page):\n", userInfoRes);
     if (!userInfoRes.userInfo_DB) {
         sendNotify("warning", "Not logged in, please log in");
         await delay(1500);
@@ -351,7 +325,6 @@ async function askUserInfo() {
     if (userInfo.value.avatarImagePath === "") {
         userInfo.value.avatarImagePath = defaultImagePath;
     }
-    // Assicurati che ci sia almeno una categoria se l'array è vuoto
     if (userInfo.value.categories.length === 0) {
         userInfo.value.categories.push({ name: "Generale", points: 100 });
     }
@@ -359,8 +332,6 @@ async function askUserInfo() {
 
 const handleSectionChange = (newSection: any) => {
     console.log(`Navigando alla sezione: ${newSection}`);
-    // Qui potresti implementare la logica per la navigazione,
-    // ad esempio con `router.push` se il Sidebar gestisce la navigazione
 };
 
 onMounted(async () => {
@@ -415,22 +386,23 @@ onMounted(async () => {
 <style scoped>
 .header-section {
     display: flex;
-    /* Sovrascrive column, imposta riga */
+    
     flex-direction: row;
     justify-content: space-between;
-    /* Spazia gli elementi ai bordi */
+    
     align-items: center;
-    /* Allinea verticalmente al centro */
+    
     width: 97%;
-    /* Mantieni la larghezza */
+    
     margin-top: 2%;
     margin-left: 2%;
     margin-bottom: 1%;
     padding: 15px 20px;
-    /* Padding per respirare */
+    
     gap: 1%;
-    /* Riduci il gap se gli elementi sono troppi */
-    flex-wrap: nowrap; /* Evita che gli elementi vadano a capo, forza lo scroll se necessario */
+    
+    flex-wrap: nowrap; 
+    
     overflow: hidden;
 }
 
@@ -438,36 +410,36 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     gap: 10px;
-    flex-shrink: 0; /* Previene il restringimento */
+    flex-shrink: 0;
 }
 
 .header-content-right {
     display: flex;
     align-items: center;
-    gap: 15px; /* Spazio tra i blocchi (switcher, info utente) */
-    flex-shrink: 0; /* Previene il restringimento */
+    gap: 15px; 
+    flex-shrink: 0; 
 }
 
 .header-item {
     display: flex;
     flex-direction: row;
     align-items: center;
-    font-size: 0.9rem; /* Riduci la dimensione del font per far stare più cose */
+    font-size: 0.9rem; 
     gap: 5px;
-    white-space: nowrap; /* Impedisce che il testo vada a capo */
+    white-space: nowrap; 
 }
 
 .user-info-display {
-    flex-direction: row; /* Da destra a sinistra: username, titolo, avatar */
+    flex-direction: row; 
     align-items: center;
     gap: 10px;
-    justify-content: flex-end; /* Allinea gli elementi a destra all'interno del contenitore */
-    order: 3; /* Assicurati che sia l'ultimo elemento nel flusso */
+    justify-content: flex-end;
+    order: 3; 
 }
 
 .user-name {
     font-weight: bold;
-    color: var(--text-color); /* Colore del testo definito nel tema */
+    color: var(--text-color);
 }
 
 .prestige-title {        
@@ -488,14 +460,14 @@ onMounted(async () => {
     height: 40px;
 }
 
-/* Stili per gli switcher (ispirati a un design pulito) */
+
 .switch-container {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-right: 10px;
-    /* Spazio tra gli switcher e l'info utente */
-    order: 1; /* Posiziona gli switcher a sinistra dell'info utente */
+    
+    order: 1;
 }
 
 .switch-label {
@@ -538,7 +510,7 @@ onMounted(async () => {
     transform: translateX(20px);
 }
 
-/* STILE PUNTO 3: Gestione Categorie */
+
 .categories-section {
     width: 97%;
     margin-left: 2%;
@@ -583,17 +555,17 @@ onMounted(async () => {
 
 
 .category-grid {
-    gap: 1rem; /* Spazio tra le card delle categorie */
+    gap: 1rem; 
 }
 
 .category-card {
     color: var(--text-color);
-    border: 1px solid rgba(255, 255, 255, 0.1); /* Bordo sottile */
+    border: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    align-items: stretch; /* Per allineare input e pulsante */
-    height: 100%; /* Assicurati che le card abbiano altezza uniforme in una riga */
+    align-items: stretch; 
+    height: 100%; 
 }
 
 .category-label {
@@ -602,18 +574,18 @@ onMounted(async () => {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 100%; /* Occupare tutta la larghezza disponibile */
+    width: 100%;
 }
 
 .category-input-group {
     display: flex;
     align-items: center;
-    gap: 8px; /* Spazio tra input e pulsante delete */
+    gap: 8px;
 }
 
 .category-input {
-    flex-grow: 1; /* L'input occupa lo spazio rimanente */
-    text-align: center; /* Centra il testo nell'input */
+    flex-grow: 1;
+    text-align: center; 
 }
 
 .category-remove-button {
@@ -624,7 +596,7 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #e74c3c; /* Colore rosso per l'icona elimina */
+    color: #e74c3c; 
 }
 
 .category-remove-button:hover {
@@ -634,7 +606,7 @@ onMounted(async () => {
 }
 
 .g-icon {
-    font-size: 1.5rem; /* Dimensione dell'icona elimina */
+    font-size: 1.5rem;
 }
 
 .add-category-section {
@@ -653,8 +625,8 @@ onMounted(async () => {
 }
 
 .category-add-button {
-    /* Utilizza lo stile baseButtonHigher da style.css */
-    padding: 10px 20px; /* Aumenta il padding del bottone */
+   
+    padding: 10px 20px;
 }
 
 .saveButton{
@@ -669,9 +641,8 @@ onMounted(async () => {
 
 }
 
-.save-categories-button {
-    /* Utilizza lo stile baseButtonHigher da style.css */
-    padding: 12px 25px; /* Rendi il bottone più grande e evidente */
+.save-categories-button {    
+    padding: 12px 25px; 
     font-size: 1.1rem;
 }
 
@@ -679,20 +650,20 @@ onMounted(async () => {
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .header-section {
-        flex-wrap: wrap; /* Permetti al contenuto di andare a capo su schermi piccoli */
+        flex-wrap: wrap; 
         justify-content: center;
-        gap: 10px; /* Aumenta il gap per chiarezza */
+        gap: 10px; 
     }
 
     .header-content-right {
-        order: -1; /* Sposta gli switch e info utente sopra su schermi piccoli */
+        order: -1; 
         width: 100%;
         justify-content: space-around;
         margin-bottom: 10px;
     }
 
     .user-info-display {
-        order: 2; /* Dopo gli switch */
+        order: 2; 
         width: 100%;
         justify-content: center;
     }
@@ -714,7 +685,7 @@ onMounted(async () => {
 
 @media (max-width: 480px) {
     .category-grid {
-        grid-template-columns: 1fr; /* Una colonna su schermi molto piccoli */
+        grid-template-columns: 1fr; 
     }
 }
 </style>

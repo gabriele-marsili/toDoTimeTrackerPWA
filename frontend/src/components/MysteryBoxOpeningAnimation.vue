@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { MysteryBoxConfig, ShopItem, ItemRarity } from '../types/shopTypes'; // Adjust path
+import { MysteryBoxConfig, ShopItem, ItemRarity } from '../types/shopTypes';
 
 const props = defineProps<{
     box: MysteryBoxConfig; // The mystery box being opened
@@ -40,7 +40,7 @@ const props = defineProps<{
     isVisible: boolean; // Controls visibility of the overlay
 }>();
 
-const emit = defineEmits(['animation-complete', 'closed']); // Emit when animation is done/user closes
+const emit = defineEmits(['animation-complete', 'closed']); 
 
 const animationStep = ref<'closed' | 'processing' | 'opening' | 'suspense' | 'revealed'>('closed');
 
@@ -49,42 +49,30 @@ watch(() => props.isVisible, (newValue) => {
         animationStep.value = 'processing'; // Start in processing state
     } else {
         animationStep.value = 'closed'; // Reset when hidden
-        // Ensure grantedItem is also reset when closing
-        // Note: Depending on how parent manages state, parent might also clear grantedItem
-        // If not, you might want to add grantedItem.value = null; here.
     }
 });
 
 watch(() => props.grantedItem, (newItem) => {
-    // Start the animation sequence only when a valid grantedItem is received
-    // Check for newItem and ensure it's not just a default/initial null state
     if (newItem) {
-        console.log("Granted item received, starting animation sequence.");
-        // Delay before starting the "opening" animation
+        console.log("Granted item received, starting animation sequence.");        
         setTimeout(() => {
-            animationStep.value = 'opening';
-             // Duration of the opening animation (adjust CSS animation duration too)
+            animationStep.value = 'opening';             
             setTimeout(() => {
-                animationStep.value = 'suspense';
-                // Duration of the suspense screen (longer as requested)
+                animationStep.value = 'suspense';                
                 setTimeout(() => {
                     animationStep.value = 'revealed';
-                    emit('animation-complete', newItem); // Notify parent animation is done
-                }, 2500); // Suspense duration (2.5 seconds)
-            }, 1500); // Opening duration (1.5 seconds - adjust to match your CSS animation)
-        }, 500); // Processing duration (0.5 seconds extra delay)
+                    emit('animation-complete', newItem);
+                }, 2500); 
+            }, 1500); 
+        }, 500); 
     }
 });
 
 
 const closeAnimation = () => {
     animationStep.value = 'closed';
-    emit('closed'); // Notify parent to hide the component and reset state
+    emit('closed'); 
 };
-
-// You would implement CSS animations/transitions using @keyframes and classes here.
-// For more complex or chained animations, consider using JavaScript animation libraries
-// or listening to CSS animationend events.
 
 </script>
 
@@ -95,13 +83,13 @@ const closeAnimation = () => {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.9); /* Slightly darker overlay */
+    background-color: rgba(0, 0, 0, 0.9); 
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    backdrop-filter: blur(8px); /* More blur */
-    animation: fadeInOverlay 0.3s ease-out; /* Fade in the overlay */
+    backdrop-filter: blur(8px);
+    animation: fadeInOverlay 0.3s ease-out;
 }
 
 @keyframes fadeInOverlay {
@@ -118,12 +106,12 @@ const closeAnimation = () => {
     color: var(--text-color);
     box-shadow: var(--shadow);
     max-width: 90%;
-    min-width: 300px; /* Ensure a minimum width */
+    min-width: 300px; 
     max-height: 90%;
     overflow-y: auto;
     position: relative;
-    border: 3px solid transparent; /* Base border */
-    animation: scaleInContainer 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Pop-in effect */
+    border: 3px solid transparent; 
+    animation: scaleInContainer 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); 
 }
 
 @keyframes scaleInContainer {
@@ -140,12 +128,11 @@ const closeAnimation = () => {
 .animation-container.rarity-special { border-color: violet; }
 .animation-container.rarity-legendary {
     border-color: gold;
-    box-shadow: 0 0 8px 4px gold; /* Slightly stronger glow */
+    box-shadow: 0 0 8px 4px gold; 
 }
 .animation-container.rarity-unique {
     border-color: #8B0000;
-    box-shadow: 0 0 20px 10px #8B0000; /* More pronounced glow */
-    /* Add background animations if desired, similar to shop display */
+    box-shadow: 0 0 20px 10px #8B0000;
 }
 
 
@@ -154,31 +141,28 @@ const closeAnimation = () => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    /* Add transitions for state changes */
     transition: opacity 0.3s ease-in-out;
 }
 
-/* Hide states that are not active */
 .box-state:not(.processing):not(.opening):not(.suspense):not(.revealed) {
     display: none;
 }
 
 
 .box-image {
-    width: 120px; /* Slightly larger image */
+    width: 120px;
     height: 120px;
     object-fit: contain;
     margin-bottom: 20px;
 }
 
-/* Processing state animation */
 .processing-animation {
-     animation: pulse 1.5s infinite ease-in-out; /* Keep pulse or change */
+     animation: pulse 1.5s infinite ease-in-out; 
 }
 
 .spinner {
-     border: 4px solid #f3f3f3; /* Light grey */
-     border-top: 4px solid var(--accent-color); /* Accent color */
+     border: 4px solid #f3f3f3; 
+     border-top: 4px solid var(--accent-color);
      border-radius: 50%;
      width: 30px;
      height: 30px;
@@ -192,40 +176,29 @@ const closeAnimation = () => {
 }
 
 
-
-/* Suspense state animation - Applied to the image directly in this state */
-/* New Bounce Keyframes */
 @keyframes bounce {
     0%, 20%, 50%, 80%, 100% {
         transform: translateY(0);
     }
     40% {
-        transform: translateY(-20px); /* How high the bounce is */
+        transform: translateY(-20px);
     }
     60% {
-        transform: translateY(-10px); /* Slightly less bounce */
+        transform: translateY(-10px); 
     }
 }
 
 
-/* Apply bounce animation to the image during the suspense state */
 .suspense .box-image {
-     animation: bounce 1s infinite; /* Apply the bounce animation */
+     animation: bounce 1s infinite; 
 }
 
-
-/* You can still add rarity-specific *variations* to the bounce if desired,
-   e.g., different speed or height based on rarity classes, but the base is bounce. */
-/* Example (optional): */
-/* .suspense .box-image.rarity-Legendary { animation-duration: 0.8s; } */
-
-
 .granted-item-image {
-    width: 180px; /* Larger item image */
+    width: 180px; 
     height: 180px;
     object-fit: contain;
     margin-bottom: 15px;
-    animation: fadeInScale 0.5s ease-out; /* Fade in the item */
+    animation: fadeInScale 0.5s ease-out; 
 }
 
 @keyframes fadeInScale {
@@ -234,10 +207,9 @@ const closeAnimation = () => {
 }
 
 
-/* Item reveal animation based on rarity (optional, adds flair) */
 .granted-item-image.rarity-reveal-animation-Legendary,
 .granted-item-image.rarity-reveal-animation-Unique {
-     animation: legendary-reveal 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; /* Pop-out effect */
+     animation: legendary-reveal 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
 }
 
 @keyframes legendary-reveal {
@@ -248,20 +220,20 @@ const closeAnimation = () => {
 
 
 .box-name {
-    font-size: 1.3em; /* Slightly larger text */
+    font-size: 1.3em;
     margin-bottom: 15px;
 }
 
 .revealed h3 {
-    font-size: 1.6em; /* Slightly larger */
+    font-size: 1.6em; 
     margin-bottom: 10px;
     color: var(--accent-color);
 }
 
 .revealed h4 {
-    font-size: 1.4em; /* Slightly larger */
+    font-size: 1.4em; 
     margin-bottom: 8px;
-    animation: fadeIn 0.6s ease-out 0.2s backwards; /* Fade in with a slight delay */
+    animation: fadeIn 0.6s ease-out 0.2s backwards; 
 }
 @keyframes fadeIn {
     from { opacity: 0; }
@@ -270,10 +242,10 @@ const closeAnimation = () => {
 
 
 .revealed p {
-     font-size: 1.1em; /* Slightly larger */
-     margin-bottom: 25px; /* More space before button */
+     font-size: 1.1em;
+     margin-bottom: 25px;
      color: var(--text-color);
-      animation: fadeIn 0.6s ease-out 0.4s backwards; /* Fade in with more delay */
+      animation: fadeIn 0.6s ease-out 0.4s backwards;
 }
 
 /* Rarity text colors (matching ShopDisplay.vue) */
@@ -286,14 +258,9 @@ const closeAnimation = () => {
 .rarity-text-unique { color: #8B0000; }
 
 
-/* Style for the button to close the revealed state */
 .awesome-button {
     margin-top: 20px;
-    /* Add some entrance animation */
-    animation: fadeInScale 0.5s ease-out 0.6s backwards; /* Fade in and scale slightly */
+    animation: fadeInScale 0.5s ease-out 0.6s backwards;
 }
-
-/* Ensure baseButton styles are defined elsewhere or included here */
-/* .baseButton { ... } */
 
 </style>
