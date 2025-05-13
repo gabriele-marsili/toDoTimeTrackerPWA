@@ -853,13 +853,15 @@ export class API_gestor {
                 timeTrackerActive: userForm.timeTrackerActive,
                 phone: userForm.phone,
                 age: userForm.age,
-                notifications: userForm.notifications,
+                notifications: true,
                 createdAt: new Date(),
                 licenseIsValid: true,
                 friends: [],
                 karmaCoinsBalance: 0,
                 fcmToken: "",
-                avatarImagePath: ""
+                avatarImagePath: "",
+                frame : "",
+                karmaBoost : 0
             });
 
             this.licenseKey = licenseKey;

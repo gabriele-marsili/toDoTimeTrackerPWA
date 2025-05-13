@@ -358,7 +358,7 @@ function handleAnimationClosed() {
     /* Prevent shrinking */
     width: 200px;
     /* Fixed width for carousel items */
-    background-color: var(--background-dark);
+    background-color: var(--background);
     border: 2px solid transparent;
     /* Base border */
     border-radius: 8px;
@@ -406,12 +406,10 @@ function handleAnimationClosed() {
 .item-info h3 {
     font-size: 1.1em;
     margin-bottom: 5px;
-    /* color: var(--color);  // This will be overridden by rarity classes */
 }
 
 .item-info p {
     font-size: 0.9em;
-    /* color: var(--text-color); // This will be overridden by rarity classes for rarity text */
     margin-bottom: 5px;
 }
 

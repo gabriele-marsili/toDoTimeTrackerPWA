@@ -115,8 +115,8 @@ export default {
   outline: none;
   width: 100%;
   box-sizing: border-box;
-  background-color: #222;
-  color: #eee;
+  background-color: #ffffff00;
+  color: var(--color);
 }
 
 .custom-datepicker input:focus {
@@ -127,7 +127,7 @@ export default {
 /* Personalizza ulteriormente il calendario in modalità dark */
 .flatpickr-calendar.flatpickr-dark {
   background: #333;
-  color: #eee;
+  color: var(--color);
   border-color: #444;
 }
 </style>

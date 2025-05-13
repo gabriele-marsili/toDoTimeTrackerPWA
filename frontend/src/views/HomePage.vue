@@ -315,12 +315,6 @@ export default {
 </script>
 
 <style scoped>
-/*
-Verde dettagli : #10B981
-grigio : #1e1e1e
-
-*/
-
 .home-app {
     display: flex;
     width: 100vw;
@@ -343,139 +337,7 @@ grigio : #1e1e1e
     height: 100%;
 }
 
-.custom-select {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
 
-.user-menu {
-    display: flex;
-    align-items: center;
-}
-
-.user-menu img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-}
-
-
-.bottone {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-    /* Spazio tra l'icona e il testo */
-    color: white;
-    background: #ffffff00;
-    border: 2px solid #15b680d4;
-    height: 36px;
-    /* Altezza standard per allineamento */
-    padding: 0 15px;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-.bottone:hover {
-    background-color: #15b68020;
-    border-color: #10b981;
-}
-
-
-.selettore {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background: #ffffff00;
-    border: 2px solid #15b680d4;
-    color: white;
-    height: 36px;
-    /* Altezza standard per allineamento */
-    padding: 0 30px 0 10px;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    outline: none;
-}
-
-.selettore:hover {
-    background-color: #15b68020;
-    border-color: #10b981;
-}
-
-.select-icon {
-    position: absolute;
-    right: 10px;
-    pointer-events: none;
-    color: #15b680;
-}
-
-.menu-icon {
-    font-size: 18px;
-    display: inline-flex;
-}
-
-
-.text-default {
-    color: #ffffff;
-    /* Testo standard grigio scuro */
-}
-
-.text-green {
-    color: #22c55e;
-    /* Verde vivace */
-}
-
-.text-red {
-    color: #ef4444;
-    /* Rosso vivace */
-}
-
-.reset_button,
-.apply_button,
-.cancel_button {
-    height: 30px;
-    width: 90px;
-    display: flex;
-    gap: 0.3rem;
-    color: white;
-    background: #ffffff00;
-    padding: 0px 15px;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-    text-align: center;
-    align-items: center;
-    font-size: 0.9rem;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-.reset_button {
-    border: 2px solid #f44336;
-}
-
-.reset_button:hover {
-    background-color: #b6301550;
-}
-
-.apply_button {
-    border: 2px solid #15b680d4;
-}
-
-.apply_button:hover {
-    background-color: #15b68044;
-}
-
-.cancel_button {
-    border: 2px solid #9e9e9e;
-}
-
-.cancel_button:hover {
-    background-color: #ac98983b;
-}
 
 
 /* Griglia con 3 colonne per i box */
@@ -490,10 +352,10 @@ grigio : #1e1e1e
 
 /* Stile base per i box */
 .box {
-    background-color: var(--background-dark);
+    background-color: var(--background);
     padding: 15px;
     border-radius: 8px;
-    color: #ffffff;
+    color: var(--color);
     box-sizing: border-box;
     min-height: 69%;
     max-height: 69%;
@@ -509,10 +371,10 @@ grigio : #1e1e1e
 }
 
 .sub-box {
-    background-color: var(--background-dark);
+    background-color: var(--background);
     padding: 15px;
     border-radius: 8px;
-    color: #ffffff;
+    color: var(--color);
     box-sizing: border-box;
     display: flex;
     min-height: 32%;
@@ -529,10 +391,10 @@ grigio : #1e1e1e
 /* Footer (Calendario/Eventi): occupa quasi tutta la larghezza del main content */
 .footer {
     margin-top: 5%;
-    background-color: var(--background-dark);
+    background-color: var(--background);
     padding: 15px;
     border-radius: 8px;
-    color: #ffffff;
+    color: var(--color);
     height: 35vh;
     box-sizing: border-box;
     width: 100%;
@@ -549,9 +411,8 @@ grigio : #1e1e1e
     justify-content: space-between;
     align-items: center;
     margin-top: 15px;
-    background: var(--background-dark, #212121);
+    background: var(--background, #212121);
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .user-details {
@@ -588,19 +449,12 @@ grigio : #1e1e1e
 .friend-count {
     margin-top: 8px;
     font-size: 0.9em;
-    color: #aaa;
+    color: var(--color);
     display: flex;
     flex-direction: row;
     justify-content: center;
 }
 
-
-.info-details {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    color: #fff;
-}
 
 .username {
     font-size: 1.2em;
@@ -615,7 +469,7 @@ grigio : #1e1e1e
     align-items: center;
     gap: 4px;
     font-size: 0.9em;
-    color: #fff;
+    color: var(--color);
 }
 
 .badge-icon,

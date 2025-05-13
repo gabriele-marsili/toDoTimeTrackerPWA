@@ -118,10 +118,9 @@ export default {
 .sidebar {
     width: 6%;
     height: 100vh;
-    background-color: #131212;
+    background-color:var(--sidebar-background);
     border-right: 2px solid #1e1e1e;
-
-    color: #ffffff;
+    color: var(--color);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -180,7 +179,7 @@ export default {
 }
 
 .menu-item.active span {
-    color: #ffffff;
+    color: var(--color);
     margin-left: calc(1rem - 7px);
 }
 

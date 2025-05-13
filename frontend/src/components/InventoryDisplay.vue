@@ -429,7 +429,7 @@ watch(() => props.userInventoryNeedUpdate, async (newUserInventoryNeedUpdate, ol
 }
 
 .inventory-item-card {
-    background-color: var(--background-dark);
+    background-color: var(--background);
     border: 2px solid transparent;
     /* Base border */
     border-radius: 8px;

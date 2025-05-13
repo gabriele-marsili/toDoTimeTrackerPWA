@@ -90,7 +90,7 @@ export default {
     border-radius: 10px;
     font-size: 1rem;
     background: rgba(0, 0, 0, 0.85);
-    color: white;
+    color: var(--color);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     font-family: "Arial", sans-serif;
     opacity: 0.9;

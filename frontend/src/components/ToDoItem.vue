@@ -387,7 +387,7 @@ function handleSubToDoEvent(eventContent: { type: "delete" | "copy" | "update", 
 <style scoped>
 .todo-item {
   border: 1px solid #15b680d4;
-  background: #212121;
+  background: var(--container-background-color);
   padding: 10px;
   margin-bottom: 15px;
   border-radius: 4px;
@@ -400,7 +400,7 @@ function handleSubToDoEvent(eventContent: { type: "delete" | "copy" | "update", 
 }
 
 .todo-item:hover {
-  background: #333;
+  background: var(--background);
   box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.1);
 }
 
@@ -483,7 +483,7 @@ function handleSubToDoEvent(eventContent: { type: "delete" | "copy" | "update", 
 .todo-notify,
 .todo-category,
 .todo-priority {
-  color: #bbb;
+  color: var(--color);
 }
 
 .todo-expiration.text-red-500 {
@@ -506,7 +506,7 @@ function handleSubToDoEvent(eventContent: { type: "delete" | "copy" | "update", 
 }
 
 .todo-date {
-  color: #bbb;
+  color: var(--color);
 }
 
 
@@ -562,7 +562,7 @@ function handleSubToDoEvent(eventContent: { type: "delete" | "copy" | "update", 
   min-width: 120px;
   /* Larghezza minima per le label */
   font-size: 0.9em;
-  color: #bbb;
+  color: var(--text-color);
 }
 
 .replan-actions {
@@ -603,8 +603,8 @@ function handleSubToDoEvent(eventContent: { type: "delete" | "copy" | "update", 
 
 /*edit to do box */
 .content {
-  background: #212121;
-  color: #fff;
+  background: var(--container-background-color);
+  color: var(--text-color);
   padding: 20px;
   border-radius: 8px;
   width: 500px;
@@ -659,6 +659,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 
 
 .selettore:hover {
-  background-color: #333;
+  background-color: var(--text-color);
 }
 </style>

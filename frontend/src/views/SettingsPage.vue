@@ -21,11 +21,7 @@
 
                 <div class="header-content-right">
                     <div class="header-item switch-container">
-                        <span class="material-symbols-outlined icon">notifications</span>
-                        <label for="notifications-toggle" class="switch-label">Notifications</label>
-                        <input type="checkbox" id="notifications-toggle" class="switch-input"
-                            v-model="userInfo.notifications" @change="toggleNotifications" />
-                        <label for="notifications-toggle" class="switch-slider"></label>
+                        <DarkModeSwitcher />                   
                     </div>
 
                     <div class="header-item switch-container">
@@ -99,6 +95,8 @@ import { delay } from '../utils/generalUtils';
 import { ToDoHandler, ToDoObj,ToDoAction } from '../engine/toDoEngine';
 import { TimeTrackerHandler,TimeTrackerRule} from '../engine/timeTracker';
 import { ExtComunicator } from '../comunicator/extComunicator';
+import DarkModeSwitcher from '../components/DarkModeSwitcher.vue';
+
 const notificationManager = ref(null);
 const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
 const api_gestor = API_gestor.getInstance();
@@ -415,10 +413,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Import del foglio di stile principale se non già importato globalmente */
-/* @import '../assets/css/style.css'; // Se style.css non è globale, importa qui */
-
-/* STILE PUNTO 1 & 2: Header */
 .header-section {
     display: flex;
     /* Sovrascrive column, imposta riga */
@@ -537,7 +531,7 @@ onMounted(async () => {
 }
 
 .switch-input:checked + .switch-slider {
-    background-color: var(--accent-color-dark);
+    background-color: var(--accent-color);
 }
 
 .switch-input:checked + .switch-slider::before {
@@ -550,7 +544,7 @@ onMounted(async () => {
     margin-left: 2%;
     margin-bottom: 2%;
     padding: 20px;
-    background-color: var(--background-dark);    
+    background-color: var(--background);    
     border-radius: 8px;
     color: #ffffff;
     box-sizing: border-box;
@@ -575,15 +569,15 @@ onMounted(async () => {
 }
 
 .remaining-zero {
-    color: var(--accent-color-dark); /* Verde brillante quando i punti sono 0 */
+    color: var(--accent-color-dark); 
     font-weight: bold;
 }
 .remaining-positive {
-    color: var(--accent-color-light); /* Verde per punti > 0 */
+    color: var(--accent-color-light);
     font-weight: bold;
 }
 .remaining-negative {
-    color: #e74c3c; /* Rosso per punti < 0 */
+    color: #e74c3c; 
     font-weight: bold;
 }
 
@@ -593,7 +587,6 @@ onMounted(async () => {
 }
 
 .category-card {
-    background-color: var(--background-dark-lighter); /* Un colore leggermente più chiaro per la card, se esiste */
     color: var(--text-color);
     border: 1px solid rgba(255, 255, 255, 0.1); /* Bordo sottile */
     display: flex;

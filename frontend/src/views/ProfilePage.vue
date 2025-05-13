@@ -320,7 +320,7 @@ onMounted(async () => {
 /* Base styles for boxes, elevated, shadow-lg are already defined in style.css */
 /* Ensure .box background color is applied. For this component, it's defined in style.css */
 .box {
-    background-color: var(--background-dark);
+    background-color: var(--background);
     color: var(--color);
     /* Inherit text color from theme */
 }
@@ -330,9 +330,8 @@ onMounted(async () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--background-dark, #212121);
+    background: var(--background, #212121);
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     min-width: 100%;
     min-height: 85%;
 }
@@ -369,7 +368,7 @@ onMounted(async () => {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    color: #fff;
+    color: var(--color);
 }
 
 
@@ -397,13 +396,13 @@ onMounted(async () => {
     align-items: center;
     gap: 4px;
     font-size: 0.9em;
-    color: #fff;
+    color: var(--color);
 }
 
 .friend-count {
     margin-top: 8px;
     font-size: 0.9em;
-    color: #aaa;
+    color: var(--color);
     display: flex;
     flex-direction: row;
     justify-content: center;

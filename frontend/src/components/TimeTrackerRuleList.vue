@@ -447,8 +447,8 @@ onMounted(async () => {
 }
 
 .add-rule-content {
-    background: #212121;
-    color: #fff;
+    background: var(--container-background-color);
+    color: var(--color);
     padding: 20px;
     border-radius: 8px;
     width: 500px;

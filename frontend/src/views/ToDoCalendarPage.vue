@@ -854,10 +854,10 @@ onMounted(async () => {
 
 
 .box {
-    background-color: var(--background-dark);
+    background-color: var(--background);
     padding: 15px;
     border-radius: 8px;
-    color: #ffffff;
+    color: var(--color);
     box-sizing: border-box;
     height: 10%;
     width: 95%;
@@ -890,7 +890,7 @@ onMounted(async () => {
     align-items: center;
     margin-top: 2%;
     width: 97%;
-    background-color: var(--background-dark);
+    background-color: var(--background);
     color: var(--text-color);
     flex-wrap: wrap;
     gap: 0.5%;
@@ -919,10 +919,10 @@ onMounted(async () => {
 
 .footer {
     margin-top: 10px;
-    background-color: var(--background-dark);
+    background-color: var(--background);
     padding: 15px;
     border-radius: 8px;
-    color: #ffffff;
+    color: var(--color);
     height: 35vh;
     box-sizing: border-box;
     width: 97%;
@@ -956,7 +956,7 @@ onMounted(async () => {
 }
 
 .selettore {
-    height: 31px;
+    height: 142%;
 }
 
 .custom-select {
@@ -1021,7 +1021,7 @@ onMounted(async () => {
 
 /*sort & filter boxes */
 .content {
-    background: var(--background-dark);
+    background: var(--container-background-color);
     color: var(--text-color);
     padding: 20px;
     border-radius: 8px;
@@ -1070,7 +1070,7 @@ onMounted(async () => {
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-    background: #333;
+    background: var(--container-background-color);
     border-radius: 4px;
 }
 
@@ -1081,7 +1081,7 @@ onMounted(async () => {
 
 .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: #15b680d4 #333;
+    scrollbar-color: #15b680d4 var(--container-background-color);
 }
 
 
@@ -1223,7 +1223,7 @@ input[type=number]::-webkit-outer-spin-button {
     /* Aumenta il padding orizzontale */
     display: flex;
     gap: 0.5rem;
-    color: white;
+    color: var(--color);
     background: #ffffff00;
     border: 2px solid;
     /* Definisce lo stile del bordo qui */
@@ -1269,16 +1269,4 @@ input[type=number]::-webkit-outer-spin-button {
     min-width: 200px;
 }
 
-
-/* Rimuovi o commenta questi se usi custom-scrollbar */
-/*
-.hide-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-
-.hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-*/
 </style>

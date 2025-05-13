@@ -497,7 +497,7 @@ watch(() => props.user_Info, async (newVal, oldVal) => {
 
 .friend-card,
 .request-card {
-    background-color: var(--background-dark);
+    background-color: var(--background);
     border: 2px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     padding: 15px;
@@ -508,13 +508,8 @@ watch(() => props.user_Info, async (newVal, oldVal) => {
     box-shadow: var(--shadow);
     position: relative;
     padding-bottom: 60px;
-    min-height: 40%;
+     min-height: 90%;
     /* Spazio per i bottoni */
-}
-
-.friend-card {
-    min-height: 65%;
-
 }
 
 .friend-avatar {
@@ -556,7 +551,7 @@ watch(() => props.user_Info, async (newVal, oldVal) => {
     padding: 8px 12px;
 
     border-color: #dc3545;
-    color: white;
+    color: var(--color);
 }
 
 .remove-button:hover {
@@ -629,7 +624,7 @@ watch(() => props.user_Info, async (newVal, oldVal) => {
 /*edit to do box */
 .content {
     background: #212121;
-    color: #fff;
+    color: var(--color);
     padding: 20px;
     border-radius: 8px;
     width: 400px;

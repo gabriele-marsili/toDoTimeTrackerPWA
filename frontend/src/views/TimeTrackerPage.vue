@@ -266,10 +266,10 @@ onMounted(async () => {
 
 
 .box {
-    background-color: var(--background-dark);
+    background-color: var(--background);
     padding: 15px;
     border-radius: 8px;
-    color: #ffffff;
+    color: var(--color);
     box-sizing: border-box;
     height: 10%;
     width: 95%;
@@ -302,7 +302,7 @@ onMounted(async () => {
     align-items: center;
     margin-top: 2%;
     width: 97%;
-    background-color: var(--background-dark);
+    background-color: var(--background);
     color: var(--text-color);
     flex-wrap: wrap;
     gap: 0.5%;
@@ -412,7 +412,7 @@ onMounted(async () => {
 .rules-box {
     flex: 1;
     /* Permette al box regole di crescere */
-    background-color: var(--background-dark);
+    background-color: var(--background);
     padding: 15px;
     border-radius: 8px;
     color: var(--text-color);

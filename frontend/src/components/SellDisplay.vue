@@ -654,7 +654,7 @@ onMounted(async () => {
 }
 
 .sell-item-card {
-    background-color: var(--background-dark);
+    background-color: var(--background);
     border: 2px solid transparent;
     /* Base border */
     border-radius: 8px;
@@ -829,7 +829,7 @@ onMounted(async () => {
 }
 
 .modal-content {
-    background-color: var(--background-dark);
+    background-color: var(--container-background-color);
     /* Use theme background */
     padding: 30px;
     border-radius: 8px;

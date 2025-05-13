@@ -222,7 +222,9 @@ const userInfo = ref<userDBentry>({
     timeTrackerActive: false,
     karmaCoinsBalance: 0,
     friends: [],
-    fcmToken: ""
+    fcmToken: "",
+    frame : "",
+    karmaBoost:0
 });
 const addNoticeBoxOpen = ref(false);
 const emit = defineEmits(["calendarEvent"])
@@ -570,7 +572,7 @@ onMounted(async () => {
     border: 2px solid var(--button-border, #10B981);
     border-radius: 4px;
     background: var(--button-background, #10B981);
-    color: #fff;
+    color: var(--color);
     font-size: 1em;
     cursor: pointer;
     display: flex;
@@ -585,8 +587,8 @@ onMounted(async () => {
 
 .month-picker-content,
 .add-event-content {
-    background: #212121;
-    color: #fff;
+    background: var(--container-background-color);
+    color: var(--color);
     padding: 20px;
     border-radius: 8px;
     width: 300px;
@@ -627,8 +629,8 @@ onMounted(async () => {
     padding: 6px 8px;
     border: 1px solid #444;
     border-radius: 4px;
-    background: #333;
-    color: #fff;
+    background: var(--container-background-color);
+    color: var(--color);
 }
 
 .form-group input,

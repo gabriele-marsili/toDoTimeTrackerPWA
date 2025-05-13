@@ -83,6 +83,7 @@ export class ExtComunicator {
 
         this.on("ASK_RULES_FROM_EXT", async () => {
             const loadRes = await this.timeTrackerHandler.loadAllRules(this.licenseKey)
+            console.log("load res ASK_RULES_FROM_EXT : \n",loadRes)
             if (loadRes.success) {
                 this.updateTTrulesInExt(loadRes.rules)
             }

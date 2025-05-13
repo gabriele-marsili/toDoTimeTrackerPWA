@@ -1551,7 +1551,7 @@ onMounted(async () => {
 
 
 .canvas-box {
-    background-color: var(--background-dark);
+    background-color: var(--background);
     /* Use dark background variable */
     padding: 15px;
     border-radius: 8px;
@@ -1586,6 +1586,7 @@ onMounted(async () => {
     margin-left: 2%;
     margin-bottom: 2%;
     padding: 20px;
+    
 }
 
 
@@ -1694,7 +1695,7 @@ onMounted(async () => {
     align-items: center;
     justify-content: flex-start;
     padding: 15px;
-    background-color: #212121;
+    background-color: var(--charts-background-color);
     color: var(--text-color);
     /* Use base color for text within the box */
     border-radius: 1rem;
@@ -1812,8 +1813,5 @@ onMounted(async () => {
     font-size: 1.2rem;
     /* Dimensione testo */
     font-weight: bold;
-    /* Per il tema scuro, puoi usare un background-color diverso */
-    /* background-color: rgba(0, 0, 0, 0.7); */
-    /* color: #ccc; */
 }
 </style>

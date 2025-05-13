@@ -111,7 +111,7 @@ const closeAnimation = () => {
 
 
 .animation-container {
-    background-color: var(--background-dark);
+    background-color: var(--background);
     padding: 40px;
     border-radius: 15px;
     text-align: center;

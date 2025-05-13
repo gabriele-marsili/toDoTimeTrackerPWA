@@ -26,6 +26,7 @@
                     priorities,
                     ensuring a balanced and goal-oriented time management experience.
                 </p>
+                <div class="swipe-indicator">Swipe right to continue <span class="material-symbols-outlined">arrow_forward</span></div>
             </div>
 
             <div class="carousel-slide">
@@ -46,13 +47,13 @@
                     <input type="tel" autocomplete="off" v-model="form.phone" placeholder="Phone Number"
                         class="baseInputField" />
                 </div>
-
+                <div class="swipe-indicator">Swipe right to continue <span class="material-symbols-outlined">arrow_forward</span></div>
             </div>
 
             <!-- Step 2: Questionnaire -->
             <div class="carousel-slide">
 
-                <h2 class="text-2xl font-bold mb-6">Quick questionnaire:</h2>
+                <h2 class="text-2xl font-bold mb-2">Quick questionnaire:</h2>
                 <p class="mb-4 text-sm">
                     Please allocate 100 points among the following categories (a category must have at least 1 point),
                     remaining points : {{ remainingPoints }}
@@ -84,19 +85,14 @@
                     <button @click="addCategory" class="baseButtonHigher">Add</button>
                 </div>
 
+                <div class="swipe-indicator">Swipe right to continue <span class="material-symbols-outlined">arrow_forward</span></div>
 
             </div>
 
             <!-- Step 3: Preferences and Terms -->
             <div class="carousel-slide">
                 <h2 class="text-2xl font-bold mb-6">Preferences and Terms</h2>
-                <div class="space-y-4">
-                    <div>
-                        <label class="flex items-center gap-2">
-                            <input type="checkbox" class="baseCheckbox" v-model="form.notifications" />
-                            Enable Notifications
-                        </label>
-                    </div>
+                <div class="space-y-4">                    
                     <div>
                         <label class="flex items-center gap-2">
                             <input class="baseCheckbox" type="checkbox" v-model="form.timeTrackerActive" />
@@ -158,7 +154,7 @@ const form = reactive({
         { name: 'Music', points: 1 }
     ],
     // Preferences and Terms
-    notifications: false,
+    notifications: true,
     permissions: false,
     timeTracker: false,
     acceptTerms: false,
@@ -348,5 +344,38 @@ const submitForm = async () => {
 
 .no-spin {
     -moz-appearance: textfield;
+}
+
+/* STILE PER L'INDICATORE DI SCORRIMENTO */
+.swipe-indicator {
+    margin-top: auto;
+    /* Spinge l'indicatore in fondo nel contenitore flex */
+    text-align: center;
+    /* Centra il testo */
+    font-size: 0.9rem;
+    color: var(--text-color-secondary, gray);
+    /* Colore discreto */
+    padding: 10px 0;
+    /* Spazio sopra e sotto */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px; /* Spazio tra testo e icona */
+    /* Puoi aggiungere una leggera animazione se vuoi che lampeggi o si muova */
+}
+
+.swipe-indicator .material-symbols-outlined {
+    font-size: 1.2em; /* Dimensione dell'icona */
+    /* Opzionale: animazione per far muovere l'icona */
+     animation: swipe-arrow 1.5s infinite ease-in-out;
+}
+
+@keyframes swipe-arrow {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(5px); /* Sposta l'icona a destra */
+    }
 }
 </style>
