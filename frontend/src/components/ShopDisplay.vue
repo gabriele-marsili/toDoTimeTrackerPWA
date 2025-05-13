@@ -64,7 +64,6 @@ const defaultGrantedItem = ref<ShopItem>({
     rarity: ItemRarity.Unique,
     type: 'avatar'
 });
-let itemReceivedWasDuplicate = false; // Flag to track if the received item was a duplicate
 const grantedItem = ref<ShopItem>(defaultGrantedItem.value);
 const boxToAnimate = ref<MysteryBoxConfig>({
     id: "",
@@ -221,7 +220,7 @@ async function buyMysteryBox(box: MysteryBoxConfig) {
     // Check if the granted item is already in the user's inventory
     const existingItemInInventory = userInventory.value.items.find(invItem => invItem.item.id === itemReceived.id);
 
-    if (existingItemInInventory) {
+    if (existingItemInInventory && (itemReceived.type == "avatar" || itemReceived.type == "cosmetic" )) {
         // User already owns the item, grant karma points instead
         const karmaRefund = itemReceived.cost; // Amount of karma to grant (cost of the item)
         updatedUserInfo.karmaCoinsBalance += karmaRefund; // Add karma points
@@ -304,10 +303,10 @@ function handleAnimationComplete(item: ShopItem) {
     // Now show the appropriate notification based on if it was a duplicate or new
     const existingItemInInventory = userInventory.value.items.find(invItem => invItem.item.id === item.id);
 
-    if (existingItemInInventory && itemReceivedWasDuplicate) { // Need a flag to track if it was a duplicate
+    if (existingItemInInventory && (item.type == "avatar" || item.type == "cosmetic" )) { // Need a flag to track if it was a duplicate
         const karmaRefund = item.cost; // Assuming item cost is available
         emit('show-notification', 'info', `You already own "${item.name}". You received ${karmaRefund} Karma Points instead.`);
-    } else {
+    } else if(item && item.name != ""){
         emit('show-notification', 'success', `You opened a mystery box and found: ${item.name}!`);
     }
 
@@ -328,7 +327,6 @@ function handleAnimationClosed() {
         availableItems: []
     };
     grantedItem.value = defaultGrantedItem.value; // Clear granted item data
-    itemReceivedWasDuplicate = false; // Reset flag
 }
 
 </script>

@@ -77,14 +77,12 @@
                             <h4 :class="`rarity-text-${inventoryItem.item.rarity}`">{{ inventoryItem.item.name }}</h4>
                             <p>{{ inventoryItem.item.description }}</p>
                             <p v-if="inventoryItem.quantity > 0">Quantity: {{ inventoryItem.quantity }}</p>
-                        </div>
-                        <button v-if="inventoryItem.quantity > 0" class="baseButton use-button"
-                            @click="emitUseItem(inventoryItem.item)">Gift ({{ inventoryItem.quantity }})</button>
-                        <p v-else>Used Up</p>
+                        </div>                    
                     </div>
                 </div>
             </div>
 
+            <!--Not (fully) implemented yet (future version)-->
             <div v-if="categorizedInventory.reminder.length > 0" class="inventory-category">
                 <h3>Reminder Items</h3>
                 <div class="inventory-grid">
@@ -123,12 +121,13 @@ const userInventory = ref<UserInventory | null>(null); // Allow null for initial
 const loadingInventory = ref(true);
 const loadingError = ref<string | null>(null);
 
-const emit = defineEmits(['apply-item', 'use-item', "show-notification","update-user"]);
+const emit = defineEmits(["show-notification", "update-user"]);
 
 // Props - Now only receiving licenseKey and allItems
 const props = defineProps<{
     userLicenseKey: string;
-    userInventoryNeedUpdate: boolean
+    userInventoryNeedUpdate: boolean;
+    userName: string;
 }>();
 
 // Helper rarity order for sorting
@@ -263,21 +262,36 @@ const hasInventoryItems = computed(() => {
 
 // Emit events for parent component
 const applyCosmetic = async (item: ShopItem) => {
-    if(item.type == "cosmetic"){
-        try {            
+    if (item.type == "cosmetic") {
+        try {
             const res = await api_gestor.setAvatarFrame(item.id, props.userLicenseKey)
-            if(!res.success)throw new Error(res.errorMessage);
-            emit("show-notification","success",`Item ${item.name} applied successfully`)
-        } catch (error:any) {
-            emit("show-notification","error",error.message);
+            if (!res.success) throw new Error(res.errorMessage);
+            emit("show-notification", "success", `Item ${item.name} applied successfully`)
+        } catch (error: any) {
+            emit("show-notification", "error", error.message);
         }
-    }else{
-        emit("show-notification","error",`Item ${item.name} is not a cosmetic`);
+    } else {
+        emit("show-notification", "error", `Item ${item.name} is not a cosmetic`);
     }
 };
 
-const emitUseItem = (item: ShopItem) => {
-    emit('use-item', item);
+const emitUseItem = async (item: ShopItem) => {
+    try {
+        switch (item.type) {
+            case 'utility': // => karma boost
+                const useRes = await api_gestor.useKarmaBoost(item, props.userLicenseKey, props.userName);
+                if (!useRes.success) throw new Error(useRes.errorMessage)
+                emit("show-notification","success",`${item.name} activated`)
+                break
+            
+            default: break
+
+        }
+    } catch (error:any) {
+        emit("show-notification","error",error.message);
+    }finally{
+        emit("update-user")
+    }
 };
 
 async function setAvatar(item: ShopItem) {

@@ -41,17 +41,16 @@ const ALL_ITEM_IMAGE_URLS = {
     "utility_karmaboost_003": "https://i.imgur.com/l6c63hW.jpeg", // Large Karma Boost
     "utility_karmaboost_004": "https://i.imgur.com/Yj0NtpH.jpeg", // Legendary Karma Boost 
     // Frames
-    "cosmetic_frame_001": "",
-    "cosmetic_frame_002": "",
-    "cosmetic_frame_003": "",
-    "cosmetic_frame_004": "",
-    "cosmetic_frame_005": "",
-    "cosmetic_frame_006": "",
-    "cosmetic_frame_007": "",
+    "cosmetic_frame_001": "https://i.imgur.com/7QlueQP.jpeg",
+    "cosmetic_frame_002": "https://i.imgur.com/gY5iCTk.jpeg",
+    "cosmetic_frame_003": "https://i.imgur.com/LBSglFd.jpeg",
+    "cosmetic_frame_004": "https://i.imgur.com/Ew9lq63.jpeg",
+    "cosmetic_frame_005": "https://i.imgur.com/4Y8CNz6.jpeg",
+    "cosmetic_frame_006": "https://i.imgur.com/FuEMe32.png",
+    "cosmetic_frame_007": "https://i.imgur.com/S08Qugl.jpeg",
     // Gift Items
-    "gift_karmaboost_small_001": "url_gift_small_boost.png",
-    "gift_frame_bronze_001": "url_gift_bronze_frame.png",
-    // Reminder Items
+    "gift_item": "https://i.imgur.com/SyxGEq3.jpeg",
+    // Reminder Items (deleted)
     "reminder_template_001": "url_motiviation_reminder.png",
     "reminder_credit_001": "url_reminder_credit.png",
     // Avatar Items (PLACEHOLDERS - REPLACE WITH ACTUAL HOSTED URLs)
@@ -124,14 +123,10 @@ const allAvailableShopItems = [
     { id: "utility_karmaboost_002", name: "Medium Karma Boost", description: "Increases karma earned by 15% for 3 hours.", cost: 300, rarity: shopTypes_1.ItemRarity.Rare, imageUrl: ALL_ITEM_IMAGE_URLS["utility_karmaboost_002"], type: "utility" },
     { id: "utility_karmaboost_003", name: "Large Karma Boost", description: "Increases karma earned by 25% for 6 hours.", cost: 500, rarity: shopTypes_1.ItemRarity.Special, imageUrl: ALL_ITEM_IMAGE_URLS["utility_karmaboost_003"], type: "utility" },
     { id: "utility_karmaboost_004", name: "Legendary Karma Boost", description: "Increases karma earned by 35% for 8 hours.", cost: 700, rarity: shopTypes_1.ItemRarity.Legendary, imageUrl: ALL_ITEM_IMAGE_URLS["utility_karmaboost_004"], type: "utility" }, // Corrected ID
-    // Gift Items (Assuming these are purchasable as gifts)
-    // Note: You might want specific gift box images
-    { id: "gift_karmaboost_small_001", name: "Gift: Small Karma Boost", description: "Gift a small karma boost to a friend.", cost: 180, rarity: shopTypes_1.ItemRarity.QuiteCommon, imageUrl: ALL_ITEM_IMAGE_URLS["gift_karmaboost_small_001"], type: "gift" },
-    { id: "gift_frame_bronze_001", name: "Gift: Bronze Frame", description: "Gift a bronze frame to a friend.", cost: 120, rarity: shopTypes_1.ItemRarity.QuiteCommon, imageUrl: ALL_ITEM_IMAGE_URLS["gift_frame_bronze_001"], type: "gift" },
     // Reminder Items (Assuming these are purchasable templates or credits)
     // Note: You might want specific reminder icons
-    { id: "reminder_template_001", name: "Motiviation Reminder Template", description: "A template for sending motivational reminders.", cost: 50, rarity: shopTypes_1.ItemRarity.Mainstream, imageUrl: ALL_ITEM_IMAGE_URLS["reminder_template_001"], type: "reminder" },
-    { id: "reminder_credit_001", name: "Custom Reminder Credit", description: "Allows sending one custom reminder to a friend.", cost: 80, rarity: shopTypes_1.ItemRarity.Mainstream, imageUrl: ALL_ITEM_IMAGE_URLS["reminder_credit_001"], type: "reminder" },
+    //{ id: "reminder_template_001", name: "Motiviation Reminder Template", description: "A template for sending motivational reminders.", cost: 50, rarity: ItemRarity.Mainstream, imageUrl: ALL_ITEM_IMAGE_URLS["reminder_template_001"], type: "reminder" },
+    //{ id: "reminder_credit_001", name: "Custom Reminder Credit", description: "Allows sending one custom reminder to a friend.", cost: 80, rarity: ItemRarity.Mainstream, imageUrl: ALL_ITEM_IMAGE_URLS["reminder_credit_001"], type: "reminder" },
     // Avatars (Using URLs from the centralized object)
     // --- Mainstream (15 items) ---
     { id: "avatar_basic_user", name: "Basic User", description: "A simple, default profile icon.", cost: 5, rarity: shopTypes_1.ItemRarity.Mainstream, imageUrl: ALL_ITEM_IMAGE_URLS["avatar_basic_user"], type: "avatar" },
@@ -451,14 +446,34 @@ function getDailyShopInventory(allItems, allBoxes) {
     console.log("dailyMysteryBoxes (randomly selected):", dailyMysteryBoxes.map(box => box.name));
     return { dailyItems, dailyMysteryBoxes };
 }
+function expandShopItemsWithGifts() {
+    let giftItems = [];
+    for (let item of allAvailableShopItems) {
+        let relatedGiftItem = {
+            ...item,
+            name: "Gift " + item.name + " 🎁",
+            id: "gift_" + item.id + "originalType:" + item.type,
+            originalItemId: item.id,
+            type: "gift",
+        };
+        let itemAsGift = {
+            ...item,
+            originalItemId: item.id,
+        };
+        giftItems.push(relatedGiftItem);
+        giftItems.push(itemAsGift);
+    }
+    return giftItems;
+}
 // --- Function to update the shop inventory for the current day ---
 async function updateDailyShop() {
     const today = new Date();
+    const allItemsPlusGifts = expandShopItemsWithGifts();
     // Generate all possible mystery boxes first (this depends on allAvailableShopItems)
-    const allPossibleMysteryBoxes = generateMysteryBoxes(allAvailableShopItems);
+    const allPossibleMysteryBoxes = generateMysteryBoxes(allItemsPlusGifts);
     console.log("All possible mystery boxes generated:", allPossibleMysteryBoxes.map(box => box.name));
     // Get the daily selection based on rarity probabilities
-    const { dailyItems, dailyMysteryBoxes } = getDailyShopInventory(allAvailableShopItems, allPossibleMysteryBoxes // Use the generated mystery boxes
+    const { dailyItems, dailyMysteryBoxes } = getDailyShopInventory(allItemsPlusGifts, allPossibleMysteryBoxes // Use the generated mystery boxes
     );
     console.log(`Updating shop for ${today.toDateString()} with random selection.`);
     console.log("Daily Items:", dailyItems.map(item => item.name));

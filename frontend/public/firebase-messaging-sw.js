@@ -13,6 +13,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
+
 // ---- notifications : 
 
 const messaging = firebase.messaging();
@@ -46,6 +47,7 @@ messaging.onBackgroundMessage(function (payload) {
         .catch(error => {
             console.error('[firebase-messaging-sw.js] Error showing notification:', error);
         });
+    
 });
 
 // ---- Gestione Click su Notifica ----
@@ -71,6 +73,10 @@ self.addEventListener('notificationclick', function (event) {
         }
         if(url.toLowerCase().includes("friend request")||url.toLowerCase().includes("gift")){
             url = "profile_page"
+        }
+
+        if(targetUrl.includes("KarmaBoostEnd")){
+            url = "shop"
         }
 
         // Previene l'azione di default del browser

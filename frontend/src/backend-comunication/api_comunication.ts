@@ -51,6 +51,7 @@ export class API_gestor {
     private userEmail: string
     private userByDB!: userDBentry | null;
     private firestoreProxy: FirestoreProxy
+    private fcmToken: string;
 
     private constructor() {
 
@@ -62,6 +63,7 @@ export class API_gestor {
         this.initialized = false;
         this.firestoreProxy = FirestoreProxy.getInstance()
         this.userByDB = null;
+        this.fcmToken = ""
 
         // Iscriviti al listener di stato di autenticazione
         onAuthStateChanged(auth, async (user: User | null) => {
@@ -637,7 +639,7 @@ export class API_gestor {
                     const userDoc = snapshot.docs[0].ref;
                     await updateDoc(userDoc, { fcmToken: token })
                 }
-
+                this.fcmToken = token;
                 return token
             }
 
@@ -2141,7 +2143,7 @@ export class API_gestor {
             } else {
                 const userDocRef = snapshot.docs[0].ref;
                 await updateDoc(userDocRef, {
-                    avatarImagePath: avatarImage 
+                    avatarImagePath: avatarImage
                 });
             }
 
@@ -2166,9 +2168,116 @@ export class API_gestor {
             } else {
                 const userDocRef = snapshot.docs[0].ref;
                 await updateDoc(userDocRef, {
-                    frame: frame 
+                    frame: frame
                 });
             }
+
+            return {
+                success: true,
+                errorMessage: ""
+            }
+        } catch (error: any) {
+            return {
+                success: false,
+                errorMessage: error.message
+            }
+        }
+    }
+
+    /**
+* Estrae la percentuale di boost e la durata da una descrizione di Karma Boost item.
+* Presuppone che la descrizione segua il pattern: "Increases karma earned by X% for Y hour(s)."
+*
+* @param description La stringa di descrizione dell'item Karma Boost.
+* @returns Un oggetto contenente il boost (0-1) e la durata in ore. Restituisce { boost: 0, time: 0 } se la descrizione non corrisponde al pattern atteso.
+*/
+    private extractKarmaBoostDetails(description: string): {
+        boost: number; // Valore da 0 a 1 (es. 0.10 per 10%)
+        time: number;  // Durata in ore
+    } {
+        // Espressione regolare per catturare il numero prima del % e il numero prima di "hour" o "hours".
+        const regex = /Increases karma earned by (\d+)% for (\d+) hour(s)?\./;
+        const match = description.match(regex);
+
+        // match sarà un array se la regex trova una corrispondenza:
+        // match[0] sarà l'intera stringa corrispondente ("Increases karma earned by 10% for 1 hour.")
+        // match[1] sarà la prima cattura (\d+) -> "10"
+        // match[2] sarà la seconda cattura (\d+) -> "1"
+        // match[3] sarà la terza cattura (s)? -> "s" o undefined
+
+        if (match && match[1] && match[2]) {
+            const boostPercentage = parseInt(match[1], 10); // Estrai e converti la percentuale
+            const durationHours = parseInt(match[2], 10);   // Estrai e converti le ore
+
+            // Converti la percentuale da X% a un valore tra 0 e 1 (es. 10% -> 0.10)
+            const boostValue = boostPercentage / 100;
+
+            return {
+                boost: boostValue,
+                time: durationHours
+            };
+        } else {
+            console.warn(`La descrizione del Karma Boost non corrisponde al pattern atteso: "${description}". Restituisco valori di default.`);
+            throw new Error("Invalid description : can't obtain boost and time")
+        }
+    }
+
+    public async useKarmaBoost(boostItem: ShopItem, lk: string, userName:string): Promise<baseResponse> {
+        try {
+            const details = this.extractKarmaBoostDetails(boostItem.description)
+
+            //update karma boost value in db
+            const q = query(collection(this.db, "users"), where("licenseKey", "==", lk))
+            const snapshot = await this.firestoreProxy.getDocsWithNetworkFirst(q);
+            if (snapshot.empty) {
+                throw new Error("No user found")
+            } else {
+                const userDocRef = snapshot.docs[0].ref;
+                await updateDoc(userDocRef, {
+                    karmaBoost: details.boost
+                });
+            }
+
+            //crate notification to end karma boost
+            const millisecondsToAdd = details.time * 60 * 60 * 1000;
+            const milliSecondsOFscheduledAt_timestamp = new Date().getTime() + millisecondsToAdd;
+
+            if (this.fcmToken == "") {
+                await this.registerFCMToken()
+            }
+
+            //(userName utilizzato come chiave univoca per trovare user info in backend dalla notifica -> dal tag)
+            const endKarmaBoostNotification: TTT_Notification = {
+                notificationID: `endKarmaBoostOf${details.boost}-${details.time}_${Date.now()}`,
+                title: `${boostItem.name} effect has ended`,
+                body: `Sadly, every good thing has an end and your ${boostItem.name} has just ended`,
+                tag: `KarmaBoostEnd:${details.boost}:${details.time}:${userName}`,
+                scheduleAt_timestamp: new Date(milliSecondsOFscheduledAt_timestamp),
+                imagePath: "https://i.imgur.com/ROIfwjw.png",
+                fcmToken: this.fcmToken
+            }
+            await this.scheduleNotification(endKarmaBoostNotification, lk)
+
+            //update user inventory decreasing karma boost quantity
+            const getUserInventorRes = await this.getUserInventory(lk)
+            if (!getUserInventorRes.success) throw new Error(getUserInventorRes.errorMessage)
+            const actualUserInventory = getUserInventorRes.userInventory;
+            let updatedInventory: UserInventory = {
+                licenseKey: lk,
+                items: []
+            }
+            for (let el of actualUserInventory.items) {
+                if (el.item.id == boostItem.id) {
+                    el.quantity--
+                }
+                if (el.quantity > 0) {
+                    updatedInventory.items.push(el)
+                }
+            }
+            const updateUserInventoryRes = await this.updateUserInventory(updatedInventory)
+            if (!updateUserInventoryRes.success) throw new Error(updateUserInventoryRes.errorMessage)
+
+
 
             return {
                 success: true,

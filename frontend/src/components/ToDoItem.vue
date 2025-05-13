@@ -166,7 +166,7 @@ import { ToDoAction } from '../engine/toDoEngine'
 import { formatDate, parseStringToDate } from '../utils/generalUtils';
 import DatePicker from './DatePicker.vue';
 import ToDoList from './ToDoList.vue';
-import { format, isPast, startOfDay, endOfDay, addDays, parseISO } from 'date-fns';
+import { isPast, startOfDay, endOfDay, addDays, parseISO } from 'date-fns';
 
 interface Props {
   todo: ToDoAction,
@@ -174,7 +174,8 @@ interface Props {
   userCategories: {
     name: string;
     points: number;
-  }[]
+  }[],
+  karmaBoost : number
 }
 
 const props = defineProps<Props>();
@@ -241,10 +242,10 @@ async function onCompletedChange() {
   const relatedCategory = props.userCategories.find(c => c.name == localTodo.value.category)
   if (relatedCategory && relatedCategory.points > 0) {
     if (completed) {
-      karmaCoinsChange = relatedCategory.points
+      karmaCoinsChange = relatedCategory.points + (props.karmaBoost*relatedCategory.points)
       emit("sendNotify", { type: "success", text: `Completed to do ${localTodo.value.title}, +${karmaCoinsChange} karma coins` })
     } else { // => user ha settato to do come non completata      
-      karmaCoinsChange =- relatedCategory.points
+      karmaCoinsChange = - (relatedCategory.points+ (props.karmaBoost*relatedCategory.points))
       emit("sendNotify", { type: "warning", text: `Un-completed to do ${localTodo.value.title}, ${karmaCoinsChange} karma coins` })
     }
   }

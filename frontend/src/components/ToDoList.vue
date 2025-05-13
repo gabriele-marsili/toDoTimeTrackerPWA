@@ -6,7 +6,7 @@
         </button>
         -->
         <div v-for="todo in filteredTodos" :key="todo.id" class="todo-item-wrapper">
-            <ToDoItem :user-categories="userInfo.categories" :viewMode="viewMode" :todo="todo"
+            <ToDoItem :karmaBoost="userInfo.karmaBoost" :user-categories="userInfo.categories" :viewMode="viewMode" :todo="todo"
                 @todoEvent="passToDoEvent" @update="onItemUpdate" @delete="onItemDelete" @copy="onItemCopy"
                 @addSubToDo="onItemAddSubToDo" @send-notify="handleSendNotifyByToDoItem" @click.stop />
         </div>
@@ -116,7 +116,9 @@ const userInfo = ref<userDBentry>({
     timeTrackerActive: false,
     karmaCoinsBalance: 0,
     friends: [],
-    fcmToken: ""
+    fcmToken: "",
+    karmaBoost : 0,
+    frame : ""
 });
 const router = useRouter();
 const emit = defineEmits(["subToDoNotify", "todoEvent", "subToDoEvent", "todoAdded"])

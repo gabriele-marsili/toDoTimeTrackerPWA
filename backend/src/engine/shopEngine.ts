@@ -41,13 +41,13 @@ const ALL_ITEM_IMAGE_URLS: Record<string, string> = {
     "utility_karmaboost_004": "https://i.imgur.com/Yj0NtpH.jpeg", // Legendary Karma Boost 
 
     // Frames
-    "cosmetic_frame_001": "",
-    "cosmetic_frame_002": "",
-    "cosmetic_frame_003": "",
-    "cosmetic_frame_004": "",
-    "cosmetic_frame_005": "",
-    "cosmetic_frame_006": "",
-    "cosmetic_frame_007": "",
+    "cosmetic_frame_001": "https://i.imgur.com/7QlueQP.jpeg",
+    "cosmetic_frame_002": "https://i.imgur.com/gY5iCTk.jpeg",
+    "cosmetic_frame_003": "https://i.imgur.com/LBSglFd.jpeg",
+    "cosmetic_frame_004": "https://i.imgur.com/Ew9lq63.jpeg",
+    "cosmetic_frame_005": "https://i.imgur.com/4Y8CNz6.jpeg",
+    "cosmetic_frame_006": "https://i.imgur.com/FuEMe32.png",
+    "cosmetic_frame_007": "https://i.imgur.com/S08Qugl.jpeg",
 
 
     // Gift Items

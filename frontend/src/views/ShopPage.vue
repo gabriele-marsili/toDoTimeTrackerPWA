@@ -42,7 +42,10 @@
             <InventoryDisplay
                 v-if="currentView === 'inventory'"                
                 @show-notification="sendNotify"
+                @update-user="askUserInfo"
                 :userLicenseKey="userInfo.licenseKey"
+                :userName="userInfo.username"
+                :userInventoryNeedUpdate ="userInvNeedUpdate"
             />
 
             <SellDisplay
@@ -81,6 +84,7 @@ const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
 const api_gestor = API_gestor.getInstance()
 const userHandler = UserHandler.getInstance(api_gestor)
 const defaultImagePath = "../../public/user.avif"
+const userInvNeedUpdate = ref(false)
 const userInfo = ref<userDBentry>({
     username: "",
     avatarImagePath: defaultImagePath,
@@ -98,7 +102,9 @@ const userInfo = ref<userDBentry>({
     timeTrackerActive: false,
     karmaCoinsBalance: 0,
     friends: [],
-    fcmToken: ""
+    fcmToken: "",
+    frame: "",
+    karmaBoost : 0
 });
 const currentView = ref('shop'); // 'shop', 'inventory', 'sell'
 

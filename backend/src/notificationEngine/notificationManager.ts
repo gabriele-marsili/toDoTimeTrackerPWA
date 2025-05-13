@@ -1,7 +1,9 @@
 import * as admin from "firebase-admin";
 import { initializedFirestonAdmin } from "../firebase/firebase";
 import cron from 'node-cron';
-import { Timestamp as firestoreTimestamp } from "firebase/firestore";
+import { Timestamp as firestoreTimestamp, updateDoc } from "firebase/firestore";
+
+import { userDBentry } from "../types/userTypes";
 
 
 
@@ -28,7 +30,7 @@ interface DueNotificationInfo {
 export class NotificationManager {
     private static instance: NotificationManager;
 
-    private constructor() { }
+    private constructor() {  }
 
     public static getInstance() {
         if (NotificationManager.instance == null) {
@@ -72,6 +74,34 @@ export class NotificationManager {
                             originalDocRef: doc.ref,
                             originalNotificationsArray: userNotifications // Salva l'array originale completo
                         });
+
+                        //check and end karma booost effect : 
+                        if (notification.tag.includes("KarmaBoostEnd")) {
+                            let parts = notification.tag.split(":")
+                            console.log("parts in karma boost end notification tag\n", parts);
+                            let boost = Number(parts[1])
+                            console.log("boost : ", boost);
+                            
+                            let username = parts[3]
+
+                            const user_q = db.collection("users").where("username", "==", username);
+                            const snapshot = await user_q.get();
+                            if (!snapshot.empty) {
+                                try {
+                                    const userDocRef = snapshot.docs[0].ref;
+                                    const userDocData = snapshot.docs[0].data() as userDBentry;                                 
+                                    if (userDocData.karmaBoost == boost) {
+                                        await userDocRef.update({ karmaBoost: 0 });                                                                              
+                                    }
+                                } catch (error) {
+                                    console.log("error updating db for karma boost:\n", error)
+                                }
+                            } else {
+                                console.log("snapshot empty for username " + username)
+                            }
+
+                        }
+
                     }
                 }
 

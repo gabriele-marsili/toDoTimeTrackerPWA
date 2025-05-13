@@ -115,25 +115,6 @@ export default {
 
 <style scoped>
 
-.logo-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px 0;
-    width: 100%;
-    transition: all 0.3s ease;
-    overflow: hidden;
-    overflow-y: hidden;
-}
-
-.logo-text {
-    margin-right: 5px;
-    margin-left: 5px;
-    font-size: 1.2em;
-    font-weight: bold;
-}
-
-
 .sidebar {
     width: 6%;
     height: 100vh;
@@ -227,4 +208,29 @@ export default {
     align-self: center;
     align-content: center;
 }
+
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+    width: 100%;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    overflow-y: hidden;
+}
+
+.logo-text {
+    margin-right: 5px;
+    margin-left: 5px;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.logo{ 
+    width:60px;
+    height:60px;
+}
+
 </style>

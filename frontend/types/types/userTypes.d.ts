@@ -59,4 +59,6 @@ export type userDBentry = {
     friends: friend[];
     avatarImagePath: string;
     fcmToken: string;
+    karmaBoost: number;
+    frame: string;
 };

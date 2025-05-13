@@ -566,7 +566,9 @@ const userInfo = ref<userDBentry>({
     timeTrackerActive: false,
     karmaCoinsBalance: 0,
     friends: [],
-    fcmToken: ""
+    fcmToken: "",
+    karmaBoost : 0,
+    frame : ""
 });
 
 const router = useRouter();
@@ -777,7 +779,7 @@ function handleCalendarEvent(eventContent: { type: string, newEventsQuantity: nu
 async function handleToDoEvent(eventContent: { type: string, newToDoQuantity: number, karmaCoinsChange: undefined | number }) {
     console.log("eventContent:\n", eventContent)
     if (eventContent.karmaCoinsChange !== undefined && userInfo.value) {
-        userInfo.value.karmaCoinsBalance += eventContent.karmaCoinsChange;
+        userInfo.value.karmaCoinsBalance += eventContent.karmaCoinsChange + (userInfo.value.karmaBoost * eventContent.karmaCoinsChange);
     }
     await askToDo()
 }

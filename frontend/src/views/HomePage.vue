@@ -244,7 +244,7 @@ export default {
 
             if (eventContent.type == "todo completed or not completed" && eventContent.karmaCoinsChange) {
                 //update karma coins balance
-                userInfo.value.karmaCoinsBalance += eventContent.karmaCoinsChange
+                userInfo.value.karmaCoinsBalance += eventContent.karmaCoinsChange + (userInfo.value.karmaBoost * eventContent.karmaCoinsChange)
                 if (eventContent.karmaCoinsChange > 0) {
                     totalToDoQuantity.value--
                 } else {

@@ -49,9 +49,8 @@
                         </div>
                     </div>
                     <div class="inventory-box box elevated shadow-lg rounded-2xl">
-                        <InventoryDisplay :userInventoryNeedUpdate="uInventoryNeedUpdate"
-                            :userLicenseKey="userInfo.licenseKey" @apply-item="handleApplyItem"
-                            @use-item="handleUseItem" @show-notification="sendNotify" @update-user="askUserInfo" />
+                        <InventoryDisplay :userName="userInfo.username" :userInventoryNeedUpdate="uInventoryNeedUpdate"
+                            :userLicenseKey="userInfo.licenseKey"  @show-notification="sendNotify" @update-user="askUserInfo" />
                     </div>
                 </div>
 
@@ -200,25 +199,13 @@ async function askUserInfo() {
     if (userInfo.value.avatarImagePath == "") {
         userInfo.value.avatarImagePath = defaultImagePath
     }
+
+    uInventoryNeedUpdate.value = true
+    setTimeout(()=>uInventoryNeedUpdate.value = false, 1500);
 }
 
 const handleSectionChange = (newSection: any) => {
     console.log(`Navigating to section: ${newSection}`);
-};
-
-
-const handleApplyItem = (item: ShopItem) => {
-    sendNotify("success", `Applied item: ${item.name}`);
-    // Logic to apply the item (e.g., update avatar, etc.)
-    if (item.type === 'avatar') {
-        userInfo.value.avatarImagePath = item.imageUrl || defaultImagePath;
-        // Potentially update this in the backend as well
-    }
-};
-
-const handleUseItem = (item: ShopItem) => {
-    sendNotify("info", `Used item: ${item.name}`);
-    // Logic to use the item (e.g., consume, activate effect)
 };
 
 

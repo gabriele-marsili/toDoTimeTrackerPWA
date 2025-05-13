@@ -31,6 +31,7 @@ export declare class API_gestor {
     private userEmail;
     private userByDB;
     private firestoreProxy;
+    private fcmToken;
     private constructor();
     /**
      * singleton method to get the instance
@@ -173,4 +174,14 @@ export declare class API_gestor {
     private removeFriendRequest;
     rejectFriendRequest(requestRejected: friendRequest, userLK: string, username: string): Promise<baseResponse>;
     setAvatarImage(avatarImage: string, licenseKey: string): Promise<baseResponse>;
+    setAvatarFrame(frame: string, licenseKey: string): Promise<baseResponse>;
+    /**
+* Estrae la percentuale di boost e la durata da una descrizione di Karma Boost item.
+* Presuppone che la descrizione segua il pattern: "Increases karma earned by X% for Y hour(s)."
+*
+* @param description La stringa di descrizione dell'item Karma Boost.
+* @returns Un oggetto contenente il boost (0-1) e la durata in ore. Restituisce { boost: 0, time: 0 } se la descrizione non corrisponde al pattern atteso.
+*/
+    private extractKarmaBoostDetails;
+    useKarmaBoost(boostItem: ShopItem, lk: string, userName: string): Promise<baseResponse>;
 }
