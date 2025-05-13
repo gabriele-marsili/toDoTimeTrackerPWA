@@ -80,6 +80,21 @@ export class ExtComunicator {
             }
             await this.showClientSideNotification(notificationData)
         })
+
+        this.on("ASK_RULES_FROM_EXT", async () => {
+            const loadRes = await this.timeTrackerHandler.loadAllRules(this.licenseKey)
+            if (loadRes.success) {
+                this.updateTTrulesInExt(loadRes.rules)
+            }
+        })
+
+        this.on("RULES_UPDATED_FROM_EXT", async (payload: { timeTrackerRules: TimeTrackerRuleObj[] }) => {
+            const loadRes = await this.timeTrackerHandler.loadAllRules(this.licenseKey)            
+            if (Array.isArray(payload.timeTrackerRules) && loadRes.success) {
+                await timeTrackerHandler.mergeAndCheckCoerence(loadRes.rules, payload.timeTrackerRules, this.licenseKey)               
+            }
+        })
+
     }
 
     public static getInstance(timeTrackerHandler: TimeTrackerHandler, licenseKey: string) {
@@ -221,7 +236,7 @@ export class ExtComunicator {
                     reject(new Error(`Extension Error for ${message.type}: ${message.error}`)); // Reject con un errore
                 } else {
                     console.log("ExtComunicator: Promise resolved for request ID", message.requestId);
-                    console.log("message.payload:\n",message.payload)
+                    console.log("message.payload:\n", message.payload)
                     resolve(message.payload); // Risolvi con il payload della risposta dal background
                 }
                 return; // Gestita la risposta

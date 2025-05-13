@@ -256,7 +256,7 @@ self.addEventListener("install", async (event) => {
                     extComunicator.licenseKey = licenseKeyGlobal
                 }
                 await updateRules(licenseKeyGlobal)
-                let mergedRules = await timeTrackerHandler.mergeAndCheckCoerence(rules, extRuls, licenseKeyGlobal)
+                let mergedRules = await timeTrackerHandler.mergeAndCheckCoerence(rules, payload.timeTrackerRules, licenseKeyGlobal)
                 rules = []
                 for (let r of mergedRules) {
                     rules.push(timeTrackerHandler.fromRuleObj(r));

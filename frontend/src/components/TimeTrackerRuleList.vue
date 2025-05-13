@@ -174,7 +174,9 @@ const userInfo = ref<userDBentry>({
     timeTrackerActive: false,
     karmaCoinsBalance: 0,
     friends: [],
-    fcmToken: ""
+    fcmToken: "",
+    frame : "",
+    karmaBoost : 0
 });
 const extComunicator = ExtComunicator.getInstance(timeTrackerRuleHandler, userInfo.value.licenseKey)
 
@@ -396,7 +398,7 @@ onMounted(async () => {
         //check + merge per coerenza
         
         if (Array.isArray(payload.timeTrackerRules)) {
-            let mergedRules = await timeTrackerRuleHandler.mergeAndCheckCoerence(rules.value, extRuls, userInfo.value.licenseKey)
+            let mergedRules = await timeTrackerRuleHandler.mergeAndCheckCoerence(rules.value, payload.timeTrackerRules, userInfo.value.licenseKey)
             rules.value = []
             for (let r of mergedRules) {
                 rules.value.push(timeTrackerRuleHandler.fromRuleObj(r));

@@ -93,11 +93,12 @@ import NotificationManager from '../gestors/NotificationManager.vue';
 import Sidebar from '../components/Sidebar.vue';
 import { API_gestor } from '../backend-comunication/api_comunication';
 import { UserHandler } from '../engine/userHandler';
-import { userDBentry, category } from '../types/userTypes'; 
+import { userDBentry } from '../types/userTypes'; 
 import { useRouter } from 'vue-router';
 import { delay } from '../utils/generalUtils';
 import { ToDoHandler, ToDoObj,ToDoAction } from '../engine/toDoEngine';
-
+import { TimeTrackerHandler,TimeTrackerRule} from '../engine/timeTracker';
+import { ExtComunicator } from '../comunicator/extComunicator';
 const notificationManager = ref(null);
 const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
 const api_gestor = API_gestor.getInstance();
@@ -130,6 +131,9 @@ const userInfo = ref<userDBentry>({
 });
 
 const router = useRouter();
+const timeTrackerHandler = TimeTrackerHandler.getInstance(api_gestor)
+const extComunicator = ExtComunicator.getInstance(timeTrackerHandler, userInfo.value.licenseKey)
+const rules = ref<TimeTrackerRule[]>([]); // State per la lista delle regole
 
 // Stato per la gestione delle categorie
 const newCategoryName = ref('');
@@ -150,6 +154,26 @@ const getFrameClass = (frameId: string) => {
     }
     return `frame-${frameId.replace(/_/g, '-')}`; // Sostituisce underscore con trattino per nomi di classe CSS validi
 };
+
+async function askTimeTrackerRules() {
+    try {
+        if (userInfo.value.licenseKey == "") {
+            throw new Error("invalid license key")
+        }
+        const response = await timeTrackerHandler.loadAllRules(userInfo.value.licenseKey)
+        if (response.success) {
+            rules.value = [];
+            for (let r of response.rules) {
+                rules.value.push(timeTrackerHandler.fromRuleObj((r)));
+            }
+        }
+        else {
+            throw new Error(response.errorMessage)
+        }
+    } catch (error: any) {
+        sendNotify("error", "Error obtaining time tracker rules: " + error.message)
+    }
+}
 
 async function askToDo() {
     try {
@@ -291,6 +315,8 @@ const toggleTimeTracker = async () => {
         const updateRes = await userHandler.updateUserInfo(updatedUinfo);
         if (updateRes.success) {
             sendNotify("success", `Time Tracker ${userInfo.value.timeTrackerActive ? 'activated' : 'deactivated'} successfully`);
+            const rawUserInfo = toRaw(userInfo.value) //notify ext with updated user info (updated value of timeTrackerActive)
+            extComunicator.notifyPwaReady(rawUserInfo); 
         } else {
             userInfo.value.timeTrackerActive = !userInfo.value.timeTrackerActive;
             sendNotify("error", `Error while updating Time Tracker: ${updateRes.errorMessage}`);
@@ -350,6 +376,41 @@ onMounted(async () => {
 
     await askUserInfo();
     await askToDo()
+
+    extComunicator.licenseKey = userInfo.value.licenseKey
+
+    extComunicator.licenseKey = userInfo.value.licenseKey
+    await askTimeTrackerRules()
+
+    //ottengo rules da ext + controllo (ed eventuale update db + update locale)
+    const extRuls = await extComunicator.requestTimeTrackerRules()
+    
+    if (Array.isArray(extRuls)) {
+        let mergedRules = await timeTrackerHandler.mergeAndCheckCoerence(rules.value, extRuls, userInfo.value.licenseKey)
+        rules.value = []
+        for (let r of mergedRules) {
+            rules.value.push(timeTrackerHandler.fromRuleObj(r));
+        }
+    }
+
+    extComunicator.on("ASK_RULES_FROM_EXT",async()=>{
+        const rawRules = toRaw(rules.value).map(r => toRaw(r))
+        console.log("ASK_RULES_FROM_EXT => raw rules:\n",rawRules);
+        extComunicator.updateTTrulesInExt(rawRules)
+    })
+
+
+    extComunicator.on("RULES_UPDATED_FROM_EXT", async (payload: { timeTrackerRules: TimeTrackerRule[] }) => {
+        //check + merge per coerenza
+        if (Array.isArray(payload.timeTrackerRules)) {
+            let mergedRules = await timeTrackerHandler.mergeAndCheckCoerence(rules.value, payload.timeTrackerRules, userInfo.value.licenseKey)
+            rules.value = []
+            for (let r of mergedRules) {
+                rules.value.push(timeTrackerHandler.fromRuleObj(r));
+            }
+        }
+    })
+
 });
 </script>
 

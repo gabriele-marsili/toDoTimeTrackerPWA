@@ -248,7 +248,9 @@ const userInfo = ref<userDBentry>({ // State for user info
     timeTrackerActive: false, // Assuming this property exists
     karmaCoinsBalance: 0,
     friends: [],
-    fcmToken: "" // Assuming this property exists
+    fcmToken: "",
+    karmaBoost : 0,
+    frame : ""
 });
 const router = useRouter();
 const todoHandler = ToDoHandler.getInstance(api_gestor);
@@ -1511,7 +1513,7 @@ onMounted(async () => {
     extComunicator.on("RULES_UPDATED_FROM_EXT", async (payload: { timeTrackerRules: TimeTrackerRule[] }) => {
         //check + merge per coerenza
         if (Array.isArray(payload.timeTrackerRules)) {
-            let mergedRules = await timeTrackerHandler.mergeAndCheckCoerence(ttRules.value, extRuls, userInfo.value.licenseKey)
+            let mergedRules = await timeTrackerHandler.mergeAndCheckCoerence(ttRules.value, payload.timeTrackerRules, userInfo.value.licenseKey)
             ttRules.value = []
             for (let r of mergedRules) {
                 ttRules.value.push(timeTrackerHandler.fromRuleObj(r));
